@@ -284,7 +284,7 @@ export default function Home() {
               {[
                 { icon: Smartphone, text: "Paiement mobile en un geste, depuis votre téléphone" },
                 { icon: Bell, text: "Rappels SMS automatiques avant chaque échéance" },
-                { icon: ShieldCheck, text: "15% du bénéfice reversé au syndicat CUSEMS chaque mois" },
+                { icon: ShieldCheck, text: "Partenariat officiel garanti par le syndicat CUSEMS" },
               ].map((item) => (
                 <li key={item.text} className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-full bg-spruce/20 border border-spruce/30 flex items-center justify-center flex-shrink-0">
@@ -345,15 +345,15 @@ export default function Home() {
                 <span className="italic text-brass-light">envers le syndicat.</span>
               </h2>
               <p className="font-body text-paper/45 text-base md:text-lg leading-relaxed mb-10">
-                Semou Group reverse chaque mois 15% de son bénéfice net au
-                Centre de Facilitation d&apos;Achats du CUSEMS. Chaque commande
-                honorée renforce directement la solidarité entre enseignants.
+                Semou Group est le partenaire officiel du Centre de Facilitation
+                d&apos;Achats du CUSEMS. Chaque commande honorée renforce
+                directement la solidarité entre fonctionnaires sénégalais.
               </p>
               <div className="flex flex-wrap gap-10">
                 {[
                   { val: "578", lbl: "Dossiers enregistrés" },
                   { val: "14", lbl: "Régions couvertes" },
-                  { val: "15%", lbl: "Reversé au syndicat" },
+                  { val: "100%", lbl: "Fonctionnaires vérifiés" },
                 ].map(({ val, lbl }) => (
                   <div key={lbl}>
                     <div className="font-display text-3xl md:text-4xl text-brass-light">{val}</div>
