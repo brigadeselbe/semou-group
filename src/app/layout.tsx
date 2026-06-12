@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body
-        className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable} font-body bg-paper text-ink antialiased`}
+        className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable} font-body bg-void text-paper antialiased`}
       >
         {children}
       </body>
