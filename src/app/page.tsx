@@ -1,8 +1,9 @@
 import StampMark from "@/components/StampMark";
 import Ticker from "@/components/Ticker";
+import ProduitCard from "@/components/ProduitCard";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import type { CFAProduit } from "@/lib/supabase";
+import type { CFAProduit, CFAProduitMedia } from "@/lib/supabase";
 import {
   ArrowUpRight, ShieldCheck, Smartphone, Wallet,
   Bell, Truck, FileCheck2, ChevronRight, Tag,
@@ -26,97 +27,20 @@ const STEPS = [
   { n: "04", title: "Mensualités & livraison", icon: Truck,     desc: "Remboursez en plusieurs fois avec rappels SMS automatiques. Livraison sous 10 jours." },
 ];
 
-function fcfa(n: number) { return n.toLocaleString("fr-SN") + " F"; }
-
-function ProduitCard({ p }: { p: CFAProduit }) {
-  const menMin = Math.ceil((p.prix_vente - p.apport_minimum) / p.nb_mensualites_max);
-  const stockOk = p.stock_illimite || p.stock > 0;
-
-  return (
-    <div className="relative bg-surface border border-white/6 rounded-2xl overflow-hidden flex flex-col hover:border-brass/20 transition-colors group">
-      {/* Photo */}
-      {p.photo_url && (
-        <div className="w-full h-44 overflow-hidden bg-void">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={p.photo_url} alt={p.nom}
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
-        </div>
-      )}
-
-      {/* Badges */}
-      <div className="flex items-center gap-2 px-5 pt-5 pb-3">
-        <span className={`font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
-          p.etat === "NEUF"
-            ? "text-spruce-light bg-spruce/15 border-spruce/25"
-            : "text-brass bg-brass/10 border-brass/20"
-        }`}>
-          {p.etat === "NEUF" ? "Neuf" : p.etat === "OCCASION" ? "Occasion" : "Bon état"}
-        </span>
-        {p.en_vedette && (
-          <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-brass-light bg-brass/10 border-brass/20">
-            ★ Vedette
-          </span>
-        )}
-        {!stockOk && (
-          <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-paper/30 bg-white/4 border-white/8 ml-auto">
-            Épuisé
-          </span>
-        )}
-      </div>
-
-      {/* Nom */}
-      <div className="px-5 pb-4">
-        <h3 className="font-display text-xl md:text-2xl leading-tight text-paper">{p.nom}</h3>
-        {p.description && (
-          <p className="font-body text-sm text-paper/40 mt-1 leading-snug">{p.description}</p>
-        )}
-      </div>
-
-      {/* Chiffres */}
-      <div className="grid grid-cols-2 gap-px bg-white/5 border-t border-b border-white/5 mx-0">
-        <div className="bg-surface-2 px-5 py-3.5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25">Prix total</div>
-          <div className="font-display text-2xl text-brass-light mt-0.5">{fcfa(p.prix_vente)}</div>
-        </div>
-        <div className="bg-surface-2 px-5 py-3.5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25">Apport initial</div>
-          <div className="font-mono text-sm font-medium text-paper/70 mt-1">{fcfa(p.apport_minimum)}</div>
-        </div>
-        <div className="bg-surface-2 px-5 py-3.5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25">Mensualités</div>
-          <div className="font-mono text-sm font-medium text-paper/70 mt-1">Jusqu&apos;à {p.nb_mensualites_max}×</div>
-        </div>
-        <div className="bg-surface-2 px-5 py-3.5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25">Soit dès</div>
-          <div className="font-mono text-sm font-medium text-paper/70 mt-1">{fcfa(menMin)} / mois</div>
-        </div>
-      </div>
-
-      {/* CTA */}
-      <div className="px-5 py-4 mt-auto">
-        {stockOk ? (
-          <Link
-            href="/inscription"
-            className="flex items-center justify-center gap-2 w-full font-body text-sm font-medium bg-spruce-light text-paper px-4 py-3 rounded-full hover:bg-spruce transition-colors group-hover:glow-green"
-          >
-            Commander <ChevronRight className="w-4 h-4" />
-          </Link>
-        ) : (
-          <div className="flex items-center justify-center gap-2 w-full font-body text-sm text-paper/25 px-4 py-3 rounded-full border border-white/5">
-            Stock épuisé
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default async function Home() {
-  const [{ data: produits }, { count: nbClients }, { data: regionsRaw }] = await Promise.all([
+  const [{ data: produits }, { count: nbClients }, { data: regionsRaw }, { data: allMedias }] = await Promise.all([
     supabase.from("cfa_produits").select("*").eq("actif", true).order("prix_vente"),
     supabase.from("cfa_clients").select("*", { count: "exact", head: true }),
     supabase.from("cfa_clients").select("region").not("region", "is", null),
+    supabase.from("cfa_produit_medias").select("*").order("ordre"),
   ]);
+
+  // Grouper les médias par produit_id
+  const mediasByProduit: Record<string, CFAProduitMedia[]> = {}
+  ;(allMedias ?? []).forEach((m: CFAProduitMedia) => {
+    if (!mediasByProduit[m.produit_id]) mediasByProduit[m.produit_id] = []
+    mediasByProduit[m.produit_id].push(m)
+  })
 
   const nbRegions = new Set((regionsRaw ?? []).map((r: { region: string }) => r.region)).size;
   const nbDossiers = nbClients ?? 0;
@@ -248,7 +172,9 @@ export default async function Home() {
               </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {(produits as CFAProduit[]).map(p => <ProduitCard key={p.id} p={p} />)}
+              {(produits as CFAProduit[]).map(p => (
+                <ProduitCard key={p.id} p={p} medias={mediasByProduit[p.id] ?? []} />
+              ))}
             </div>
           </div>
         </section>

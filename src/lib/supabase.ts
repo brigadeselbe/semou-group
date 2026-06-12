@@ -64,6 +64,15 @@ export type CFACommande = {
   produit?: { nom: string } | null
 }
 
+export type CFAProduitMedia = {
+  id: string
+  produit_id: string
+  type: 'IMAGE' | 'VIDEO'
+  url: string
+  ordre: number
+  created_at: string
+}
+
 export type CFAVersement = {
   id: string
   commande_id: string

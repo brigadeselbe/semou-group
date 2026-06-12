@@ -124,6 +124,9 @@ export default function Admin() {
   const [savingProd,  setSavingProd]  = useState(false)
   const [photoFile,    setPhotoFile]    = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [prodMedias,   setProdMedias]   = useState<import('@/lib/supabase').CFAProduitMedia[]>([])
+  const [mediasLoading, setMediasLoading] = useState(false)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
 
   /* Stats */
   const [stats,      setStats]      = useState<DashStats | null>(null)
@@ -365,6 +368,7 @@ export default function Admin() {
   function openNewProd() {
     setEditProd(null); setProdForm(EMPTY_PRODUIT)
     setPhotoFile(null); setPhotoPreview(null)
+    setProdMedias([])
     setShowForm(true)
   }
   function openEditProd(p: CFAProduit) {
@@ -376,6 +380,8 @@ export default function Admin() {
       en_vedette: p.en_vedette, etat: p.etat,
     })
     setPhotoFile(null); setPhotoPreview(p.photo_url ?? null)
+    setProdMedias([])
+    loadProdMedias(p.id)
     setShowForm(true)
   }
   async function handleSaveProd(e: React.FormEvent) {
@@ -414,6 +420,44 @@ export default function Admin() {
     setShowForm(false); setSavingProd(false)
     setPhotoFile(null); setPhotoPreview(null)
   }
+  async function loadProdMedias(produitId: string) {
+    setMediasLoading(true)
+    const { data } = await supabase
+      .from('cfa_produit_medias').select('*')
+      .eq('produit_id', produitId).order('ordre')
+    setProdMedias((data ?? []) as import('@/lib/supabase').CFAProduitMedia[])
+    setMediasLoading(false)
+  }
+
+  async function handleUploadMedias(files: FileList, type: 'IMAGE' | 'VIDEO', produitId: string) {
+    setUploadingMedia(true)
+    const bucket = type === 'IMAGE' ? 'produit-photos' : 'produit-videos'
+    const nextOrdre = prodMedias.length
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i]
+      const ext  = f.name.split('.').pop()
+      const path = `${produitId}/${Date.now()}-${i}.${ext}`
+      const { error: upErr } = await supabase.storage.from(bucket).upload(path, f, { upsert: true })
+      if (upErr) { alert('Erreur upload : ' + upErr.message); continue }
+      const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path)
+      const { data: row } = await supabase
+        .from('cfa_produit_medias')
+        .insert({ produit_id: produitId, type, url: pub.publicUrl, ordre: nextOrdre + i })
+        .select().single()
+      if (row) setProdMedias(prev => [...prev, row as import('@/lib/supabase').CFAProduitMedia])
+    }
+    setUploadingMedia(false)
+  }
+
+  async function handleDeleteMedia(mediaId: string, url: string, type: 'IMAGE' | 'VIDEO') {
+    const bucket = type === 'IMAGE' ? 'produit-photos' : 'produit-videos'
+    // Extraire le path depuis l'URL publique
+    const pathMatch = url.match(/\/object\/public\/[^/]+\/(.+)$/)
+    if (pathMatch) await supabase.storage.from(bucket).remove([pathMatch[1]])
+    await supabase.from('cfa_produit_medias').delete().eq('id', mediaId)
+    setProdMedias(prev => prev.filter(m => m.id !== mediaId))
+  }
+
   async function handleDeleteProd(id: string) {
     if (!confirm('Supprimer ce produit ?')) return
     const { error } = await supabase.rpc('admin_delete_produit', { p_password: adminPwd, p_id: id })
@@ -984,35 +1028,64 @@ export default function Admin() {
                     className="w-full bg-void border border-white/8 rounded-lg p-2.5 font-body text-sm text-paper placeholder:text-paper/15 focus:border-brass/40 outline-none resize-none transition-colors" />
                 </FormField>
 
-                {/* Photo */}
+                {/* ── Médias (images + vidéos) ── */}
                 <div className="mt-4 mb-2">
-                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 mb-2">Photo produit</div>
-                  <div className="flex items-start gap-4">
-                    {photoPreview && (
-                      <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={photoPreview} alt="aperçu" className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}
-                          className="absolute top-1 right-1 bg-void/70 rounded-full p-0.5 text-clay hover:text-red-400">
-                          <XCircle className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                    <label className={`flex-1 flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl py-4 cursor-pointer transition-colors ${photoPreview ? 'border-white/8 hover:border-brass/20' : 'border-white/10 hover:border-brass/30'}`}>
-                      <Download className="w-5 h-5 text-paper/20 rotate-180" />
-                      <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-paper/30">
-                        {photoPreview ? 'Remplacer' : 'Choisir une image'}
-                      </span>
-                      <span className="font-mono text-[9px] text-paper/15">JPG · PNG · WebP · max 2 Mo</span>
-                      <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                        onChange={e => {
-                          const f = e.target.files?.[0]
-                          if (!f) return
-                          setPhotoFile(f)
-                          setPhotoPreview(URL.createObjectURL(f))
-                        }} />
-                    </label>
+                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 mb-3">
+                    Médias — images &amp; vidéos
+                    {editProd && <span className="ml-2 text-paper/15">(sauvegarder le produit d&apos;abord pour un nouveau)</span>}
                   </div>
+
+                  {/* Grille des médias existants */}
+                  {mediasLoading ? (
+                    <div className="flex items-center gap-2 text-paper/25 text-xs mb-3">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Chargement…
+                    </div>
+                  ) : prodMedias.length > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
+                      {prodMedias.map(m => (
+                        <div key={m.id} className="relative aspect-square rounded-xl overflow-hidden border border-white/8 bg-void group/m">
+                          {m.type === 'IMAGE' ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={m.url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-white/4">
+                              <Plus className="w-5 h-5 text-paper/20 rotate-45" />
+                              <span className="font-mono text-[9px] text-paper/25">Vidéo</span>
+                            </div>
+                          )}
+                          <button type="button"
+                            onClick={() => handleDeleteMedia(m.id, m.url, m.type)}
+                            className="absolute top-1 right-1 opacity-0 group-hover/m:opacity-100 bg-void/80 rounded-full p-0.5 text-clay hover:text-red-400 transition-opacity">
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                          <span className={`absolute bottom-1 left-1 font-mono text-[8px] uppercase px-1.5 py-0.5 rounded-full ${m.type === 'IMAGE' ? 'bg-spruce/40 text-spruce-light' : 'bg-brass/30 text-brass-light'}`}>
+                            {m.type === 'IMAGE' ? 'IMG' : 'VID'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Boutons d'upload — actifs seulement si le produit est déjà enregistré */}
+                  {editProd ? (
+                    <div className="flex flex-wrap gap-2">
+                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-white/15 hover:border-brass/40 text-paper/40 hover:text-brass'}`}>
+                        {uploadingMedia ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 rotate-180" />}
+                        + Images
+                        <input type="file" multiple accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingMedia}
+                          onChange={e => { if (e.target.files?.length) handleUploadMedias(e.target.files, 'IMAGE', editProd.id) }} />
+                      </label>
+                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-white/15 hover:border-brass/40 text-paper/40 hover:text-brass'}`}>
+                        {uploadingMedia ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 rotate-180" />}
+                        + Vidéo MP4
+                        <input type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" disabled={uploadingMedia}
+                          onChange={e => { if (e.target.files?.length) handleUploadMedias(e.target.files, 'VIDEO', editProd.id) }} />
+                      </label>
+                      <span className="font-mono text-[9px] text-paper/15 self-center">max 50 Mo par vidéo · JPG/PNG/WebP pour images</span>
+                    </div>
+                  ) : (
+                    <p className="font-mono text-[9px] text-paper/20">Créez d&apos;abord le produit, puis ajoutez des médias en le modifiant.</p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-6 mt-3 mb-5">
