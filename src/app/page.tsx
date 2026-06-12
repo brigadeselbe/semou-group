@@ -272,8 +272,8 @@ export default function Home() {
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">Paiement</span>
             <h2 className="font-display text-4xl md:text-5xl mt-3 mb-6 leading-[1.05] text-paper">
-              Wave, Orange Money,{" "}
-              <span className="italic text-brass-light">Free Money.</span>
+              Wave,{" "}
+              <span className="italic text-brass-light">Orange Money.</span>
             </h2>
             <p className="font-body text-paper/45 text-base md:text-lg leading-relaxed mb-8">
               Chaque versement déclenche une mise à jour instantanée de votre
