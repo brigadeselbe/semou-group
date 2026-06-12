@@ -470,7 +470,7 @@ export default function Admin() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-brass">CFA CUSEMS</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</div>
           <h1 className="font-display text-2xl md:text-3xl text-paper mt-0.5">
             Tableau de bord <span className="italic text-brass-light">administrateur</span>
           </h1>
@@ -1153,7 +1153,7 @@ export default function Admin() {
       )}
 
       <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/12 text-center mt-10">
-        Semou Group × CFA CUSEMS · Tableau de bord administrateur · Usage interne
+        Semou Group × CFA CUSEMS Authentique · Tableau de bord administrateur · Usage interne
       </p>
     </div>
   )

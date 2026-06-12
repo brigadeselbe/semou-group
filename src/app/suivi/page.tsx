@@ -406,7 +406,7 @@ export default function Suivi() {
           )}
 
           <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/15 text-center mt-12">
-            © 2026 Semou Group × CFA CUSEMS · Récépissé N. 0413/MINT/DGAT/DLP
+            © 2026 Semou Group × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
           </p>
         </div>
       </div>
@@ -422,7 +422,7 @@ export default function Suivi() {
           <ArrowLeft className="w-4 h-4" /> Retour
         </Link>
         <div className="mb-8">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">CFA CUSEMS</span>
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</span>
           <h1 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05] text-paper">Suivi de<br /><span className="italic text-brass-light">commande.</span></h1>
           <p className="font-body text-paper/40 text-sm mt-4 leading-relaxed">Entrez le numéro de téléphone enregistré lors de votre inscription.</p>
         </div>

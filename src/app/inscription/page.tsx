@@ -308,7 +308,7 @@ export default function Inscription() {
         </Link>
 
         <div className="mb-10">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">CFA CUSEMS</span>
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</span>
           <h1 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05] text-paper">
             Formulaire<br /><span className="italic text-brass-light">d&apos;inscription.</span>
           </h1>
@@ -323,7 +323,7 @@ export default function Inscription() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/25">Bordereau d&apos;inscription</div>
-                <div className="font-display text-lg mt-0.5 text-paper">Semou Group <span className="text-brass-light">× CFA CUSEMS</span></div>
+                <div className="font-display text-lg mt-0.5 text-paper">Semou Group <span className="text-brass-light">× CFA CUSEMS Authentique</span></div>
               </div>
               <div className="text-right">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/25">Date</div>
@@ -453,7 +453,7 @@ export default function Inscription() {
             <div className="mt-8 pt-6 border-t border-dashed border-white/8">
               <p className="font-mono text-[10px] text-paper/20 tracking-[0.1em] leading-relaxed mb-6">
                 Je certifie sur l&apos;honneur l&apos;exactitude des informations fournies et
-                m&apos;engage à respecter les conditions de remboursement du CFA CUSEMS.
+                m&apos;engage à respecter les conditions de remboursement du CFA CUSEMS Authentique.
               </p>
 
               {errMsg && (
@@ -478,7 +478,7 @@ export default function Inscription() {
         </div>
 
         <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/15 text-center mt-10">
-          © 2026 Semou Group × CFA CUSEMS · Récépissé N. 0413/MINT/DGAT/DLP
+          © 2026 Semou Group × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
         </p>
       </div>
     </div>
