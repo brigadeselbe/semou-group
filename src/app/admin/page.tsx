@@ -132,6 +132,9 @@ export default function Admin() {
   const [matResult,  setMatResult]  = useState<CFAClient | null | 'none'>('none')
   const [matLoading, setMatLoading] = useState(false)
 
+  /* Versement manuel */
+  const [markingVers, setMarkingVers] = useState<string | null>(null)
+
   /* Nouvelle commande */
   const [newCmdClient,  setNewCmdClient]  = useState<CFAClient | null>(null)
   const [newCmdProduit, setNewCmdProduit] = useState('')
@@ -219,6 +222,34 @@ export default function Admin() {
       }).catch(() => null)
     }
     setUpdating(null)
+  }
+
+  async function handleMarquerPaye(versId: string, cmdId: string, moyen = 'ESPECES') {
+    setMarkingVers(versId)
+    const { error } = await supabase.rpc('admin_marquer_versement_paye', {
+      p_password:     adminPwd,
+      p_versement_id: versId,
+      p_moyen:        moyen,
+    })
+    if (error) { alert('Erreur : ' + error.message); setMarkingVers(null); return }
+    // Mise à jour locale sans rechargement complet
+    setCommandes(prev => prev.map(cmd => {
+      if (cmd.id !== cmdId) return cmd
+      const versements = cmd.versements.map(v =>
+        v.id === versId
+          ? { ...v, statut: 'PAYE', montant_paye: v.montant_prevu, date_paiement: new Date().toISOString(), moyen_paiement: moyen }
+          : v
+      )
+      const resteApres = Math.max(0, cmd.reste_a_payer - (cmd.versements.find(v => v.id === versId)?.montant_prevu ?? 0))
+      const encoreImpaye = versements.some(v => v.statut === 'EN_ATTENTE' || v.statut === 'EN_RETARD')
+      return {
+        ...cmd,
+        versements,
+        reste_a_payer: resteApres,
+        statut: (!encoreImpaye || resteApres <= 0) ? 'SOLDE' : cmd.statut,
+      }
+    }))
+    setMarkingVers(null)
   }
 
   async function handleCreateCommande(e: React.FormEvent) {
@@ -845,12 +876,22 @@ export default function Admin() {
                                           : (
                                             <div className="space-y-1.5 max-w-xl">
                                               {cmd.versements.map(v => (
-                                                <div key={v.id} className="flex items-center gap-4 font-mono text-xs">
+                                                <div key={v.id} className="flex items-center gap-3 font-mono text-xs">
                                                   <span className="text-paper/35 w-5">#{v.numero_versement}</span>
-                                                  <span className="text-paper/40 flex-1">{fmt(v.date_echeance)}</span>
+                                                  <span className="text-paper/40 w-20">{fmt(v.date_echeance)}</span>
                                                   <span className="text-paper/60 w-24 text-right">{fcfa(v.montant_prevu)}</span>
-                                                  {v.date_paiement && <span className="text-paper/30 hidden md:inline">payé le {fmt(v.date_paiement)}</span>}
+                                                  {v.date_paiement && <span className="text-paper/30 hidden md:inline">payé {fmt(v.date_paiement)}</span>}
                                                   <Badge statut={v.statut} s={VER_STYLE} l={VER_LBL} />
+                                                  {(v.statut === 'EN_ATTENTE' || v.statut === 'EN_RETARD') && cmd.statut === 'EN_COURS' && (
+                                                    markingVers === v.id
+                                                      ? <Loader2 className="w-3.5 h-3.5 text-brass animate-spin ml-1" />
+                                                      : (
+                                                        <button onClick={() => handleMarquerPaye(v.id, cmd.id)}
+                                                          className="ml-1 flex items-center gap-1 text-[10px] uppercase text-spruce-light border border-spruce/30 rounded-full px-2 py-0.5 hover:bg-spruce/10 transition-colors whitespace-nowrap">
+                                                          <CheckCircle2 className="w-3 h-3" /> Espèces
+                                                        </button>
+                                                      )
+                                                  )}
                                                 </div>
                                               ))}
                                             </div>
