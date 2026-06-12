@@ -30,12 +30,12 @@ const STATUT_COLORS: Record<string, string> = {
   VALIDE:     'text-spruce-light bg-spruce/20 border border-spruce/30',
   EN_ATTENTE: 'text-brass-light bg-brass/10 border border-brass/20',
   EN_COURS:   'text-spruce-light bg-spruce/20 border border-spruce/30',
-  SOLDE:      'text-paper/30 bg-white/5 border border-white/10',
+  SOLDE:      'text-paper/55 bg-white/5 border border-white/10',
   PAYE:       'text-spruce-light bg-spruce/20 border border-spruce/30',
   EN_RETARD:  'text-clay bg-clay/10 border border-clay/20',
   LIVREE:     'text-spruce-light bg-spruce/20 border border-spruce/30',
   ECHEC:      'text-clay bg-clay/10 border border-clay/20',
-  ANNULEE:    'text-paper/25 bg-white/5 border border-white/8',
+  ANNULEE:    'text-paper/45 bg-white/5 border border-white/8',
 }
 const STATUT_LABELS: Record<string, string> = {
   VALIDE: 'Validé', EN_ATTENTE: 'En attente', EN_COURS: 'En cours',
@@ -53,7 +53,7 @@ type ResultData = { client: CFAClient; commandes: CommandeWithDetails[] }
 
 /* ── Badge statut ── */
 function StatutBadge({ statut }: { statut: string }) {
-  const cls = STATUT_COLORS[statut] ?? 'text-paper/30 bg-white/5 border border-white/8'
+  const cls = STATUT_COLORS[statut] ?? 'text-paper/55 bg-white/5 border border-white/8'
   return (
     <span className={`font-mono text-[10px] uppercase tracking-[0.15em] px-2 py-1 rounded-full ${cls}`}>
       {STATUT_LABELS[statut] ?? statut}
@@ -86,7 +86,7 @@ function PayModal({ target, telephone, onClose }: {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
       <div className="absolute inset-0 bg-void/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-surface border border-white/8 rounded-2xl p-6 w-full max-w-sm">
-        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30 mb-1">Paiement</div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 mb-1">Paiement</div>
         <div className="font-display text-xl text-paper mb-1">{target.label}</div>
         <div className="font-mono text-sm text-brass-light mb-5">{formatFcfa(target.montant)}</div>
 
@@ -115,7 +115,7 @@ function PayModal({ target, telephone, onClose }: {
             {loading === 'orange' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-sm opacity-70">→</span>}
           </button>
 
-          <button onClick={onClose} className="w-full font-body text-sm text-paper/40 hover:text-paper/60 py-2 transition-colors">
+          <button onClick={onClose} className="w-full font-body text-sm text-paper/65 hover:text-paper/60 py-2 transition-colors">
             Annuler
           </button>
         </div>
@@ -127,7 +127,7 @@ function PayModal({ target, telephone, onClose }: {
 /* ── Livraison timeline ── */
 function LivraisonTimeline({ livraison }: { livraison: CFALivraison | null }) {
   if (!livraison) return (
-    <p className="font-mono text-[10px] text-paper/25 uppercase tracking-[0.1em]">
+    <p className="font-mono text-[10px] text-paper/45 uppercase tracking-[0.1em]">
       Livraison planifiée après validation du paiement
     </p>
   )
@@ -140,10 +140,10 @@ function LivraisonTimeline({ livraison }: { livraison: CFALivraison | null }) {
           const done = i <= currentIdx && !isEchec
           return (
             <div key={step.key} className="flex items-center gap-2 flex-shrink-0">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center border ${done ? 'bg-spruce-light border-spruce-light text-paper' : 'bg-void border-white/10 text-paper/20'}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center border ${done ? 'bg-spruce-light border-spruce-light text-paper' : 'bg-void border-white/10 text-paper/65'}`}>
                 <step.Icon className="w-3.5 h-3.5" />
               </div>
-              <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${done ? 'text-spruce-light' : 'text-paper/20'}`}>{step.label}</span>
+              <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${done ? 'text-spruce-light' : 'text-paper/65'}`}>{step.label}</span>
               {i < LIVRAISON_STEPS.length - 1 && (
                 <div className={`w-6 h-px flex-shrink-0 ${done && i < currentIdx ? 'bg-spruce-light' : 'bg-white/8'}`} />
               )}
@@ -155,16 +155,16 @@ function LivraisonTimeline({ livraison }: { livraison: CFALivraison | null }) {
       <div className="grid grid-cols-2 gap-3">
         {livraison.date_planifiee && (
           <div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25">Date prévue</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45">Date prévue</div>
             <div className="font-mono text-xs text-paper/60 mt-0.5">{formatDate(livraison.date_planifiee)}</div>
           </div>
         )}
         {livraison.frais_livraison !== null && (
           <div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25">Frais livraison</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45">Frais livraison</div>
             <div className={`font-mono text-xs mt-0.5 ${livraison.frais_payes ? 'text-spruce-light' : 'text-clay'}`}>
               {formatFcfa(livraison.frais_livraison)}{' '}
-              <span className="text-paper/35">{livraison.frais_payes ? '· Payé' : '· À réception'}</span>
+              <span className="text-paper/60">{livraison.frais_payes ? '· Payé' : '· À réception'}</span>
             </div>
           </div>
         )}
@@ -196,7 +196,7 @@ function CommandeCard({ commande, telephone }: {
       {/* Header */}
       <div className="flex items-start justify-between px-5 md:px-6 pt-5 pb-4 border-b border-dashed border-white/5">
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/25">Commande</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">Commande</div>
           <div className="font-mono text-sm font-medium text-paper mt-0.5">{commande.reference}</div>
         </div>
         <StatutBadge statut={commande.statut} />
@@ -207,7 +207,7 @@ function CommandeCard({ commande, telephone }: {
         {/* Produit */}
         {(commande.produit?.nom || commande.notes) && (
           <div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-0.5">Produit</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mb-0.5">Produit</div>
             <div className="font-body text-sm text-paper/70">{commande.produit?.nom ?? commande.notes}</div>
           </div>
         )}
@@ -215,12 +215,12 @@ function CommandeCard({ commande, telephone }: {
         {/* Montants */}
         <div className="grid grid-cols-3 gap-px bg-white/5 border border-white/6 rounded-xl overflow-hidden">
           {[
-            { lbl: 'Prix total', val: formatFcfa(commande.prix_vente) },
-            { lbl: 'Versé',      val: formatFcfa(commande.apport_paye) },
-            { lbl: 'Reste',      val: formatFcfa(commande.reste_a_payer) },
+            { lbl: 'Total',  val: formatFcfa(commande.prix_vente) },
+            { lbl: 'Versé',  val: formatFcfa(commande.apport_paye) },
+            { lbl: 'Reste',  val: formatFcfa(commande.reste_a_payer) },
           ].map(({ lbl, val }) => (
-            <div key={lbl} className="bg-surface-2 px-3 py-2.5">
-              <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-paper/25">{lbl}</div>
+            <div key={lbl} className="bg-surface-2 px-2 py-2.5 sm:px-3">
+              <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-paper/45">{lbl}</div>
               <div className="font-mono text-xs font-medium text-paper/70 mt-0.5">{val}</div>
             </div>
           ))}
@@ -241,7 +241,7 @@ function CommandeCard({ commande, telephone }: {
 
         {/* Progression */}
         <div>
-          <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.1em] text-paper/25 mb-2">
+          <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.1em] text-paper/45 mb-2">
             <span>Progression</span>
             <span>{payees} / {total} mensualités</span>
           </div>
@@ -249,23 +249,23 @@ function CommandeCard({ commande, telephone }: {
             <div className="h-full bg-gradient-to-r from-spruce to-spruce-light rounded-full transition-all" style={{ width: `${pct}%` }} />
           </div>
           {commande.montant_mensualite > 0 && (
-            <div className="font-mono text-[9px] text-paper/25 mt-1">{formatFcfa(commande.montant_mensualite)} / mois</div>
+            <div className="font-mono text-[9px] text-paper/45 mt-1">{formatFcfa(commande.montant_mensualite)} / mois</div>
           )}
         </div>
 
         {/* Versements */}
         {commande.versements.length > 0 && (
           <div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-2">Échéancier</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mb-2">Échéancier</div>
             <div className="space-y-2">
               {commande.versements.map((v, i) => (
                 <div key={v.id} className="flex items-center justify-between font-mono text-xs">
-                  <span className="text-paper/30">Versement {i + 1}</span>
-                  <span className="text-paper/30 text-[10px]">{formatDate(v.date_echeance)}</span>
+                  <span className="text-paper/55">Versement {i + 1}</span>
+                  <span className="text-paper/55 text-[10px]">{formatDate(v.date_echeance)}</span>
                   <div className="flex items-center gap-2">
                     <span className={
                       v.statut === 'PAYE' ? 'text-spruce-light' :
-                      v.statut === 'EN_RETARD' ? 'text-clay' : 'text-paper/40'
+                      v.statut === 'EN_RETARD' ? 'text-clay' : 'text-paper/65'
                     }>{formatFcfa(v.montant_prevu)}</span>
                     <StatutBadge statut={v.statut} />
                     {canPay && (v.statut === 'EN_ATTENTE' || v.statut === 'EN_RETARD') && (
@@ -288,7 +288,7 @@ function CommandeCard({ commande, telephone }: {
 
         {/* Livraison */}
         <div className="pt-4 border-t border-dashed border-white/5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-3">Livraison</div>
+          <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mb-3">Livraison</div>
           <LivraisonTimeline livraison={commande.livraison} />
         </div>
       </div>
@@ -362,7 +362,7 @@ export default function Suivi() {
           </div>
 
           <button onClick={() => { setStage('search'); setPhone(''); setResult(null) }}
-            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/40 hover:text-brass-light transition-colors mb-10">
+            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/65 hover:text-brass-light transition-colors mb-10">
             <ArrowLeft className="w-4 h-4" /> Nouvelle recherche
           </button>
 
@@ -370,16 +370,16 @@ export default function Suivi() {
           <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6 mb-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/25">Dossier client</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">Dossier client</div>
                 <div className="font-display text-xl text-paper mt-1">{client.prenom} {client.nom}</div>
               </div>
               <StatutBadge statut={client.statut} />
             </div>
             <div className="grid grid-cols-2 gap-3 font-mono text-xs">
-              {client.matricule && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/25">Matricule</div><div className="text-paper/60 mt-0.5">{client.matricule}</div></div>}
-              {client.type_fonctionnaire && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/25">Corps</div><div className="text-paper/60 mt-0.5">{client.type_fonctionnaire}</div></div>}
-              {client.ia && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/25">Académie</div><div className="text-paper/60 mt-0.5">{client.ia}</div></div>}
-              {client.region && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/25">Région</div><div className="text-paper/60 mt-0.5">{client.region}</div></div>}
+              {client.matricule && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Matricule</div><div className="text-paper/60 mt-0.5">{client.matricule}</div></div>}
+              {client.type_fonctionnaire && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Corps</div><div className="text-paper/60 mt-0.5">{client.type_fonctionnaire}</div></div>}
+              {client.ia && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Académie</div><div className="text-paper/60 mt-0.5">{client.ia}</div></div>}
+              {client.region && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Région</div><div className="text-paper/60 mt-0.5">{client.region}</div></div>}
             </div>
             {client.statut === 'EN_ATTENTE' && (
               <div className="mt-4 pt-4 border-t border-dashed border-white/5 font-mono text-[10px] text-brass/80 tracking-[0.08em]">
@@ -391,12 +391,12 @@ export default function Suivi() {
           {/* Commandes */}
           {commandes.length === 0 ? (
             <div className="text-center py-12">
-              <p className="font-body text-paper/40 text-sm">Aucune commande enregistrée pour ce dossier.</p>
+              <p className="font-body text-paper/65 text-sm">Aucune commande enregistrée pour ce dossier.</p>
               <Link href="/" className="inline-block mt-4 font-body text-sm text-brass-light underline underline-offset-4">Découvrir nos produits</Link>
             </div>
           ) : (
             <div className="space-y-5">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/25">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">
                 {commandes.length} commande{commandes.length > 1 ? 's' : ''}
               </div>
               {commandes.map(cmd => (
@@ -405,7 +405,7 @@ export default function Suivi() {
             </div>
           )}
 
-          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/15 text-center mt-12">
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60 text-center mt-12">
             © 2026 Semou Group × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
           </p>
         </div>
@@ -418,21 +418,21 @@ export default function Suivi() {
     <div className="min-h-screen flex items-center justify-center px-6 py-20">
       <div className="max-w-md w-full">
         <div className="fixed top-1/3 left-1/2 -translate-x-1/2 w-80 h-60 bg-spruce/20 blur-[100px] rounded-full pointer-events-none" />
-        <Link href="/" className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/40 hover:text-brass-light transition-colors mb-10">
+        <Link href="/" className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/65 hover:text-brass-light transition-colors mb-10">
           <ArrowLeft className="w-4 h-4" /> Retour
         </Link>
         <div className="mb-8">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</span>
           <h1 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05] text-paper">Suivi de<br /><span className="italic text-brass-light">commande.</span></h1>
-          <p className="font-body text-paper/40 text-sm mt-4 leading-relaxed">Entrez le numéro de téléphone enregistré lors de votre inscription.</p>
+          <p className="font-body text-paper/65 text-sm mt-4 leading-relaxed">Entrez le numéro de téléphone enregistré lors de votre inscription.</p>
         </div>
         <div className="relative bg-surface border border-white/6 rounded-2xl glow-green p-6 md:p-8">
           <form onSubmit={handleSearch} className="space-y-6">
             <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30 block mb-3">Numéro de téléphone</label>
+              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 block mb-3">Numéro de téléphone</label>
               <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                 placeholder="77 XXX XX XX"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-xl text-paper pb-2 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-xl text-paper pb-2 transition-colors placeholder:text-paper/60" />
             </div>
             {stage === 'error' && errMsg && (
               <div className="flex items-start gap-3 bg-clay/10 border border-clay/25 rounded-xl p-4">

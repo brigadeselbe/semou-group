@@ -196,11 +196,11 @@ export default function Inscription() {
         <div className="relative max-w-sm w-full">
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-60 h-40 bg-brass/10 blur-[80px] rounded-full pointer-events-none" />
           <div className="relative bg-surface border border-white/6 rounded-2xl p-8">
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/25 mb-1">Étape 2 / 2</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45 mb-1">Étape 2 / 2</div>
             <div className="font-display text-2xl text-paper mb-1">
               Payer <span className="italic text-brass-light">l&apos;apport</span>
             </div>
-            <p className="font-body text-paper/40 text-sm mb-6 leading-relaxed">
+            <p className="font-body text-paper/65 text-sm mb-6 leading-relaxed">
               Verrouillez votre commande en réglant l&apos;apport initial.
             </p>
 
@@ -209,11 +209,11 @@ export default function Inscription() {
                 <div className="font-body text-sm font-medium text-paper">{produitChoisi.nom}</div>
                 <div className="grid grid-cols-2 gap-3 font-mono text-xs">
                   <div>
-                    <div className="text-paper/25 text-[10px] uppercase tracking-[0.12em]">Apport</div>
+                    <div className="text-paper/45 text-[10px] uppercase tracking-[0.12em]">Apport</div>
                     <div className="text-brass-light mt-0.5">{formatFcfa(apport)}</div>
                   </div>
                   <div>
-                    <div className="text-paper/25 text-[10px] uppercase tracking-[0.12em]">Mensualité</div>
+                    <div className="text-paper/45 text-[10px] uppercase tracking-[0.12em]">Mensualité</div>
                     <div className="text-paper/60 mt-0.5">{formatFcfa(mensualite)} × {nbMensualites}</div>
                   </div>
                 </div>
@@ -240,13 +240,13 @@ export default function Inscription() {
               </button>
 
               <button onClick={() => setStage('success')}
-                className="w-full font-body text-sm text-paper/35 hover:text-paper/55 py-2 transition-colors">
+                className="w-full font-body text-sm text-paper/60 hover:text-paper/55 py-2 transition-colors">
                 Payer plus tard → accéder à mon suivi
               </button>
             </div>
 
             <div className="mt-5 pt-4 border-t border-dashed border-white/6">
-              <div className="font-mono text-[10px] text-paper/20 tracking-[0.08em]">Réf. dossier : {refCode}</div>
+              <div className="font-mono text-[10px] text-paper/65 tracking-[0.08em]">Réf. dossier : {refCode}</div>
             </div>
           </div>
         </div>
@@ -261,7 +261,7 @@ export default function Inscription() {
         <div className="relative max-w-md w-full bg-surface border border-white/6 rounded-2xl glow-green p-8 md:p-12 text-center overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-spruce-light/30 blur-[50px] rounded-full" />
           <div className="relative">
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/25 mb-8">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45 mb-8">
               Bordereau · Dossier enregistré
             </div>
             <div className="w-14 h-14 rounded-full bg-spruce-light/20 border border-spruce-light/30 flex items-center justify-center mx-auto mb-6">
@@ -275,7 +275,7 @@ export default function Inscription() {
               <strong className="text-paper/70">24 à 48 heures</strong>.
             </p>
             <div className="bg-void border border-white/6 rounded-xl p-4 mb-10 inline-block">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30 mb-1.5">Référence dossier</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 mb-1.5">Référence dossier</div>
               <div className="font-mono text-base md:text-lg font-medium text-brass-light">{refCode}</div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -303,7 +303,7 @@ export default function Inscription() {
       <div className="max-w-2xl mx-auto">
 
         <Link href="/"
-          className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/40 hover:text-brass-light transition-colors mb-10">
+          className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/65 hover:text-brass-light transition-colors mb-10">
           <ArrowLeft className="w-4 h-4" /> Retour
         </Link>
 
@@ -312,7 +312,7 @@ export default function Inscription() {
           <h1 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05] text-paper">
             Formulaire<br /><span className="italic text-brass-light">d&apos;inscription.</span>
           </h1>
-          <p className="font-body text-paper/40 text-sm mt-4 max-w-sm leading-relaxed">
+          <p className="font-body text-paper/65 text-sm mt-4 max-w-sm leading-relaxed">
             Remplissez ce bordereau en ligne. Validation sous 24 à 48 heures.
           </p>
         </div>
@@ -322,12 +322,12 @@ export default function Inscription() {
           <div className="px-6 md:px-8 pt-8 pb-5 border-b border-white/5">
             <div className="flex items-start justify-between">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/25">Bordereau d&apos;inscription</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45">Bordereau d&apos;inscription</div>
                 <div className="font-display text-lg mt-0.5 text-paper">Semou Group <span className="text-brass-light">× CFA CUSEMS Authentique</span></div>
               </div>
               <div className="text-right">
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/25">Date</div>
-                <div className="font-mono text-xs text-paper/50">
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">Date</div>
+                <div className="font-mono text-xs text-paper/70">
                   {new Date().toLocaleDateString('fr-SN', { day: '2-digit', month: 'long', year: 'numeric' })}
                 </div>
               </div>
@@ -340,19 +340,19 @@ export default function Inscription() {
             <SectionBar>Section I — Identité civile</SectionBar>
             <Field n="01" label="Prénom">
               <input required value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="ex : Aminata"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="02" label="Nom de famille">
               <input required value={nom} onChange={e => setNom(e.target.value)} placeholder="ex : Diallo"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="03" label="Téléphone">
               <input required type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder="77 XXX XX XX"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="04" label="N° Matricule">
               <input required value={matricule} onChange={e => setMatricule(e.target.value)} placeholder="ex : 300501163/E"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
 
             {/* ── Section II ── */}
@@ -378,11 +378,11 @@ export default function Inscription() {
             )}
             <Field n="07" label="Académie (IA)">
               <input value={ia} onChange={e => setIa(e.target.value)} placeholder="ex : Kolda"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="08" label="IEF">
               <input value={ief} onChange={e => setIef(e.target.value)} placeholder="ex : Médina-Yoro-Foulah"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="09" label="Région">
               <select value={region} onChange={e => setRegion(e.target.value)}
@@ -393,12 +393,12 @@ export default function Inscription() {
             </Field>
             <Field n="10" label="École / Poste">
               <input value={ecole} onChange={e => setEcole(e.target.value)} placeholder="ex : Lycée Ely Manel Fall"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
 
             {/* ── Section III ── */}
             <SectionBar>Section III — Pièces justificatives</SectionBar>
-            <div className="font-mono text-[10px] text-paper/25 tracking-[0.1em] pt-2 pb-1 border-b border-dashed border-white/5">
+            <div className="font-mono text-[10px] text-paper/45 tracking-[0.1em] pt-2 pb-1 border-b border-dashed border-white/5">
               Formats acceptés : JPEG, PNG, PDF — 10 Mo max par fichier
             </div>
             <FileField n="11" label="CNI · Recto" file={cniRecto} onPick={() => rectoRef.current?.click()} onClear={() => setCniRecto(null)} />
@@ -436,11 +436,11 @@ export default function Inscription() {
                     </Field>
                     <div className="grid grid-cols-2 gap-px bg-white/5 border border-white/6 rounded-xl overflow-hidden mx-0 my-3">
                       <div className="bg-surface-2 px-4 py-3">
-                        <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25">Apport à verser</div>
+                        <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45">Apport à verser</div>
                         <div className="font-mono text-sm font-medium text-brass-light mt-0.5">{formatFcfa(apport)}</div>
                       </div>
                       <div className="bg-surface-2 px-4 py-3">
-                        <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25">Mensualité</div>
+                        <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45">Mensualité</div>
                         <div className="font-mono text-sm font-medium text-paper/70 mt-0.5">{formatFcfa(mensualite)} / mois</div>
                       </div>
                     </div>
@@ -451,7 +451,7 @@ export default function Inscription() {
 
             {/* ── Soumission ── */}
             <div className="mt-8 pt-6 border-t border-dashed border-white/8">
-              <p className="font-mono text-[10px] text-paper/20 tracking-[0.1em] leading-relaxed mb-6">
+              <p className="font-mono text-[10px] text-paper/65 tracking-[0.1em] leading-relaxed mb-6">
                 Je certifie sur l&apos;honneur l&apos;exactitude des informations fournies et
                 m&apos;engage à respecter les conditions de remboursement du CFA CUSEMS Authentique.
               </p>
@@ -477,7 +477,7 @@ export default function Inscription() {
           </form>
         </div>
 
-        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/15 text-center mt-10">
+        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60 text-center mt-10">
           © 2026 Semou Group × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
         </p>
       </div>
@@ -496,8 +496,8 @@ function SectionBar({ children }: { children: React.ReactNode }) {
 function Field({ n, label, children }: { n: string; label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-4 py-3.5 border-b border-dashed border-white/5 last:border-0">
-      <span className="font-mono text-[10px] text-paper/20 w-5 flex-shrink-0 select-none">{n}</span>
-      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-paper/35 w-28 flex-shrink-0 leading-tight">{label}</span>
+      <span className="font-mono text-[10px] text-paper/65 w-5 flex-shrink-0 select-none">{n}</span>
+      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-paper/60 w-28 flex-shrink-0 leading-tight">{label}</span>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   )
@@ -507,17 +507,17 @@ function FileField({ n, label, file, onPick, onClear }: {
 }) {
   return (
     <div className="flex items-center gap-4 py-3.5 border-b border-dashed border-white/5">
-      <span className="font-mono text-[10px] text-paper/20 w-5 flex-shrink-0 select-none">{n}</span>
-      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-paper/35 w-28 flex-shrink-0 leading-tight">{label}</span>
+      <span className="font-mono text-[10px] text-paper/65 w-5 flex-shrink-0 select-none">{n}</span>
+      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-paper/60 w-28 flex-shrink-0 leading-tight">{label}</span>
       <div className="flex-1 min-w-0">
         {file ? (
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs text-brass-light truncate">{file.name}</span>
-            <button type="button" onClick={onClear} className="font-mono text-sm text-paper/20 hover:text-clay transition-colors flex-shrink-0">×</button>
+            <button type="button" onClick={onClear} className="font-mono text-sm text-paper/65 hover:text-clay transition-colors flex-shrink-0">×</button>
           </div>
         ) : (
           <button type="button" onClick={onPick}
-            className="flex items-center gap-1.5 border border-dashed border-white/10 rounded-lg px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-paper/30 hover:border-brass/40 hover:text-brass-light transition-colors">
+            className="flex items-center gap-1.5 border border-dashed border-white/10 rounded-lg px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-paper/55 hover:border-brass/40 hover:text-brass-light transition-colors">
             <Upload className="w-3 h-3" /> Joindre
           </button>
         )}

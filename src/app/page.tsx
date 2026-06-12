@@ -61,7 +61,7 @@ export default async function Home() {
             <div className="w-9 h-9 rounded-full bg-spruce-light flex items-center justify-center text-brass font-display italic text-lg ring-1 ring-white/10">S</div>
             <span className="font-display text-lg tracking-tight text-paper">Semou <span className="text-brass-light">Group</span></span>
           </div>
-          <nav className="hidden md:flex items-center gap-8 font-body text-sm text-paper/50">
+          <nav className="hidden md:flex items-center gap-8 font-body text-sm text-paper/70">
             <a href="#produits"  className="hover:text-paper transition-colors">Catalogue</a>
             <a href="#parcours"  className="hover:text-paper transition-colors">Le parcours</a>
             <a href="#syndicat"  className="hover:text-paper transition-colors">CUSEMS</a>
@@ -87,7 +87,7 @@ export default async function Home() {
                 <span className="italic text-brass-light">aujourd&apos;hui.</span><br />
                 Payez à votre<br />rythme.
               </h1>
-              <p className="mt-8 max-w-md font-body text-base md:text-lg text-paper/50 leading-relaxed">
+              <p className="mt-8 max-w-md font-body text-base md:text-lg text-paper/70 leading-relaxed">
                 Semou Group, en partenariat avec le CUSEMS, permet à tout fonctionnaire détenteur
                 d&apos;un matricule officiel d&apos;acheter des équipements et de régler en plusieurs
                 mensualités sur salaire.
@@ -110,7 +110,7 @@ export default async function Home() {
                 ].map(s => (
                   <div key={s.lbl} className="bg-surface px-4 py-5 hover:bg-surface-2 transition-colors">
                     <div className="font-display text-2xl md:text-3xl text-brass-light">{s.val}</div>
-                    <div className="font-mono text-[10px] md:text-xs uppercase tracking-wider text-paper/35 mt-1">{s.lbl}</div>
+                    <div className="font-mono text-[10px] md:text-xs uppercase tracking-wider text-paper/60 mt-1">{s.lbl}</div>
                   </div>
                 ))}
               </div>
@@ -121,11 +121,11 @@ export default async function Home() {
               <div className="relative bg-surface border border-white/6 rounded-sm glow-green p-6 md:p-8 perforated">
                 <div className="flex items-center justify-between border-b border-dashed border-white/8 pb-4 mb-4">
                   <div>
-                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30">Bordereau N°</div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55">Bordereau N°</div>
                     <div className="font-mono text-sm font-medium text-paper">SG-2026-017731</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30">Statut</div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55">Statut</div>
                     <div className="font-mono text-sm font-medium text-brass-light">En cours</div>
                   </div>
                 </div>
@@ -138,7 +138,7 @@ export default async function Home() {
                   <Row label="Acompte versé" value="40 000 F" highlight />
                 </div>
                 <div className="mt-5 pt-4 border-t border-dashed border-white/8">
-                  <div className="flex items-center justify-between font-mono text-xs text-paper/35 mb-2">
+                  <div className="flex items-center justify-between font-mono text-xs text-paper/60 mb-2">
                     <span>Progression</span><span>3 / 6 mensualités</span>
                   </div>
                   <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -163,11 +163,11 @@ export default async function Home() {
                 <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass flex items-center gap-2">
                   <Tag className="w-3.5 h-3.5" /> Catalogue
                 </span>
-                <h2 className="font-display text-4xl md:text-6xl mt-3 leading-[1.05] text-paper">
+                <h2 className="font-display text-2xl sm:text-3xl md:text-6xl mt-3 leading-[1.05] text-paper">
                   Nos <span className="italic text-brass-light">produits.</span>
                 </h2>
               </div>
-              <p className="font-body text-paper/40 text-sm md:text-base max-w-sm leading-relaxed">
+              <p className="font-body text-paper/65 text-sm md:text-base max-w-sm leading-relaxed">
                 Payez en plusieurs fois sans intérêt — uniquement sur votre salaire fonctionnaire.
               </p>
             </div>
@@ -186,7 +186,7 @@ export default async function Home() {
           <div className="grid md:grid-cols-[1fr_1.4fr] gap-10 md:gap-16 items-end mb-12">
             <div>
               <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">Éligibilité</span>
-              <h2 className="font-display text-4xl md:text-6xl mt-3 leading-[1.05] text-paper">
+              <h2 className="font-display text-2xl sm:text-3xl md:text-6xl mt-3 leading-[1.05] text-paper">
                 Un seul critère : <span className="italic text-brass-light">votre matricule.</span>
               </h2>
             </div>
@@ -200,7 +200,7 @@ export default async function Home() {
               <div key={c.label} className="bg-surface hover:bg-surface-2 transition-all px-5 py-8 flex flex-col gap-3 group cursor-default">
                 <span className="text-3xl">{c.icon}</span>
                 <span className="font-display text-lg leading-tight text-paper">{c.label}</span>
-                <ArrowUpRight className="w-4 h-4 text-paper/15 group-hover:text-brass group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <ArrowUpRight className="w-4 h-4 text-paper/60 group-hover:text-brass group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
               </div>
             ))}
           </div>
@@ -216,16 +216,16 @@ export default async function Home() {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-spruce-light/20 blur-[80px] rounded-full" />
             <div className="relative">
               <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">Le parcours</span>
-              <h2 className="font-display text-4xl md:text-6xl mt-3 mb-16 leading-[1.05] max-w-2xl text-paper">
+              <h2 className="font-display text-2xl sm:text-3xl md:text-6xl mt-3 mb-16 leading-[1.05] max-w-2xl text-paper">
                 Du dossier au produit livré, <span className="italic text-brass-light">quatre étapes.</span>
               </h2>
               <div className="grid md:grid-cols-4 gap-8 md:gap-6">
                 {STEPS.map((step, i) => (
                   <div key={step.n} className="relative">
-                    <div className="font-display italic text-5xl md:text-6xl text-brass/30 mb-6">{step.n}</div>
+                    <div className="font-display italic text-3xl md:text-6xl text-brass/30 mb-6">{step.n}</div>
                     <step.icon className="w-7 h-7 mb-4 text-brass" strokeWidth={1.5} />
                     <h3 className="font-display text-xl md:text-2xl mb-3 text-paper">{step.title}</h3>
-                    <p className="font-body text-sm text-paper/50 leading-relaxed">{step.desc}</p>
+                    <p className="font-body text-sm text-paper/70 leading-relaxed">{step.desc}</p>
                     {i < STEPS.length - 1 && <div className="hidden md:block absolute top-2 -right-3 w-6 h-px bg-white/10" />}
                   </div>
                 ))}
@@ -240,7 +240,7 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 md:gap-20 items-center">
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">Paiement</span>
-            <h2 className="font-display text-4xl md:text-5xl mt-3 mb-6 leading-[1.05] text-paper">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-5xl mt-3 mb-6 leading-[1.05] text-paper">
               Wave, <span className="italic text-brass-light">Orange Money.</span>
             </h2>
             <p className="font-body text-paper/45 text-base md:text-lg leading-relaxed mb-8">
@@ -274,12 +274,12 @@ export default async function Home() {
                 {i === 0 && (
                   <>
                     <div className="flex items-center justify-between mb-4">
-                      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30">Versement #3</span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55">Versement #3</span>
                       <span className="font-mono text-[10px] bg-spruce-light/20 text-brass-light px-2 py-1 rounded-full border border-brass/20">PAYÉ</span>
                     </div>
-                    <div className="font-display text-4xl md:text-5xl text-brass-light mb-1">33 000 F</div>
-                    <div className="font-mono text-xs text-paper/30">Réglé via Wave · 11 juin 2026</div>
-                    <div className="mt-6 pt-4 border-t border-dashed border-white/8 font-mono text-xs text-paper/30 flex justify-between">
+                    <div className="font-display text-2xl sm:text-3xl md:text-5xl text-brass-light mb-1">33 000 F</div>
+                    <div className="font-mono text-xs text-paper/55">Réglé via Wave · 11 juin 2026</div>
+                    <div className="mt-6 pt-4 border-t border-dashed border-white/8 font-mono text-xs text-paper/55 flex justify-between">
                       <span>Reste à payer</span><span className="text-clay font-medium">99 000 F</span>
                     </div>
                   </>
@@ -299,7 +299,7 @@ export default async function Home() {
             <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full border border-brass/8" />
             <div className="relative max-w-2xl">
               <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">Partenariat officiel</span>
-              <h2 className="font-display text-4xl md:text-6xl mt-3 mb-6 leading-[1.05] text-paper">
+              <h2 className="font-display text-2xl sm:text-3xl md:text-6xl mt-3 mb-6 leading-[1.05] text-paper">
                 Un engagement<br /><span className="italic text-brass-light">envers le syndicat.</span>
               </h2>
               <p className="font-body text-paper/45 text-base md:text-lg leading-relaxed mb-10">
@@ -313,8 +313,8 @@ export default async function Home() {
                   { val: "100%",                             lbl: "Fonctionnaires vérifiés" },
                 ].map(({ val, lbl }) => (
                   <div key={lbl}>
-                    <div className="font-display text-3xl md:text-4xl text-brass-light">{val}</div>
-                    <div className="font-mono text-xs uppercase tracking-wider text-paper/35 mt-1">{lbl}</div>
+                    <div className="font-display text-2xl md:text-4xl text-brass-light">{val}</div>
+                    <div className="font-mono text-xs uppercase tracking-wider text-paper/60 mt-1">{lbl}</div>
                   </div>
                 ))}
               </div>
@@ -326,10 +326,10 @@ export default async function Home() {
       {/* ── Final CTA ── */}
       <section className="px-6 md:px-10 py-20 md:py-32 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-display text-4xl md:text-7xl leading-[1.05] mb-8 text-paper">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-7xl leading-[1.05] mb-8 text-paper">
             Votre matricule<br /><span className="italic text-brass-light">vous ouvre la porte.</span>
           </h2>
-          <p className="font-body text-paper/40 text-base md:text-lg mb-10 max-w-xl mx-auto">
+          <p className="font-body text-paper/65 text-base md:text-lg mb-10 max-w-xl mx-auto">
             Le dossier d&apos;inscription prend moins de cinq minutes. Validation sous 24 à 48h.
           </p>
           <Link href="/inscription"
@@ -342,7 +342,7 @@ export default async function Home() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-white/5 px-6 md:px-10 py-10 relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-paper/25">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-paper/45">
           <span>© 2026 Semou Group × CFA CUSEMS Authentique</span>
           <span>Récépissé N. 0413/MINT/DGAT/DLP — 21 Novembre 2017</span>
         </div>
@@ -354,7 +354,7 @@ export default async function Home() {
 function Row({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-paper/30">{label}</span>
+      <span className="text-paper/55">{label}</span>
       <span className={highlight ? "text-brass-light font-medium" : "text-paper/70"}>{value}</span>
     </div>
   );

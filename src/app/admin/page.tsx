@@ -34,7 +34,7 @@ const CLI_STYLE: Record<string, string> = {
   EN_ATTENTE: 'text-brass bg-brass/10 border-brass/20',
   VALIDE:     'text-spruce-light bg-spruce/15 border-spruce/25',
   REJETE:     'text-clay bg-clay/10 border-clay/20',
-  SUSPENDU:   'text-paper/40 bg-white/5 border-white/10',
+  SUSPENDU:   'text-paper/65 bg-white/5 border-white/10',
 }
 const CMD_STYLE: Record<string, string> = {
   EN_COURS: 'text-brass bg-brass/10 border-brass/20',
@@ -43,7 +43,7 @@ const CMD_STYLE: Record<string, string> = {
 }
 const VER_STYLE: Record<string, string> = {
   PAYE:       'text-spruce-light bg-spruce/15 border-spruce/25',
-  EN_ATTENTE: 'text-paper/35 bg-white/4 border-white/8',
+  EN_ATTENTE: 'text-paper/60 bg-white/4 border-white/8',
   EN_RETARD:  'text-clay bg-clay/10 border-clay/20',
 }
 const CLI_LBL: Record<string, string>  = { EN_ATTENTE: 'En attente', VALIDE: 'Validé', REJETE: 'Rejeté', SUSPENDU: 'Suspendu' }
@@ -58,7 +58,7 @@ function fcfa(n: number) { return n.toLocaleString('fr-SN') + ' F' }
 
 function Badge({ statut, s, l }: { statut: string; s: Record<string, string>; l: Record<string, string> }) {
   return (
-    <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded-full border ${s[statut] ?? 'text-paper/30 bg-white/5 border-white/8'}`}>
+    <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded-full border ${s[statut] ?? 'text-paper/55 bg-white/5 border-white/8'}`}>
       {l[statut] ?? statut}
     </span>
   )
@@ -71,7 +71,7 @@ function SignedDocLink({ path, label }: { path: string; label: string }) {
     supabase.storage.from('documents').createSignedUrl(path, 3600)
       .then(({ data }) => { setUrl(data?.signedUrl ?? null); setLoading(false) })
   }, [path])
-  if (loading) return <span className="font-mono text-[10px] text-paper/25">Chargement…</span>
+  if (loading) return <span className="font-mono text-[10px] text-paper/45">Chargement…</span>
   if (!url)    return <span className="font-mono text-[10px] text-clay">Inaccessible</span>
   return (
     <a href={url} target="_blank" rel="noreferrer"
@@ -516,17 +516,17 @@ export default function Admin() {
               <Lock className="w-4 h-4 text-brass" />
             </div>
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30">Accès restreint</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55">Accès restreint</div>
               <div className="font-display text-lg text-paper">Administration</div>
             </div>
           </div>
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30 block mb-2">Mot de passe</label>
+              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 block mb-2">Mot de passe</label>
               <input type="password" required value={pwd}
                 onChange={e => { setPwd(e.target.value); setPwdErr('') }}
                 placeholder="••••••••"
-                className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-base text-paper pb-2 transition-colors placeholder:text-paper/15" />
+                className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-base text-paper pb-2 transition-colors placeholder:text-paper/60" />
               {pwdErr && <p className="font-mono text-[10px] text-clay mt-2">{pwdErr}</p>}
             </div>
             <button type="submit" className="w-full font-body font-medium bg-spruce-light text-paper py-3 rounded-full hover:bg-spruce transition-colors">
@@ -563,17 +563,17 @@ export default function Admin() {
           </h1>
         </div>
         <button onClick={handleLogout}
-          className="flex items-center gap-2 font-mono text-xs text-paper/35 hover:text-clay border border-white/8 rounded-full px-4 py-2 transition-colors">
+          className="flex items-center gap-2 font-mono text-xs text-paper/60 hover:text-clay border border-white/8 rounded-full px-4 py-2 transition-colors">
           <LogOut className="w-3.5 h-3.5" /> Déconnexion
         </button>
       </div>
 
       {/* Onglets */}
-      <div className="flex gap-1 bg-surface border border-white/8 rounded-xl p-1 mb-6 w-fit overflow-x-auto">
+      <div className="flex gap-1 bg-surface border border-white/8 rounded-xl p-1 mb-6 overflow-x-auto max-w-full">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => switchTab(key)}
             className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] px-3 md:px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-              tab === key ? 'bg-void text-brass border border-brass/20' : 'text-paper/35 hover:text-paper/60'
+              tab === key ? 'bg-void text-brass border border-brass/20' : 'text-paper/60 hover:text-paper/60'
             }`}>
             <Icon className="w-3.5 h-3.5" />{label}
           </button>
@@ -598,7 +598,7 @@ export default function Admin() {
                   <div key={lbl} className="bg-surface border border-white/6 rounded-xl p-4">
                     <div className="text-xl mb-2">{emoji}</div>
                     <div className={`font-display text-xl md:text-2xl ${color} leading-tight`}>{val}</div>
-                    <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/30 mt-0.5">{lbl}</div>
+                    <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/55 mt-0.5">{lbl}</div>
                   </div>
                 ))}
           </div>
@@ -612,7 +612,7 @@ export default function Admin() {
             ].map(({ val, lbl, color }) => (
               <div key={lbl} className="bg-surface border border-white/6 rounded-xl px-4 py-3 flex items-center gap-4">
                 <div className={`font-display text-2xl ${color}`}>{val}</div>
-                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/30">{lbl}</div>
+                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/55">{lbl}</div>
               </div>
             ))}
           </div>
@@ -621,7 +621,7 @@ export default function Admin() {
           <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Search className="w-4 h-4 text-brass" />
-              <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/50">Recherche fonctionnaire</div>
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70">Recherche fonctionnaire</div>
             </div>
 
             {/* Sélecteur de critère */}
@@ -633,7 +633,7 @@ export default function Admin() {
               ] as const).map(([mode, lbl]) => (
                 <button key={mode} type="button" onClick={() => { setMatMode(mode); setMatResults('idle'); setMatSearch('') }}
                   className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg transition-colors ${
-                    matMode === mode ? 'bg-surface text-brass border border-brass/20' : 'text-paper/35 hover:text-paper/60'
+                    matMode === mode ? 'bg-surface text-brass border border-brass/20' : 'text-paper/60 hover:text-paper/60'
                   }`}>
                   {lbl}
                 </button>
@@ -648,7 +648,7 @@ export default function Admin() {
                   matMode === 'nom'       ? 'ex : Diallo ou Fatou' :
                                            'ex : 77 123 45 67'
                 }
-                className="flex-1 bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-2 placeholder:text-paper/15 transition-colors" />
+                className="flex-1 bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-2 placeholder:text-paper/60 transition-colors" />
               <button type="submit" disabled={matLoading}
                 className="font-mono text-xs text-brass border border-brass/30 rounded-full px-4 py-1.5 hover:bg-brass/10 transition-colors disabled:opacity-50">
                 {matLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Chercher'}
@@ -668,18 +668,18 @@ export default function Admin() {
                           <div className="font-display text-base text-paper">{c.prenom} {c.nom}</div>
                           <Badge statut={c.statut} s={CLI_STYLE} l={CLI_LBL} />
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 font-mono text-xs text-paper/50">
-                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Téléphone</span>{c.telephone.replace(/^221/, '')}</div>
-                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Matricule</span>{c.matricule ?? '—'}</div>
-                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Corps</span>{c.corps ?? '—'}</div>
-                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">IA / Académie</span>{c.ia ?? '—'}</div>
-                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Région</span>{c.region ?? '—'}</div>
-                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Inscription</span>{fmt((c as CFAClient & { created_at: string }).created_at)}</div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 font-mono text-xs text-paper/70">
+                          <div><span className="text-paper/45 block text-[9px] uppercase tracking-wider mb-0.5">Téléphone</span>{c.telephone.replace(/^221/, '')}</div>
+                          <div><span className="text-paper/45 block text-[9px] uppercase tracking-wider mb-0.5">Matricule</span>{c.matricule ?? '—'}</div>
+                          <div><span className="text-paper/45 block text-[9px] uppercase tracking-wider mb-0.5">Corps</span>{c.corps ?? '—'}</div>
+                          <div><span className="text-paper/45 block text-[9px] uppercase tracking-wider mb-0.5">IA / Académie</span>{c.ia ?? '—'}</div>
+                          <div><span className="text-paper/45 block text-[9px] uppercase tracking-wider mb-0.5">Région</span>{c.region ?? '—'}</div>
+                          <div><span className="text-paper/45 block text-[9px] uppercase tracking-wider mb-0.5">Inscription</span>{fmt((c as CFAClient & { created_at: string }).created_at)}</div>
                         </div>
                       </div>
                     ))}
                     {matResults.length === 10 && (
-                      <p className="font-mono text-[10px] text-paper/25 text-center">Affichage limité à 10 résultats — affinez la recherche.</p>
+                      <p className="font-mono text-[10px] text-paper/45 text-center">Affichage limité à 10 résultats — affinez la recherche.</p>
                     )}
                   </div>
                 )}
@@ -692,7 +692,7 @@ export default function Admin() {
             <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">
               <div className="flex items-center gap-2 mb-5">
                 <MapPin className="w-4 h-4 text-brass" />
-                <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/50">Fonctionnaires par région</div>
+                <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70">Fonctionnaires par région</div>
               </div>
               <div className="space-y-2.5">
                 {stats.regions.map(r => {
@@ -700,11 +700,11 @@ export default function Admin() {
                   const pct = Math.round((r.nb_clients / max) * 100)
                   return (
                     <div key={r.region} className="flex items-center gap-3">
-                      <span className="font-mono text-xs text-paper/50 w-28 flex-shrink-0">{r.region}</span>
+                      <span className="font-mono text-xs text-paper/70 w-28 flex-shrink-0">{r.region}</span>
                       <div className="flex-1 h-1.5 bg-void rounded-full overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-spruce to-spruce-light rounded-full" style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="font-mono text-xs text-paper/40 w-6 text-right flex-shrink-0">{r.nb_clients}</span>
+                      <span className="font-mono text-xs text-paper/65 w-6 text-right flex-shrink-0">{r.nb_clients}</span>
                     </div>
                   )
                 })}
@@ -719,16 +719,16 @@ export default function Admin() {
         <>
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper/25" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper/45" />
               <input type="text" placeholder="Nom, téléphone, matricule, région…"
                 value={cliSearch} onChange={e => setCliSearch(e.target.value)}
-                className="w-full bg-surface border border-white/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/20 focus:border-brass/40 outline-none transition-colors" />
+                className="w-full bg-surface border border-white/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/65 focus:border-brass/40 outline-none transition-colors" />
             </div>
             <div className="flex gap-1 bg-surface border border-white/8 rounded-xl p-1">
               {(['TOUS', 'EN_ATTENTE', 'VALIDE', 'REJETE'] as ClientFilter[]).map(f => (
                 <button key={f} onClick={() => setCliFilter(f)}
                   className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg transition-colors ${
-                    cliFilter === f ? 'bg-void text-brass border border-brass/20' : 'text-paper/35 hover:text-paper/60'
+                    cliFilter === f ? 'bg-void text-brass border border-brass/20' : 'text-paper/60 hover:text-paper/60'
                   }`}>
                   {f === 'TOUS' ? 'Tous' : f === 'EN_ATTENTE' ? 'Attente' : f === 'VALIDE' ? 'Validés' : 'Rejetés'}
                 </button>
@@ -736,26 +736,26 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center justify-between mb-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/25">
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45">
               {filteredClients.length} dossier{filteredClients.length > 1 ? 's' : ''}
             </span>
             {filteredClients.length > 0 && (
               <button onClick={exportClients}
-                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/40 hover:text-brass border border-white/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
+                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-brass border border-white/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
                 <Download className="w-3 h-3" /> Excel
               </button>
             )}
           </div>
           <div className="bg-surface border border-white/6 rounded-2xl overflow-hidden">
             {filteredClients.length === 0
-              ? <div className="py-16 text-center font-body text-paper/30 text-sm">Aucun dossier trouvé.</div>
+              ? <div className="py-16 text-center font-body text-paper/55 text-sm">Aucun dossier trouvé.</div>
               : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-white/5">
                         {['Nom & Prénom', 'Téléphone', 'Matricule', 'Corps / Région', 'Date', 'Statut', 'Actions'].map(h => (
-                          <th key={h} className="text-left font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25 px-4 py-3 whitespace-nowrap">{h}</th>
+                          <th key={h} className="text-left font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45 px-4 py-3 whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -780,7 +780,7 @@ export default function Admin() {
                               </span>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <span className="font-mono text-xs text-paper/35">{fmt(c.created_at)}</span>
+                              <span className="font-mono text-xs text-paper/60">{fmt(c.created_at)}</span>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <Badge statut={c.statut} s={CLI_STYLE} l={CLI_LBL} />
@@ -807,7 +807,7 @@ export default function Admin() {
                                         <Plus className="w-3 h-3" /> Commande
                                       </button>
                                     )}
-                                    <ChevronDown className={`w-3.5 h-3.5 text-paper/20 transition-transform ${cliExpand === c.id ? 'rotate-180' : ''}`} />
+                                    <ChevronDown className={`w-3.5 h-3.5 text-paper/65 transition-transform ${cliExpand === c.id ? 'rotate-180' : ''}`} />
                                   </>
                                 )}
                               </div>
@@ -823,25 +823,25 @@ export default function Admin() {
                                     { lbl: 'Ministère', val: c.ministere }, { lbl: 'Grade', val: c.grade },
                                   ].map(({ lbl, val }) => val ? (
                                     <div key={lbl}>
-                                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-0.5">{lbl}</div>
+                                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mb-0.5">{lbl}</div>
                                       <div className="font-body text-paper/55 text-xs">{val}</div>
                                     </div>
                                   ) : null)}
                                   {c.cni_url && (
                                     <div>
-                                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-1.5">CNI Recto</div>
+                                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mb-1.5">CNI Recto</div>
                                       <SignedDocLink path={c.cni_url} label="Ouvrir CNI recto" />
                                     </div>
                                   )}
                                   {c.notes?.startsWith('CNI_VERSO:') && (
                                     <div>
-                                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-1.5">CNI Verso</div>
+                                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mb-1.5">CNI Verso</div>
                                       <SignedDocLink path={c.notes.replace('CNI_VERSO:', '')} label="Ouvrir CNI verso" />
                                     </div>
                                   )}
                                   {c.bulletin_url && (
                                     <div>
-                                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-1.5">Bulletin salaire</div>
+                                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mb-1.5">Bulletin salaire</div>
                                       <SignedDocLink path={c.bulletin_url} label="Ouvrir bulletin" />
                                     </div>
                                   )}
@@ -875,22 +875,22 @@ export default function Admin() {
                   ].map(({ val, lbl, color }) => (
                     <div key={lbl} className="bg-surface border border-white/6 rounded-xl p-4">
                       <div className={`font-display text-xl md:text-2xl ${color} leading-tight`}>{val}</div>
-                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/30 mt-0.5">{lbl}</div>
+                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/55 mt-0.5">{lbl}</div>
                     </div>
                   ))}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 mb-4">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper/25" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper/45" />
                     <input type="text" placeholder="Référence, client, produit…"
                       value={cmdSearch} onChange={e => setCmdSearch(e.target.value)}
-                      className="w-full bg-surface border border-white/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/20 focus:border-brass/40 outline-none transition-colors" />
+                      className="w-full bg-surface border border-white/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/65 focus:border-brass/40 outline-none transition-colors" />
                   </div>
                   <div className="flex gap-1 bg-surface border border-white/8 rounded-xl p-1">
                     {(['TOUS', 'EN_COURS', 'SOLDE', 'ANNULE'] as CommandeFilter[]).map(f => (
                       <button key={f} onClick={() => setCmdFilter(f)}
                         className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg transition-colors ${
-                          cmdFilter === f ? 'bg-void text-brass border border-brass/20' : 'text-paper/35 hover:text-paper/60'
+                          cmdFilter === f ? 'bg-void text-brass border border-brass/20' : 'text-paper/60 hover:text-paper/60'
                         }`}>
                         {f === 'TOUS' ? 'Tous' : f === 'EN_COURS' ? 'En cours' : f === 'SOLDE' ? 'Soldées' : 'Annulées'}
                       </button>
@@ -898,26 +898,26 @@ export default function Admin() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/25">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45">
                     {filteredCmds.length} commande{filteredCmds.length > 1 ? 's' : ''}
                   </span>
                   {commandes.length > 0 && (
                     <button onClick={exportCommandes}
-                      className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/40 hover:text-brass border border-white/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
+                      className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-brass border border-white/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
                       <Download className="w-3 h-3" /> Excel
                     </button>
                   )}
                 </div>
                 <div className="bg-surface border border-white/6 rounded-2xl overflow-hidden">
                   {filteredCmds.length === 0
-                    ? <div className="py-16 text-center font-body text-paper/30 text-sm">Aucune commande.</div>
+                    ? <div className="py-16 text-center font-body text-paper/55 text-sm">Aucune commande.</div>
                     : (
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-white/5">
                               {['Référence', 'Client', 'Produit', 'Total', 'Versé', 'Reste', 'Mensualités', 'Statut'].map(h => (
-                                <th key={h} className="text-left font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25 px-4 py-3 whitespace-nowrap">{h}</th>
+                                <th key={h} className="text-left font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45 px-4 py-3 whitespace-nowrap">{h}</th>
                               ))}
                             </tr>
                           </thead>
@@ -934,7 +934,7 @@ export default function Admin() {
                                     <td className="px-4 py-3"><span className="font-mono text-xs text-brass-light">{cmd.reference}</span></td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                       <div className="font-body text-sm text-paper">{cmd.client?.prenom} {cmd.client?.nom}</div>
-                                      <div className="font-mono text-[10px] text-paper/35">{cmd.client?.telephone.replace(/^221/, '')}</div>
+                                      <div className="font-mono text-[10px] text-paper/60">{cmd.client?.telephone.replace(/^221/, '')}</div>
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap"><span className="font-body text-xs text-paper/60">{cmd.produit?.nom ?? '—'}</span></td>
                                     <td className="px-4 py-3 whitespace-nowrap"><span className="font-mono text-xs text-paper/60">{fcfa(cmd.prix_vente)}</span></td>
@@ -947,7 +947,7 @@ export default function Admin() {
                                         <div className="w-16 h-1 bg-void rounded-full overflow-hidden">
                                           <div className="h-full bg-spruce-light rounded-full" style={{ width: total > 0 ? `${Math.round(payees/total*100)}%` : '0%' }} />
                                         </div>
-                                        <span className="font-mono text-[10px] text-paper/40">{payees}/{total}</span>
+                                        <span className="font-mono text-[10px] text-paper/65">{payees}/{total}</span>
                                         {retard > 0 && <AlertCircle className="w-3 h-3 text-clay" />}
                                       </div>
                                     </td>
@@ -956,20 +956,20 @@ export default function Admin() {
                                   {cmdExpand === cmd.id && (
                                     <tr key={`${cmd.id}-d`} className="bg-void/50 border-b border-white/4">
                                       <td colSpan={8} className="px-4 py-4">
-                                        <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/30 mb-3">
+                                        <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/55 mb-3">
                                           Échéancier · {cmd.montant_mensualite > 0 ? `${fcfa(cmd.montant_mensualite)} / mois` : ''}
                                           {cmd.date_fin_prevue ? ` · Fin prévue ${fmt(cmd.date_fin_prevue)}` : ''}
                                         </div>
                                         {cmd.versements.length === 0
-                                          ? <p className="font-body text-paper/30 text-xs">Aucun versement.</p>
+                                          ? <p className="font-body text-paper/55 text-xs">Aucun versement.</p>
                                           : (
                                             <div className="space-y-1.5 max-w-xl">
                                               {cmd.versements.map(v => (
                                                 <div key={v.id} className="flex items-center gap-3 font-mono text-xs">
-                                                  <span className="text-paper/35 w-5">#{v.numero_versement}</span>
-                                                  <span className="text-paper/40 w-20">{fmt(v.date_echeance)}</span>
+                                                  <span className="text-paper/60 w-5">#{v.numero_versement}</span>
+                                                  <span className="text-paper/65 w-20">{fmt(v.date_echeance)}</span>
                                                   <span className="text-paper/60 w-24 text-right">{fcfa(v.montant_prevu)}</span>
-                                                  {v.date_paiement && <span className="text-paper/30 hidden md:inline">payé {fmt(v.date_paiement)}</span>}
+                                                  {v.date_paiement && <span className="text-paper/55 hidden md:inline">payé {fmt(v.date_paiement)}</span>}
                                                   <Badge statut={v.statut} s={VER_STYLE} l={VER_LBL} />
                                                   {(v.statut === 'EN_ATTENTE' || v.statut === 'EN_RETARD') && cmd.statut === 'EN_COURS' && (
                                                     markingVers === v.id
@@ -1005,7 +1005,7 @@ export default function Admin() {
       {tab === 'produits' && (
         <>
           <div className="flex items-center justify-between mb-5">
-            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/25">
+            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45">
               {produits.length} produit{produits.length > 1 ? 's' : ''} enregistré{produits.length > 1 ? 's' : ''}
             </div>
             <button onClick={openNewProd}
@@ -1025,7 +1025,7 @@ export default function Admin() {
                   <FormField label="Nom du produit *">
                     <input required value={prodForm.nom} onChange={e => setProdForm(p => ({ ...p, nom: e.target.value }))}
                       placeholder="ex : Samsung Galaxy A55"
-                      className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-1.5 placeholder:text-paper/15 transition-colors" />
+                      className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-1.5 placeholder:text-paper/60 transition-colors" />
                   </FormField>
                   <FormField label="État">
                     <select value={prodForm.etat} onChange={e => setProdForm(p => ({ ...p, etat: e.target.value }))}
@@ -1061,7 +1061,7 @@ export default function Admin() {
                         <input type="checkbox" checked={prodForm.stock_illimite}
                           onChange={e => setProdForm(p => ({ ...p, stock_illimite: e.target.checked }))}
                           className="accent-brass" />
-                        <span className="font-mono text-xs text-paper/50">Illimité</span>
+                        <span className="font-mono text-xs text-paper/70">Illimité</span>
                       </label>
                     </div>
                   </FormField>
@@ -1070,19 +1070,19 @@ export default function Admin() {
                   <textarea value={prodForm.description}
                     onChange={e => setProdForm(p => ({ ...p, description: e.target.value }))}
                     rows={2} placeholder="Description courte du produit…"
-                    className="w-full bg-void border border-white/8 rounded-lg p-2.5 font-body text-sm text-paper placeholder:text-paper/15 focus:border-brass/40 outline-none resize-none transition-colors" />
+                    className="w-full bg-void border border-white/8 rounded-lg p-2.5 font-body text-sm text-paper placeholder:text-paper/60 focus:border-brass/40 outline-none resize-none transition-colors" />
                 </FormField>
 
                 {/* ── Médias (images + vidéos) ── */}
                 <div className="mt-4 mb-2">
-                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 mb-3">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 mb-3">
                     Médias — images &amp; vidéos
-                    {editProd && <span className="ml-2 text-paper/15">(sauvegarder le produit d&apos;abord pour un nouveau)</span>}
+                    {editProd && <span className="ml-2 text-paper/60">(sauvegarder le produit d&apos;abord pour un nouveau)</span>}
                   </div>
 
                   {/* Grille des médias existants */}
                   {mediasLoading ? (
-                    <div className="flex items-center gap-2 text-paper/25 text-xs mb-3">
+                    <div className="flex items-center gap-2 text-paper/45 text-xs mb-3">
                       <Loader2 className="w-3.5 h-3.5 animate-spin" /> Chargement…
                     </div>
                   ) : prodMedias.length > 0 && (
@@ -1094,8 +1094,8 @@ export default function Admin() {
                             <img src={m.url} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-white/4">
-                              <Plus className="w-5 h-5 text-paper/20 rotate-45" />
-                              <span className="font-mono text-[9px] text-paper/25">Vidéo</span>
+                              <Plus className="w-5 h-5 text-paper/65 rotate-45" />
+                              <span className="font-mono text-[9px] text-paper/45">Vidéo</span>
                             </div>
                           )}
                           <button type="button"
@@ -1114,22 +1114,22 @@ export default function Admin() {
                   {/* Boutons d'upload — actifs seulement si le produit est déjà enregistré */}
                   {editProd ? (
                     <div className="flex flex-wrap gap-2">
-                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-white/15 hover:border-brass/40 text-paper/40 hover:text-brass'}`}>
+                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-white/15 hover:border-brass/40 text-paper/65 hover:text-brass'}`}>
                         {uploadingMedia ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 rotate-180" />}
                         + Images
                         <input type="file" multiple accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingMedia}
                           onChange={e => { if (e.target.files?.length) handleUploadMedias(e.target.files, 'IMAGE', editProd.id) }} />
                       </label>
-                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-white/15 hover:border-brass/40 text-paper/40 hover:text-brass'}`}>
+                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-white/15 hover:border-brass/40 text-paper/65 hover:text-brass'}`}>
                         {uploadingMedia ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 rotate-180" />}
                         + Vidéo MP4
                         <input type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" disabled={uploadingMedia}
                           onChange={e => { if (e.target.files?.length) handleUploadMedias(e.target.files, 'VIDEO', editProd.id) }} />
                       </label>
-                      <span className="font-mono text-[9px] text-paper/15 self-center">max 50 Mo par vidéo · JPG/PNG/WebP pour images</span>
+                      <span className="font-mono text-[9px] text-paper/60 self-center">max 50 Mo par vidéo · JPG/PNG/WebP pour images</span>
                     </div>
                   ) : (
-                    <p className="font-mono text-[9px] text-paper/20">Créez d&apos;abord le produit, puis ajoutez des médias en le modifiant.</p>
+                    <p className="font-mono text-[9px] text-paper/65">Créez d&apos;abord le produit, puis ajoutez des médias en le modifiant.</p>
                   )}
                 </div>
 
@@ -1137,12 +1137,12 @@ export default function Admin() {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={prodForm.actif}
                       onChange={e => setProdForm(p => ({ ...p, actif: e.target.checked }))} className="accent-brass" />
-                    <span className="font-mono text-xs text-paper/50">Actif (visible)</span>
+                    <span className="font-mono text-xs text-paper/70">Actif (visible)</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={prodForm.en_vedette}
                       onChange={e => setProdForm(p => ({ ...p, en_vedette: e.target.checked }))} className="accent-brass" />
-                    <span className="font-mono text-xs text-paper/50">En vedette</span>
+                    <span className="font-mono text-xs text-paper/70">En vedette</span>
                   </label>
                 </div>
                 <div className="flex gap-3">
@@ -1152,7 +1152,7 @@ export default function Admin() {
                     {editProd ? 'Enregistrer' : 'Créer le produit'}
                   </button>
                   <button type="button" onClick={() => setShowForm(false)}
-                    className="font-body text-sm text-paper/40 border border-white/8 px-6 py-2.5 rounded-full hover:text-paper/60 transition-colors">
+                    className="font-body text-sm text-paper/65 border border-white/8 px-6 py-2.5 rounded-full hover:text-paper/60 transition-colors">
                     Annuler
                   </button>
                 </div>
@@ -1163,7 +1163,7 @@ export default function Admin() {
           {prodLoading
             ? <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 text-brass animate-spin" /></div>
             : produits.length === 0
-              ? <div className="py-16 text-center font-body text-paper/30 text-sm">Aucun produit. Créez-en un ci-dessus.</div>
+              ? <div className="py-16 text-center font-body text-paper/55 text-sm">Aucun produit. Créez-en un ci-dessus.</div>
               : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {produits.map(p => (
@@ -1175,16 +1175,16 @@ export default function Admin() {
                             {p.en_vedette && <Star className="w-3.5 h-3.5 text-brass flex-shrink-0" fill="currentColor" />}
                           </div>
                           {p.description && (
-                            <p className="font-body text-xs text-paper/40 mt-1 leading-relaxed">{p.description}</p>
+                            <p className="font-body text-xs text-paper/65 mt-1 leading-relaxed">{p.description}</p>
                           )}
                         </div>
                         <div className="flex items-center gap-1 ml-3 flex-shrink-0">
                           <button onClick={() => openEditProd(p)}
-                            className="w-7 h-7 flex items-center justify-center text-paper/30 hover:text-brass transition-colors">
+                            className="w-7 h-7 flex items-center justify-center text-paper/55 hover:text-brass transition-colors">
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => handleDeleteProd(p.id)}
-                            className="w-7 h-7 flex items-center justify-center text-paper/30 hover:text-clay transition-colors">
+                            className="w-7 h-7 flex items-center justify-center text-paper/55 hover:text-clay transition-colors">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -1192,15 +1192,15 @@ export default function Admin() {
 
                       <div className="grid grid-cols-3 gap-2 mb-3">
                         <div className="bg-void rounded-lg px-3 py-2">
-                          <div className="font-mono text-[9px] uppercase tracking-wider text-paper/25 mb-0.5">Prix</div>
+                          <div className="font-mono text-[9px] uppercase tracking-wider text-paper/45 mb-0.5">Prix</div>
                           <div className="font-mono text-xs text-brass-light">{fcfa(p.prix_vente)}</div>
                         </div>
                         <div className="bg-void rounded-lg px-3 py-2">
-                          <div className="font-mono text-[9px] uppercase tracking-wider text-paper/25 mb-0.5">Apport</div>
+                          <div className="font-mono text-[9px] uppercase tracking-wider text-paper/45 mb-0.5">Apport</div>
                           <div className="font-mono text-xs text-paper/60">{fcfa(p.apport_minimum)}</div>
                         </div>
                         <div className="bg-void rounded-lg px-3 py-2">
-                          <div className="font-mono text-[9px] uppercase tracking-wider text-paper/25 mb-0.5">Mensualités</div>
+                          <div className="font-mono text-[9px] uppercase tracking-wider text-paper/45 mb-0.5">Mensualités</div>
                           <div className="font-mono text-xs text-paper/60">max {p.nb_mensualites_max}×</div>
                         </div>
                       </div>
@@ -1210,16 +1210,16 @@ export default function Admin() {
                           <span className={`font-mono text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border ${
                             p.etat === 'NEUF' ? 'text-spruce-light border-spruce/25 bg-spruce/10'
                             : p.etat === 'RECONDITIONNE' ? 'text-brass border-brass/25 bg-brass/10'
-                            : 'text-paper/40 border-white/10 bg-white/4'
+                            : 'text-paper/65 border-white/10 bg-white/4'
                           }`}>
                             {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'RECONDITIONNE' ? 'Reconditionné' : 'Occasion'}
                           </span>
-                          <span className={`font-mono text-[10px] uppercase tracking-[0.1em] ${p.stock_illimite ? 'text-spruce-light' : p.stock > 0 ? 'text-paper/50' : 'text-clay'}`}>
+                          <span className={`font-mono text-[10px] uppercase tracking-[0.1em] ${p.stock_illimite ? 'text-spruce-light' : p.stock > 0 ? 'text-paper/70' : 'text-clay'}`}>
                             {p.stock_illimite ? '∞ illimité' : `${p.stock} en stock`}
                           </span>
                         </div>
                         <button onClick={() => handleToggleActif(p)}
-                          className={`flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${p.actif ? 'text-spruce-light' : 'text-paper/30'}`}>
+                          className={`flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${p.actif ? 'text-spruce-light' : 'text-paper/55'}`}>
                           {p.actif ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
                           {p.actif ? 'Actif' : 'Inactif'}
                         </button>
@@ -1239,24 +1239,24 @@ export default function Admin() {
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display text-lg text-brass">Créer une commande</h2>
-              <button onClick={() => setNewCmdClient(null)} className="text-paper/30 hover:text-paper/60 transition-colors">
+              <button onClick={() => setNewCmdClient(null)} className="text-paper/55 hover:text-paper/60 transition-colors">
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
             {/* Client info (lecture seule) */}
             <div className="bg-white/4 rounded-xl px-4 py-3 mb-5">
-              <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/30 mb-0.5">Client</div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/55 mb-0.5">Client</div>
               <div className="font-body text-paper/80 text-sm">{newCmdClient.prenom} {newCmdClient.nom}</div>
-              <div className="font-mono text-[10px] text-paper/40">{newCmdClient.telephone} · {newCmdClient.matricule}</div>
+              <div className="font-mono text-[10px] text-paper/65">{newCmdClient.telephone} · {newCmdClient.matricule}</div>
             </div>
 
             <form onSubmit={handleCreateCommande} className="space-y-4">
               {/* Produit */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">Produit</label>
+                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">Produit</label>
                 {prodLoading ? (
-                  <div className="flex items-center gap-2 text-paper/30 text-xs"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>
+                  <div className="flex items-center gap-2 text-paper/55 text-xs"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>
                 ) : (
                   <select value={newCmdProduit} onChange={e => setNewCmdProduit(e.target.value)} required
                     className="w-full bg-white/6 border border-white/10 rounded-xl px-3 py-2.5 text-paper text-sm focus:outline-none focus:border-brass/50 transition-colors">
@@ -1270,20 +1270,20 @@ export default function Admin() {
 
               {/* Nb mensualités */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">
+                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">
                   Nombre de mensualités : <span className="text-brass">{newCmdMens}</span>
                 </label>
                 <input type="range" min={1} max={24} value={newCmdMens}
                   onChange={e => setNewCmdMens(Number(e.target.value))}
                   className="w-full accent-brass" />
-                <div className="flex justify-between font-mono text-[9px] text-paper/25 mt-0.5">
+                <div className="flex justify-between font-mono text-[9px] text-paper/45 mt-0.5">
                   <span>1</span><span>12</span><span>24</span>
                 </div>
               </div>
 
               {/* Apport payé */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">Apport déjà payé (FCFA)</label>
+                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">Apport déjà payé (FCFA)</label>
                 <input type="number" min={0} value={newCmdApport}
                   onChange={e => setNewCmdApport(Number(e.target.value))}
                   className="w-full bg-white/6 border border-white/10 rounded-xl px-3 py-2.5 text-paper text-sm focus:outline-none focus:border-brass/50 transition-colors" />
@@ -1291,11 +1291,11 @@ export default function Admin() {
 
               {/* Moyen de paiement */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">Moyen de paiement apport</label>
+                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">Moyen de paiement apport</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[['ESPECES', 'Espèces'], ['WAVE', 'Wave'], ['ORANGE', 'Orange']].map(([val, lbl]) => (
                     <button key={val} type="button" onClick={() => setNewCmdMoyen(val)}
-                      className={`font-mono text-[10px] uppercase py-2 rounded-xl border transition-colors ${newCmdMoyen === val ? 'bg-brass/15 border-brass/50 text-brass' : 'border-white/10 text-paper/40 hover:border-white/20'}`}>
+                      className={`font-mono text-[10px] uppercase py-2 rounded-xl border transition-colors ${newCmdMoyen === val ? 'bg-brass/15 border-brass/50 text-brass' : 'border-white/10 text-paper/65 hover:border-white/20'}`}>
                       {lbl}
                     </button>
                   ))}
@@ -1321,7 +1321,7 @@ export default function Admin() {
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">{label}</label>
+      <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">{label}</label>
       {children}
     </div>
   )

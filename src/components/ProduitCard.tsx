@@ -42,7 +42,7 @@ function Lightbox({ medias, startIndex, onClose }: {
     <div className="fixed inset-0 z-50 bg-void/95 backdrop-blur-md flex flex-col items-center justify-center p-4"
       onClick={onClose}>
       <button onClick={onClose}
-        className="absolute top-4 right-4 text-paper/40 hover:text-paper transition-colors">
+        className="absolute top-4 right-4 text-paper/65 hover:text-paper transition-colors">
         <X className="w-6 h-6" />
       </button>
 
@@ -73,7 +73,7 @@ function Lightbox({ medias, startIndex, onClose }: {
         )}
 
         {/* Compteur */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 font-mono text-[10px] text-paper/40 bg-void/60 px-2.5 py-1 rounded-full">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 font-mono text-[10px] text-paper/65 bg-void/60 px-2.5 py-1 rounded-full">
           {idx + 1} / {medias.length}
         </div>
       </div>
@@ -86,7 +86,7 @@ function Lightbox({ medias, startIndex, onClose }: {
               className={`flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden border-2 transition-colors ${i === idx ? 'border-brass' : 'border-white/10 hover:border-white/30'}`}>
               {t.type === 'VIDEO' ? (
                 <div className="w-full h-full bg-white/8 flex items-center justify-center">
-                  <Play className="w-3 h-3 text-paper/50 fill-paper/50" />
+                  <Play className="w-3 h-3 text-paper/70 fill-paper/50" />
                 </div>
               ) : (
                 /* eslint-disable-next-line @next/next/no-img-element */
@@ -121,8 +121,8 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
             {nbExtra > 0 && (
               <button onClick={() => setLightboxIdx(0)}
                 className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-void/70 backdrop-blur-sm border border-white/10 rounded-full px-2.5 py-1">
-                <Images className="w-3 h-3 text-paper/50" />
-                <span className="font-mono text-[10px] text-paper/50">+{nbExtra}</span>
+                <Images className="w-3 h-3 text-paper/70" />
+                <span className="font-mono text-[10px] text-paper/70">+{nbExtra}</span>
               </button>
             )}
           </div>
@@ -147,7 +147,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
             </span>
           )}
           {!stockOk && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-paper/30 bg-white/4 border-white/8 ml-auto">
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-paper/55 bg-white/4 border-white/8 ml-auto">
               Épuisé
             </span>
           )}
@@ -157,26 +157,26 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
         <div className="px-5 pb-4">
           <h3 className="font-display text-xl md:text-2xl leading-tight text-paper">{p.nom}</h3>
           {p.description && (
-            <p className="font-body text-sm text-paper/40 mt-1 leading-snug">{p.description}</p>
+            <p className="font-body text-sm text-paper/65 mt-1 leading-snug">{p.description}</p>
           )}
         </div>
 
         {/* Chiffres */}
         <div className="grid grid-cols-2 gap-px bg-white/5 border-t border-b border-white/5 mx-0">
           <div className="bg-surface-2 px-5 py-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25">Prix total</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Prix total</div>
             <div className="font-display text-2xl text-brass-light mt-0.5">{fcfa(p.prix_vente)}</div>
           </div>
           <div className="bg-surface-2 px-5 py-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25">Apport initial</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Apport initial</div>
             <div className="font-mono text-sm font-medium text-paper/70 mt-1">{fcfa(p.apport_minimum)}</div>
           </div>
           <div className="bg-surface-2 px-5 py-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25">Mensualités</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Mensualités</div>
             <div className="font-mono text-sm font-medium text-paper/70 mt-1">Jusqu&apos;à {p.nb_mensualites_max}×</div>
           </div>
           <div className="bg-surface-2 px-5 py-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/25">Soit dès</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Soit dès</div>
             <div className="font-mono text-sm font-medium text-paper/70 mt-1">{fcfa(menMin)} / mois</div>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
               Commander <ChevronRight className="w-4 h-4" />
             </Link>
           ) : (
-            <div className="flex items-center justify-center gap-2 w-full font-body text-sm text-paper/25 px-4 py-3 rounded-full border border-white/5">
+            <div className="flex items-center justify-center gap-2 w-full font-body text-sm text-paper/45 px-4 py-3 rounded-full border border-white/5">
               Stock épuisé
             </div>
           )}
