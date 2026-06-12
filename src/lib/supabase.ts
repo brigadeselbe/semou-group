@@ -33,7 +33,16 @@ export type CFAClient = {
 export type CFAProduit = {
   id: string
   nom: string
+  description: string | null
   prix_vente: number
+  apport_minimum: number
+  nb_mensualites_max: number
+  stock: number
+  stock_illimite: boolean
+  actif: boolean
+  en_vedette: boolean
+  etat: string
+  created_at: string
 }
 
 export type CFACommande = {
