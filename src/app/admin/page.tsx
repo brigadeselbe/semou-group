@@ -130,6 +130,14 @@ export default function Admin() {
   const [matResult,  setMatResult]  = useState<CFAClient | null | 'none'>('none')
   const [matLoading, setMatLoading] = useState(false)
 
+  /* Nouvelle commande */
+  const [newCmdClient,  setNewCmdClient]  = useState<CFAClient | null>(null)
+  const [newCmdProduit, setNewCmdProduit] = useState('')
+  const [newCmdMens,    setNewCmdMens]    = useState(6)
+  const [newCmdApport,  setNewCmdApport]  = useState(0)
+  const [newCmdMoyen,   setNewCmdMoyen]   = useState('ESPECES')
+  const [creatingCmd,   setCreatingCmd]   = useState(false)
+
   /* Restaurer session */
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem(SESSION_KEY) : null
@@ -209,6 +217,26 @@ export default function Admin() {
       }).catch(() => null)
     }
     setUpdating(null)
+  }
+
+  async function handleCreateCommande(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newCmdClient || !newCmdProduit) return
+    setCreatingCmd(true)
+    const { data: cmdId, error } = await supabase.rpc('admin_creer_commande', {
+      p_password:       adminPwd,
+      p_client_id:      newCmdClient.id,
+      p_produit_id:     newCmdProduit,
+      p_nb_mensualites: newCmdMens,
+      p_apport_paye:    newCmdApport,
+      p_moyen:          newCmdMoyen,
+    })
+    if (error) { alert('Erreur : ' + error.message); setCreatingCmd(false); return }
+    alert(`Commande créée ! Réf : ${cmdId}`)
+    setNewCmdClient(null)
+    setNewCmdProduit(''); setNewCmdMens(6); setNewCmdApport(0); setNewCmdMoyen('ESPECES')
+    setCmdLoaded(false)
+    setCreatingCmd(false)
   }
 
   async function handleMatSearch(e: React.FormEvent) {
@@ -544,6 +572,12 @@ export default function Admin() {
                                       <button onClick={() => handleUpdateStatut(c.id, 'REJETE')}
                                         className="flex items-center gap-1 font-mono text-[10px] uppercase text-clay border border-clay/30 rounded-full px-2.5 py-1 hover:bg-clay/10 transition-colors">
                                         <XCircle className="w-3 h-3" /> Rejeter
+                                      </button>
+                                    )}
+                                    {c.statut === 'VALIDE' && (
+                                      <button onClick={() => { setNewCmdClient(c); loadProduits() }}
+                                        className="flex items-center gap-1 font-mono text-[10px] uppercase text-brass border border-brass/30 rounded-full px-2.5 py-1 hover:bg-brass/10 transition-colors">
+                                        <Plus className="w-3 h-3" /> Commande
                                       </button>
                                     )}
                                     <ChevronDown className={`w-3.5 h-3.5 text-paper/20 transition-transform ${cliExpand === c.id ? 'rotate-180' : ''}`} />
@@ -886,6 +920,86 @@ export default function Admin() {
                 </div>
               )}
         </>
+      )}
+
+      {/* ── Modal : créer une commande ── */}
+      {newCmdClient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/80 backdrop-blur-sm p-4"
+          onClick={() => !creatingCmd && setNewCmdClient(null)}>
+          <div className="bg-void border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-display text-lg text-brass">Créer une commande</h2>
+              <button onClick={() => setNewCmdClient(null)} className="text-paper/30 hover:text-paper/60 transition-colors">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Client info (lecture seule) */}
+            <div className="bg-white/4 rounded-xl px-4 py-3 mb-5">
+              <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/30 mb-0.5">Client</div>
+              <div className="font-body text-paper/80 text-sm">{newCmdClient.prenom} {newCmdClient.nom}</div>
+              <div className="font-mono text-[10px] text-paper/40">{newCmdClient.telephone} · {newCmdClient.matricule}</div>
+            </div>
+
+            <form onSubmit={handleCreateCommande} className="space-y-4">
+              {/* Produit */}
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">Produit</label>
+                {prodLoading ? (
+                  <div className="flex items-center gap-2 text-paper/30 text-xs"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>
+                ) : (
+                  <select value={newCmdProduit} onChange={e => setNewCmdProduit(e.target.value)} required
+                    className="w-full bg-white/6 border border-white/10 rounded-xl px-3 py-2.5 text-paper text-sm focus:outline-none focus:border-brass/50 transition-colors">
+                    <option value="">-- Sélectionner un produit --</option>
+                    {produits.map(p => (
+                      <option key={p.id} value={p.id}>{p.nom} — {p.prix_vente.toLocaleString('fr-FR')} FCFA</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Nb mensualités */}
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">
+                  Nombre de mensualités : <span className="text-brass">{newCmdMens}</span>
+                </label>
+                <input type="range" min={1} max={24} value={newCmdMens}
+                  onChange={e => setNewCmdMens(Number(e.target.value))}
+                  className="w-full accent-brass" />
+                <div className="flex justify-between font-mono text-[9px] text-paper/25 mt-0.5">
+                  <span>1</span><span>12</span><span>24</span>
+                </div>
+              </div>
+
+              {/* Apport payé */}
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">Apport déjà payé (FCFA)</label>
+                <input type="number" min={0} value={newCmdApport}
+                  onChange={e => setNewCmdApport(Number(e.target.value))}
+                  className="w-full bg-white/6 border border-white/10 rounded-xl px-3 py-2.5 text-paper text-sm focus:outline-none focus:border-brass/50 transition-colors" />
+              </div>
+
+              {/* Moyen de paiement */}
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 block mb-1.5">Moyen de paiement apport</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[['ESPECES', 'Espèces'], ['WAVE', 'Wave'], ['ORANGE', 'Orange']].map(([val, lbl]) => (
+                    <button key={val} type="button" onClick={() => setNewCmdMoyen(val)}
+                      className={`font-mono text-[10px] uppercase py-2 rounded-xl border transition-colors ${newCmdMoyen === val ? 'bg-brass/15 border-brass/50 text-brass' : 'border-white/10 text-paper/40 hover:border-white/20'}`}>
+                      {lbl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button type="submit" disabled={creatingCmd || !newCmdProduit}
+                className="w-full flex items-center justify-center gap-2 bg-brass text-void font-mono text-xs uppercase tracking-[0.15em] py-3 rounded-xl hover:bg-brass/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+                {creatingCmd ? <><Loader2 className="w-4 h-4 animate-spin" /> Création…</> : <><Plus className="w-4 h-4" /> Créer la commande</>}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
 
       <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/12 text-center mt-10">
