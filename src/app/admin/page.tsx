@@ -131,9 +131,10 @@ export default function Admin() {
   /* Stats */
   const [stats,      setStats]      = useState<DashStats | null>(null)
   const [statsLoading, setStatsLoading] = useState(false)
-  const [matSearch,  setMatSearch]  = useState('')
-  const [matResult,  setMatResult]  = useState<CFAClient | null | 'none'>('none')
-  const [matLoading, setMatLoading] = useState(false)
+  const [matSearch,   setMatSearch]   = useState('')
+  const [matMode,     setMatMode]     = useState<'matricule' | 'nom' | 'telephone'>('matricule')
+  const [matResults,  setMatResults]  = useState<CFAClient[] | 'idle'>('idle')
+  const [matLoading,  setMatLoading]  = useState(false)
 
   /* Versement manuel */
   const [markingVers, setMarkingVers] = useState<string | null>(null)
@@ -277,11 +278,22 @@ export default function Admin() {
 
   async function handleMatSearch(e: React.FormEvent) {
     e.preventDefault()
-    if (!matSearch.trim()) return
-    setMatLoading(true); setMatResult('none')
-    const { data } = await supabase.from('cfa_clients').select('*')
-      .ilike('matricule', `%${matSearch.trim()}%`).limit(1).single()
-    setMatResult(data ? data as CFAClient : null)
+    const q = matSearch.trim()
+    if (!q) return
+    setMatLoading(true); setMatResults('idle')
+    let query = supabase.from('cfa_clients').select('*').order('created_at', { ascending: false })
+    if (matMode === 'matricule') {
+      query = query.ilike('matricule', `%${q}%`)
+    } else if (matMode === 'telephone') {
+      // Normaliser : retirer le 221 en tête si présent
+      const tel = q.replace(/^\+?221/, '').replace(/\s/g, '')
+      query = query.or(`telephone.ilike.%${tel}%,telephone.ilike.%221${tel}%`)
+    } else {
+      // nom : chercher dans prenom OU nom
+      query = query.or(`prenom.ilike.%${q}%,nom.ilike.%${q}%`)
+    }
+    const { data } = await query.limit(10)
+    setMatResults((data ?? []) as CFAClient[])
     setMatLoading(false)
   }
 
@@ -605,15 +617,37 @@ export default function Admin() {
             ))}
           </div>
 
-          {/* Recherche matricule */}
+          {/* Recherche fonctionnaire */}
           <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Search className="w-4 h-4 text-brass" />
-              <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/50">Recherche par matricule</div>
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/50">Recherche fonctionnaire</div>
             </div>
+
+            {/* Sélecteur de critère */}
+            <div className="flex gap-1 bg-void border border-white/8 rounded-xl p-1 mb-4 w-fit">
+              {([
+                ['matricule', 'Matricule'],
+                ['nom',       'Nom'],
+                ['telephone', 'Téléphone'],
+              ] as const).map(([mode, lbl]) => (
+                <button key={mode} type="button" onClick={() => { setMatMode(mode); setMatResults('idle'); setMatSearch('') }}
+                  className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg transition-colors ${
+                    matMode === mode ? 'bg-surface text-brass border border-brass/20' : 'text-paper/35 hover:text-paper/60'
+                  }`}>
+                  {lbl}
+                </button>
+              ))}
+            </div>
+
             <form onSubmit={handleMatSearch} className="flex gap-3">
-              <input type="text" value={matSearch} onChange={e => setMatSearch(e.target.value)}
-                placeholder="ex : 300501163/E"
+              <input type={matMode === 'telephone' ? 'tel' : 'text'}
+                value={matSearch} onChange={e => setMatSearch(e.target.value)}
+                placeholder={
+                  matMode === 'matricule' ? 'ex : 300501163/E' :
+                  matMode === 'nom'       ? 'ex : Diallo ou Fatou' :
+                                           'ex : 77 123 45 67'
+                }
                 className="flex-1 bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-2 placeholder:text-paper/15 transition-colors" />
               <button type="submit" disabled={matLoading}
                 className="font-mono text-xs text-brass border border-brass/30 rounded-full px-4 py-1.5 hover:bg-brass/10 transition-colors disabled:opacity-50">
@@ -621,23 +655,34 @@ export default function Admin() {
               </button>
             </form>
 
-            {matResult === null && (
-              <p className="font-body text-sm text-clay mt-4">Aucun fonctionnaire trouvé pour ce matricule.</p>
-            )}
-            {matResult && matResult !== 'none' && (
-              <div className="mt-4 bg-void border border-white/6 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="font-display text-lg text-paper">{matResult.prenom} {matResult.nom}</div>
-                  <Badge statut={matResult.statut} s={CLI_STYLE} l={CLI_LBL} />
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 font-mono text-xs text-paper/50">
-                  <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Téléphone</span>{matResult.telephone.replace(/^221/, '')}</div>
-                  <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Matricule</span>{matResult.matricule}</div>
-                  <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Corps</span>{matResult.corps ?? '—'}</div>
-                  <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">IA</span>{matResult.ia ?? '—'}</div>
-                  <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Région</span>{matResult.region ?? '—'}</div>
-                  <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Inscription</span>{fmt(matResult.created_at)}</div>
-                </div>
+            {/* Résultats */}
+            {matResults !== 'idle' && (
+              <div className="mt-4">
+                {matResults.length === 0 ? (
+                  <p className="font-body text-sm text-clay">Aucun fonctionnaire trouvé.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {matResults.map(c => (
+                      <div key={c.id} className="bg-void border border-white/6 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="font-display text-base text-paper">{c.prenom} {c.nom}</div>
+                          <Badge statut={c.statut} s={CLI_STYLE} l={CLI_LBL} />
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 font-mono text-xs text-paper/50">
+                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Téléphone</span>{c.telephone.replace(/^221/, '')}</div>
+                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Matricule</span>{c.matricule ?? '—'}</div>
+                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Corps</span>{c.corps ?? '—'}</div>
+                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">IA / Académie</span>{c.ia ?? '—'}</div>
+                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Région</span>{c.region ?? '—'}</div>
+                          <div><span className="text-paper/25 block text-[9px] uppercase tracking-wider mb-0.5">Inscription</span>{fmt((c as CFAClient & { created_at: string }).created_at)}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {matResults.length === 10 && (
+                      <p className="font-mono text-[10px] text-paper/25 text-center">Affichage limité à 10 résultats — affinez la recherche.</p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
