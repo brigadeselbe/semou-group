@@ -27,6 +27,7 @@ export type CFAClient = {
   bulletin_url: string | null
   bulletin_valide: boolean
   notes: string | null
+  created_at: string
 }
 
 export type CFAProduit = {
