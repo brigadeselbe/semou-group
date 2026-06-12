@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
+import { sendSMS, smsTemplates } from '@/lib/sms'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,16 +25,32 @@ export async function POST(req: NextRequest) {
 
   const event = JSON.parse(rawBody)
 
-  // Wave envoie { type: "checkout.session.completed", data: { client_reference, status, id } }
   if (event.type === 'checkout.session.completed' && event.data?.status === 'succeeded') {
     const txId = event.data.client_reference as string
     const ref  = event.data.id as string
 
-    await supabase.rpc('paiement_confirmer', {
-      p_transaction_id: txId,
-      p_reference: ref,
-    })
+    await supabase.rpc('paiement_confirmer', { p_transaction_id: txId, p_reference: ref })
+    await sendSmsConfirmation(txId)
   }
 
   return NextResponse.json({ received: true })
+}
+
+async function sendSmsConfirmation(txId: string) {
+  const { data: tx } = await supabase
+    .from('cfa_transactions')
+    .select('montant, client_id, commande_id')
+    .eq('id', txId).single()
+  if (!tx) return
+
+  const [{ data: client }, { data: commande }] = await Promise.all([
+    supabase.from('cfa_clients').select('prenom, telephone').eq('id', tx.client_id).single(),
+    supabase.from('cfa_commandes').select('reste_a_payer').eq('id', tx.commande_id).single(),
+  ])
+  if (!client || !commande) return
+
+  await sendSMS(
+    client.telephone,
+    smsTemplates.paiementConfirme(client.prenom, tx.montant, commande.reste_a_payer),
+  )
 }

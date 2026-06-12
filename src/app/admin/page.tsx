@@ -198,8 +198,16 @@ export default function Admin() {
     const { error } = await supabase.rpc('admin_update_client_statut', {
       p_client_id: clientId, p_statut: newStatut, p_password: adminPwd,
     })
-    if (error) alert('Erreur : ' + error.message)
-    else setClients(prev => prev.map(c => c.id === clientId ? { ...c, statut: newStatut } : c))
+    if (error) { alert('Erreur : ' + error.message); setUpdating(null); return }
+    setClients(prev => prev.map(c => c.id === clientId ? { ...c, statut: newStatut } : c))
+    // SMS notification (non bloquant)
+    if (newStatut === 'VALIDE' || newStatut === 'REJETE') {
+      fetch('/api/sms/statut', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: clientId, statut: newStatut, password: adminPwd }),
+      }).catch(() => null)
+    }
     setUpdating(null)
   }
 

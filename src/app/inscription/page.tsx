@@ -74,7 +74,6 @@ export default function Inscription() {
   const [stage,     setStage]     = useState<Stage>('form')
   const [errMsg,    setErrMsg]    = useState('')
   const [refCode,   setRefCode]   = useState('')
-  const [clientId,  setClientId]  = useState('')
   const [commandeId,setCommandeId]= useState('')
   const [payLoading,setPayLoading]= useState<'wave' | 'orange' | null>(null)
   const [payError,  setPayError]  = useState('')
@@ -145,8 +144,15 @@ export default function Inscription() {
     }
 
     const cid = data.id as string
-    setClientId(cid)
-    setRefCode(`SG-${new Date().getFullYear()}-${cid.slice(-8).toUpperCase()}`)
+    const ref = `SG-${new Date().getFullYear()}-${cid.slice(-8).toUpperCase()}`
+    setRefCode(ref)
+
+    // SMS de confirmation (non bloquant)
+    fetch('/api/sms/inscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telephone: normalizePhone(telephone), prenom: prenom.trim(), ref }),
+    }).catch(() => null)
 
     /* Si produit sélectionné → créer commande et aller au paiement */
     if (produitId) {
