@@ -34,6 +34,7 @@ export type CFAProduit = {
   id: string
   nom: string
   description: string | null
+  photo_url: string | null
   prix_vente: number
   apport_minimum: number
   nb_mensualites_max: number

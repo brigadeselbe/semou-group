@@ -34,6 +34,15 @@ function ProduitCard({ p }: { p: CFAProduit }) {
 
   return (
     <div className="relative bg-surface border border-white/6 rounded-2xl overflow-hidden flex flex-col hover:border-brass/20 transition-colors group">
+      {/* Photo */}
+      {p.photo_url && (
+        <div className="w-full h-44 overflow-hidden bg-void">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={p.photo_url} alt={p.nom}
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+        </div>
+      )}
+
       {/* Badges */}
       <div className="flex items-center gap-2 px-5 pt-5 pb-3">
         <span className={`font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${

@@ -122,6 +122,8 @@ export default function Admin() {
   const [showForm,    setShowForm]    = useState(false)
   const [prodForm,    setProdForm]    = useState<ProduitForm>(EMPTY_PRODUIT)
   const [savingProd,  setSavingProd]  = useState(false)
+  const [photoFile,    setPhotoFile]    = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
 
   /* Stats */
   const [stats,      setStats]      = useState<DashStats | null>(null)
@@ -330,7 +332,9 @@ export default function Admin() {
 
   /* Produit form */
   function openNewProd() {
-    setEditProd(null); setProdForm(EMPTY_PRODUIT); setShowForm(true)
+    setEditProd(null); setProdForm(EMPTY_PRODUIT)
+    setPhotoFile(null); setPhotoPreview(null)
+    setShowForm(true)
   }
   function openEditProd(p: CFAProduit) {
     setEditProd(p)
@@ -340,16 +344,31 @@ export default function Admin() {
       stock: p.stock, stock_illimite: p.stock_illimite, actif: p.actif,
       en_vedette: p.en_vedette, etat: p.etat,
     })
+    setPhotoFile(null); setPhotoPreview(p.photo_url ?? null)
     setShowForm(true)
   }
   async function handleSaveProd(e: React.FormEvent) {
     e.preventDefault()
     setSavingProd(true)
+
+    // Upload photo si nouveau fichier sélectionné
+    let photoUrl: string | null = editProd?.photo_url ?? null
+    if (photoFile) {
+      const ext  = photoFile.name.split('.').pop()
+      const path = `${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('produit-photos').upload(path, photoFile, { upsert: true })
+      if (upErr) { alert('Erreur upload photo : ' + upErr.message); setSavingProd(false); return }
+      const { data: pub } = supabase.storage.from('produit-photos').getPublicUrl(path)
+      photoUrl = pub.publicUrl
+    }
+
     const { error } = await supabase.rpc('admin_upsert_produit', {
       p_password:       adminPwd,
       p_id:             editProd?.id ?? null,
       p_nom:            prodForm.nom,
       p_description:    prodForm.description || null,
+      p_photo_url:      photoUrl,
       p_prix_vente:     Number(prodForm.prix_vente),
       p_apport_minimum: Number(prodForm.apport_minimum),
       p_nb_mensualites: Number(prodForm.nb_mensualites_max),
@@ -362,6 +381,7 @@ export default function Admin() {
     if (error) { alert('Erreur : ' + error.message); setSavingProd(false); return }
     setProdLoaded(false); await loadProduits()
     setShowForm(false); setSavingProd(false)
+    setPhotoFile(null); setPhotoPreview(null)
   }
   async function handleDeleteProd(id: string) {
     if (!confirm('Supprimer ce produit ?')) return
@@ -922,6 +942,38 @@ export default function Admin() {
                     rows={2} placeholder="Description courte du produit…"
                     className="w-full bg-void border border-white/8 rounded-lg p-2.5 font-body text-sm text-paper placeholder:text-paper/15 focus:border-brass/40 outline-none resize-none transition-colors" />
                 </FormField>
+
+                {/* Photo */}
+                <div className="mt-4 mb-2">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/30 mb-2">Photo produit</div>
+                  <div className="flex items-start gap-4">
+                    {photoPreview && (
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photoPreview} alt="aperçu" className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}
+                          className="absolute top-1 right-1 bg-void/70 rounded-full p-0.5 text-clay hover:text-red-400">
+                          <XCircle className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                    <label className={`flex-1 flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl py-4 cursor-pointer transition-colors ${photoPreview ? 'border-white/8 hover:border-brass/20' : 'border-white/10 hover:border-brass/30'}`}>
+                      <Download className="w-5 h-5 text-paper/20 rotate-180" />
+                      <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-paper/30">
+                        {photoPreview ? 'Remplacer' : 'Choisir une image'}
+                      </span>
+                      <span className="font-mono text-[9px] text-paper/15">JPG · PNG · WebP · max 2 Mo</span>
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                        onChange={e => {
+                          const f = e.target.files?.[0]
+                          if (!f) return
+                          setPhotoFile(f)
+                          setPhotoPreview(URL.createObjectURL(f))
+                        }} />
+                    </label>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-6 mt-3 mb-5">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={prodForm.actif}
