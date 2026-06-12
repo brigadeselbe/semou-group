@@ -6,7 +6,37 @@ import type { CFAClient } from '@/lib/supabase'
 import {
   Lock, LogOut, Search, CheckCircle2, XCircle,
   Loader2, ChevronDown, Users, Clock, BadgeCheck, Ban,
+  FileText, ExternalLink,
 } from 'lucide-react'
+
+/* ── Composant URL signée ── */
+function SignedDocLink({ path, label }: { path: string; label: string }) {
+  const [url, setUrl]   = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.storage
+      .from('documents')
+      .createSignedUrl(path, 3600)
+      .then(({ data }) => { setUrl(data?.signedUrl ?? null); setLoading(false) })
+  }, [path])
+
+  if (loading) return <span className="font-mono text-[10px] text-paper/25">Chargement…</span>
+  if (!url)    return <span className="font-mono text-[10px] text-clay">Inaccessible</span>
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-1.5 font-mono text-[10px] text-brass-light border border-brass/20 rounded-full px-2.5 py-1 hover:bg-brass/10 transition-colors"
+    >
+      <FileText className="w-3 h-3" />
+      {label}
+      <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+    </a>
+  )
+}
 
 /* ── Constantes ── */
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? 'SEMOU2026'
@@ -378,29 +408,23 @@ export default function Admin() {
                               </div>
                             ) : null)}
 
-                            {/* Pièces */}
+                            {/* Pièces justificatives */}
                             {client.cni_url && (
                               <div>
-                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-0.5">CNI Recto</div>
-                                <a
-                                  href={`https://idgwekhrwbljdyhfabxx.supabase.co/storage/v1/object/public/documents/${client.cni_url}`}
-                                  target="_blank" rel="noreferrer"
-                                  className="font-mono text-[10px] text-brass-light underline underline-offset-2"
-                                >
-                                  Voir le document ↗
-                                </a>
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-1.5">CNI Recto</div>
+                                <SignedDocLink path={client.cni_url} label="Ouvrir CNI recto" />
+                              </div>
+                            )}
+                            {client.notes?.startsWith('CNI_VERSO:') && (
+                              <div>
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-1.5">CNI Verso</div>
+                                <SignedDocLink path={client.notes.replace('CNI_VERSO:', '')} label="Ouvrir CNI verso" />
                               </div>
                             )}
                             {client.bulletin_url && (
                               <div>
-                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-0.5">Bulletin salaire</div>
-                                <a
-                                  href={`https://idgwekhrwbljdyhfabxx.supabase.co/storage/v1/object/public/documents/${client.bulletin_url}`}
-                                  target="_blank" rel="noreferrer"
-                                  className="font-mono text-[10px] text-brass-light underline underline-offset-2"
-                                >
-                                  Voir le document ↗
-                                </a>
+                                <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/25 mb-1.5">Bulletin salaire</div>
+                                <SignedDocLink path={client.bulletin_url} label="Ouvrir bulletin" />
                               </div>
                             )}
                           </div>
