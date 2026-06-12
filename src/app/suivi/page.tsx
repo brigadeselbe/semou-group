@@ -91,26 +91,26 @@ function PayModal({ target, telephone, onClose }: {
         <div className="font-mono text-sm text-brass-light mb-5">{formatFcfa(target.montant)}</div>
 
         {error && (
-          <div className="flex items-start gap-2 bg-clay/10 border border-clay/25 rounded-xl p-3 mb-4 text-clay text-xs font-body">
+          <div className="flex items-start gap-2 bg-clay/10 border border-clay/25 rounded-xl p-3 mb-4 text-clay text-xs font-body leading-relaxed">
             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />{error}
           </div>
         )}
 
         <div className="space-y-3">
           <button onClick={() => pay('wave')} disabled={!!loading}
-            className="w-full flex items-center justify-between bg-[#1B75D0] hover:bg-[#1565BA] text-white font-body font-medium px-5 py-3.5 rounded-xl transition-colors disabled:opacity-50">
+            className="w-full flex items-center justify-between bg-[#1B75D0] hover:bg-[#1565BA] text-white font-body font-medium px-5 py-3.5 rounded-xl transition-colors disabled:opacity-60">
             <span className="flex items-center gap-3">
               <CreditCard className="w-4 h-4" />
-              <span>Wave</span>
+              <span>Payer avec Wave</span>
             </span>
             {loading === 'wave' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-sm opacity-70">→</span>}
           </button>
 
           <button onClick={() => pay('orange')} disabled={!!loading}
-            className="w-full flex items-center justify-between bg-[#F66B00] hover:bg-[#E05C00] text-white font-body font-medium px-5 py-3.5 rounded-xl transition-colors disabled:opacity-50">
+            className="w-full flex items-center justify-between bg-[#F66B00] hover:bg-[#E05C00] text-white font-body font-medium px-5 py-3.5 rounded-xl transition-colors disabled:opacity-60">
             <span className="flex items-center gap-3">
               <CreditCard className="w-4 h-4" />
-              <span>Orange Money</span>
+              <span>Payer avec Orange Money</span>
             </span>
             {loading === 'orange' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-sm opacity-70">→</span>}
           </button>
@@ -231,7 +231,7 @@ function CommandeCard({ commande, telephone }: {
           <button
             onClick={() => setPayTarget({
               type: 'APPORT', id: commande.id,
-              montant: commande.apport_paye === 0 ? commande.prix_vente - commande.reste_a_payer + commande.reste_a_payer : commande.apport_paye,
+              montant: commande.prix_vente - commande.nb_mensualites * commande.montant_mensualite,
               label: 'Apport initial',
             })}
             className="w-full flex items-center justify-center gap-2 font-body text-sm font-medium bg-brass/15 hover:bg-brass/25 border border-brass/30 text-brass-light px-4 py-3 rounded-xl transition-colors">

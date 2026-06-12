@@ -11,6 +11,13 @@ const APP_URL       = process.env.NEXT_PUBLIC_APP_URL ?? 'https://semou-group.ve
 const WAVE_ENDPOINT = 'https://api.wave.com/v1/checkout/sessions'
 
 export async function POST(req: NextRequest) {
+  if (!WAVE_API_KEY) {
+    return NextResponse.json(
+      { error: 'Le paiement Wave n\'est pas encore activé sur cette plateforme. Contactez le bureau Semou Group.' },
+      { status: 503 },
+    )
+  }
+
   const { type, id, telephone } = await req.json()
 
   if (!type || !id || !telephone) {

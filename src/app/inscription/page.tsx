@@ -241,7 +241,7 @@ export default function Inscription() {
 
               <button onClick={() => setStage('success')}
                 className="w-full font-body text-sm text-paper/35 hover:text-paper/55 py-2 transition-colors">
-                Payer plus tard depuis /suivi
+                Payer plus tard → accéder à mon suivi
               </button>
             </div>
 
