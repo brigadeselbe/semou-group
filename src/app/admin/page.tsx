@@ -7,7 +7,7 @@ import {
   Lock, LogOut, Search, CheckCircle2, XCircle, Loader2, ChevronDown,
   Users, FileText, ExternalLink, ShoppingBag,
   TrendingUp, AlertCircle, Package, Plus, Edit2, Trash2, ToggleLeft,
-  ToggleRight, Star, MapPin,
+  ToggleRight, Star, MapPin, Download,
 } from 'lucide-react'
 
 /* ── Types ── */
@@ -247,6 +247,85 @@ export default function Admin() {
       .ilike('matricule', `%${matSearch.trim()}%`).limit(1).single()
     setMatResult(data ? data as CFAClient : null)
     setMatLoading(false)
+  }
+
+  /* Exports Excel */
+  async function exportClients() {
+    const XLSX = (await import('xlsx')).default
+    const rows = filteredClients.map(c => ({
+      Prénom:        c.prenom,
+      Nom:           c.nom,
+      Téléphone:     c.telephone,
+      Matricule:     c.matricule ?? '',
+      Corps:         c.corps ?? '',
+      Région:        c.region ?? '',
+      'IA/Académie': c.ia ?? '',
+      IEF:           c.ief ?? '',
+      École:         c.ecole ?? '',
+      Grade:         c.grade ?? '',
+      Ministère:     c.ministere ?? '',
+      Statut:        c.statut,
+      Date:          (c as CFAClient & { created_at: string }).created_at
+                       ? new Date((c as CFAClient & { created_at: string }).created_at).toLocaleDateString('fr-FR') : '',
+    }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Clients')
+    XLSX.writeFile(wb, `clients_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
+  async function exportCommandes() {
+    const XLSX = (await import('xlsx')).default
+    // Fetch data fresh to be safe
+    const { data: cmds } = await supabase
+      .from('cfa_commandes')
+      .select('*, client:cfa_clients(prenom, nom, telephone), produit:cfa_produits(nom)')
+      .order('created_at', { ascending: false })
+    if (!cmds?.length) return
+    const ids = cmds.map((c: CommandeAdmin) => c.id)
+    const { data: vers } = await supabase
+      .from('cfa_versements').select('*').in('commande_id', ids).order('numero_versement')
+    const vm: Record<string, CFAVersement[]> = {}
+    ;(vers ?? []).forEach((v: CFAVersement) => {
+      if (!vm[v.commande_id]) vm[v.commande_id] = []
+      vm[v.commande_id].push(v)
+    })
+    const rows: Record<string, string | number>[] = []
+    cmds.forEach((cmd: CommandeAdmin) => {
+      const base = {
+        Référence:         cmd.reference ?? cmd.id,
+        Client:            `${cmd.client?.prenom ?? ''} ${cmd.client?.nom ?? ''}`.trim(),
+        Téléphone:         cmd.client?.telephone ?? '',
+        Produit:           cmd.produit?.nom ?? '',
+        'Statut commande': cmd.statut,
+        'Prix vente':      cmd.prix_vente,
+        'Apport payé':     cmd.apport_paye,
+        'Reste à payer':   cmd.reste_a_payer,
+        Mensualités:       cmd.nb_mensualites,
+        'Mensualité (FCFA)': cmd.montant_mensualite,
+      }
+      const versements = vm[cmd.id] ?? []
+      if (versements.length === 0) {
+        rows.push(base)
+      } else {
+        versements.forEach(v => {
+          rows.push({
+            ...base,
+            'N° vers.':         v.numero_versement,
+            'Montant prévu':    v.montant_prevu,
+            'Montant payé':     v.montant_paye,
+            'Statut versement': v.statut,
+            'Date échéance':    v.date_echeance ? new Date(v.date_echeance).toLocaleDateString('fr-FR') : '',
+            'Date paiement':    v.date_paiement ? new Date(v.date_paiement).toLocaleDateString('fr-FR') : '',
+            Moyen:              v.moyen_paiement ?? '',
+          })
+        })
+      }
+    })
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Commandes')
+    XLSX.writeFile(wb, `commandes_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   /* Produit form */
@@ -516,8 +595,16 @@ export default function Admin() {
               ))}
             </div>
           </div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/25 mb-3">
-            {filteredClients.length} dossier{filteredClients.length > 1 ? 's' : ''}
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/25">
+              {filteredClients.length} dossier{filteredClients.length > 1 ? 's' : ''}
+            </span>
+            {filteredClients.length > 0 && (
+              <button onClick={exportClients}
+                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/40 hover:text-brass border border-white/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
+                <Download className="w-3 h-3" /> Excel
+              </button>
+            )}
           </div>
           <div className="bg-surface border border-white/6 rounded-2xl overflow-hidden">
             {filteredClients.length === 0
@@ -669,6 +756,17 @@ export default function Admin() {
                       </button>
                     ))}
                   </div>
+                </div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/25">
+                    {filteredCmds.length} commande{filteredCmds.length > 1 ? 's' : ''}
+                  </span>
+                  {commandes.length > 0 && (
+                    <button onClick={exportCommandes}
+                      className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/40 hover:text-brass border border-white/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
+                      <Download className="w-3 h-3" /> Excel
+                    </button>
+                  )}
                 </div>
                 <div className="bg-surface border border-white/6 rounded-2xl overflow-hidden">
                   {filteredCmds.length === 0
