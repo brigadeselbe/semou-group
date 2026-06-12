@@ -175,12 +175,14 @@ function CommandeCard({ commande }: { commande: CommandeWithDetails }) {
       </div>
 
       {/* Produit */}
-      {commande.notes && (
+      {(commande.produit?.nom || commande.notes) && (
         <div className="mb-4">
           <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink/35 mb-0.5">
             Produit
           </div>
-          <div className="font-body text-sm text-ink/80 leading-snug">{commande.notes}</div>
+          <div className="font-body text-sm text-ink/80 leading-snug">
+            {commande.produit?.nom ?? commande.notes}
+          </div>
         </div>
       )}
 
@@ -283,10 +285,10 @@ export default function Suivi() {
       return
     }
 
-    /* 2. Commandes */
+    /* 2. Commandes + produit (join) */
     const { data: commandes, error: cmdErr } = await supabase
       .from('cfa_commandes')
-      .select('*')
+      .select('*, produit:cfa_produits(nom)')
       .eq('client_id', client.id)
       .order('created_at', { ascending: false })
 
@@ -301,7 +303,7 @@ export default function Suivi() {
     /* 3. Versements & livraisons en parallèle */
     const [verRes, livRes] = await Promise.all([
       commandeIds.length > 0
-        ? supabase.from('cfa_versements').select('*').in('commande_id', commandeIds).order('date_echeance')
+        ? supabase.from('cfa_versements').select('*').in('commande_id', commandeIds).order('numero_versement')
         : Promise.resolve({ data: [], error: null }),
       commandeIds.length > 0
         ? supabase.from('cfa_livraisons').select('*').in('commande_id', commandeIds)

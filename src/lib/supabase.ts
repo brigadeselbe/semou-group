@@ -11,35 +11,58 @@ export type CFAClient = {
   nom: string
   telephone: string
   matricule: string | null
-  type_fonctionnaire: string
+  type_fonctionnaire: string | null
+  type_enseignant: string | null
   ecole: string | null
   ief: string | null
   ia: string | null
   region: string | null
+  corps: string | null
+  ministere: string | null
+  grade: string | null
   statut: string
+  source: string | null
+  cni_url: string | null
+  cni_valide: boolean
+  bulletin_url: string | null
+  bulletin_valide: boolean
+  notes: string | null
+}
+
+export type CFAProduit = {
+  id: string
+  nom: string
+  prix_vente: number
 }
 
 export type CFACommande = {
   id: string
   reference: string
   client_id: string
+  produit_id: string
   prix_vente: number
   apport_paye: number
   reste_a_payer: number
   nb_mensualites: number
   montant_mensualite: number
   statut: string
+  statut_livraison: string | null
+  livraison_id: string | null
   notes: string | null
-  livraison_statut: string | null
+  date_fin_prevue: string | null
+  produit?: { nom: string } | null
 }
 
 export type CFAVersement = {
   id: string
   commande_id: string
+  numero_versement: number
   montant_prevu: number
-  montant_paye: number | null
+  montant_paye: number
+  date_echeance: string
+  date_paiement: string | null
+  moyen_paiement: string | null
   statut: string
-  date_echeance: string | null
 }
 
 export type CFALivraison = {
@@ -56,6 +79,6 @@ export type CFALivraison = {
   delai_max_jours: number
   livreur_nom: string | null
   livreur_telephone: string | null
-  frais_livraison: number | null
+  frais_livraison: number
   frais_payes: boolean
 }

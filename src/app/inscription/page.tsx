@@ -19,7 +19,9 @@ const CORPS_LIST = [
   { value: 'GENDARMERIE',     label: 'Gendarmerie' },
   { value: 'JUSTICE',         label: 'Justice' },
   { value: 'ARMEE',           label: 'Armée' },
-  { value: 'IMPOTS_DOUANES',  label: 'Impôts & Douanes' },
+  { value: 'IMPOTS',          label: 'Impôts' },
+  { value: 'DOUANES',         label: 'Douanes' },
+  { value: 'TRESOR',          label: 'Trésor public' },
   { value: 'MAIRIE',          label: 'Mairie / Collectivité' },
   { value: 'AUTRE',           label: 'Autre corps d\'État' },
 ]
@@ -78,30 +80,34 @@ export default function Inscription() {
     const ts    = Date.now()
     const ext   = (f: File) => f.name.split('.').pop() ?? 'jpg'
 
-    const [r1, r2, r3] = await Promise.all([
+    const [cniRectoPath, cniVersoPath, bulletinPath] = await Promise.all([
       uploadDoc(cniRecto,  `cni/${phone}/${ts}_recto.${ext(cniRecto)}`),
       uploadDoc(cniVerso,  `cni/${phone}/${ts}_verso.${ext(cniVerso)}`),
       uploadDoc(bulletin,  `bulletins/${phone}/${ts}.${ext(bulletin)}`),
     ])
 
-    const notes = `WEB | CNI_R:${r1} | CNI_V:${r2} | BUL:${r3}`
+    const notes = cniVersoPath.startsWith('ERREUR')
+      ? null
+      : `CNI_VERSO:${cniVersoPath}`
 
     const { data, error } = await supabase
       .from('cfa_clients')
       .insert({
-        prenom:            prenom.trim().toUpperCase(),
-        nom:               nom.trim().toUpperCase(),
-        telephone:         phone,
-        matricule:         matricule.trim().toUpperCase(),
+        prenom:             prenom.trim().toUpperCase(),
+        nom:                nom.trim().toUpperCase(),
+        telephone:          phone,
+        matricule:          matricule.trim().toUpperCase(),
         type_fonctionnaire: corps,
-        type_enseignant:   corps === 'ENSEIGNANT' ? typeAgent : null,
+        type_enseignant:    corps === 'ENSEIGNANT' ? typeAgent : null,
         corps,
-        ia:                ia.trim()    || null,
-        ief:               ief.trim()   || null,
-        region:            region       || null,
-        ecole:             ecole.trim() || null,
-        statut:            'EN_ATTENTE',
-        source:            'INSCRIPTION_WEB',
+        ia:                 ia.trim()    || null,
+        ief:                ief.trim()   || null,
+        region:             region       || null,
+        ecole:              ecole.trim() || null,
+        statut:             'EN_ATTENTE',
+        source:             'INSCRIPTION',
+        cni_url:            cniRectoPath.startsWith('ERREUR') ? null : cniRectoPath,
+        bulletin_url:       bulletinPath.startsWith('ERREUR') ? null : bulletinPath,
         notes,
       })
       .select('id')
