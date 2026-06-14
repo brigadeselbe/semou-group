@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Search, Loader2, AlertCircle, Package, Truck, CheckCircle2, Clock, XCircle, CreditCard } from 'lucide-react'
+import { ArrowLeft, Search, Loader2, AlertCircle, Package, Truck, CheckCircle2, Clock, XCircle, CreditCard, Eye, EyeOff } from 'lucide-react'
 import LogoSG from '@/components/LogoSG'
 import { supabase } from '@/lib/supabase'
 import type { CFAClient, CFACommande, CFAVersement, CFALivraison } from '@/lib/supabase'
@@ -12,6 +12,11 @@ function formatFcfa(n: number) { return n.toLocaleString('fr-SN') + ' F' }
 function formatDate(iso: string | null) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('fr-SN', { day: '2-digit', month: 'long', year: 'numeric' })
+}
+
+function maskStr(s: string) {
+  if (s.length <= 3) return '•'.repeat(s.length)
+  return s.slice(0, 2) + '•'.repeat(Math.max(3, s.length - 3)) + s.slice(-1)
 }
 
 /* ── Livraison ── */
@@ -311,10 +316,11 @@ function CommandeCard({ commande, telephone }: {
 type Stage = 'search' | 'loading' | 'result' | 'notfound' | 'error'
 
 export default function Suivi() {
-  const [phone,  setPhone]  = useState('')
-  const [stage,  setStage]  = useState<Stage>('search')
-  const [errMsg, setErrMsg] = useState('')
-  const [result, setResult] = useState<ResultData | null>(null)
+  const [phone,         setPhone]         = useState('')
+  const [stage,         setStage]         = useState<Stage>('search')
+  const [errMsg,        setErrMsg]        = useState('')
+  const [result,        setResult]        = useState<ResultData | null>(null)
+  const [showSensitive, setShowSensitive] = useState(false)
 
   /* Lire le résultat paiement depuis l'URL */
   useEffect(() => {
@@ -363,14 +369,24 @@ export default function Suivi() {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">Dossier client</div>
-                <div className="font-display text-xl text-paper mt-1">{client.prenom} {client.nom}</div>
+                <div className="font-display text-xl text-paper mt-1">
+                  {showSensitive ? `${client.prenom} ${client.nom}` : `${client.prenom} ${maskStr(client.nom ?? '')}`}
+                </div>
               </div>
-              <StatutBadge statut={client.statut} />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowSensitive(v => !v)}
+                  title={showSensitive ? 'Masquer les données sensibles' : 'Afficher les données sensibles'}
+                  className="p-1.5 rounded-lg text-paper/40 hover:text-paper/80 hover:bg-white/8 transition-colors">
+                  {showSensitive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+                <StatutBadge statut={client.statut} />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3 font-mono text-xs">
-              {client.matricule && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Matricule</div><div className="text-paper/60 mt-0.5">{client.matricule}</div></div>}
-              {client.type_fonctionnaire && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Corps</div><div className="text-paper/60 mt-0.5">{client.type_fonctionnaire}</div></div>}
-              {client.ia && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Académie</div><div className="text-paper/60 mt-0.5">{client.ia}</div></div>}
+              {client.matricule && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Matricule</div><div className="text-paper/60 mt-0.5">{showSensitive ? client.matricule : maskStr(client.matricule)}</div></div>}
+              {client.type_fonctionnaire && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Corps</div><div className="text-paper/60 mt-0.5">{showSensitive ? client.type_fonctionnaire : maskStr(client.type_fonctionnaire)}</div></div>}
+              {client.ia && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Académie</div><div className="text-paper/60 mt-0.5">{showSensitive ? client.ia : maskStr(client.ia)}</div></div>}
               {client.region && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Région</div><div className="text-paper/60 mt-0.5">{client.region}</div></div>}
             </div>
             {client.statut === 'EN_ATTENTE' && (
