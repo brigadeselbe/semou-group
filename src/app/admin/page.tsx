@@ -1326,7 +1326,9 @@ export default function Admin() {
                       <span className="font-mono text-[9px] text-paper/60 self-center">max 50 Mo par vidéo · JPG/PNG/WebP pour images</span>
                     </div>
                   ) : (
-                    <p className="font-mono text-[9px] text-paper/65">Créez d&apos;abord le produit, puis ajoutez des médias en le modifiant.</p>
+                    <div className="flex items-center gap-2 border border-dashed border-white/15 rounded-xl px-4 py-3 text-paper/50">
+                      <span className="font-mono text-[10px]">👆 Remplis les infos ci-dessus puis clique <strong className="text-paper/75">"Créer le produit"</strong> — les boutons photos &amp; vidéos apparaîtront ici automatiquement.</span>
+                    </div>
                   )}
                 </div>
 
