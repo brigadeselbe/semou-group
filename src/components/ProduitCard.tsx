@@ -137,7 +137,9 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
         {/* Badges */}
         <div className="flex items-center gap-2 px-5 pt-5 pb-3">
           <span className={`font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
-            p.etat === 'NEUF' ? 'text-spruce-light bg-spruce/15 border-spruce/25' : 'text-brass bg-brass/10 border-brass/20'
+            p.etat === 'NEUF' ? 'text-spruce-light bg-spruce/15 border-spruce/25'
+            : p.etat === 'OCCASION' ? 'text-paper/65 bg-white/4 border-white/8'
+            : 'text-brass bg-brass/10 border-brass/20'
           }`}>
             {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'OCCASION' ? 'Occasion' : 'Bon état'}
           </span>

@@ -1,6 +1,7 @@
 import StampMark from "@/components/StampMark";
 import Ticker from "@/components/Ticker";
 import ProduitCard from "@/components/ProduitCard";
+import LogoSG from "@/components/LogoSG";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { CFAProduit, CFAProduitMedia } from "@/lib/supabase";
@@ -57,8 +58,8 @@ export default async function Home() {
       {/* ── Header ── */}
       <header className="absolute top-0 inset-x-0 z-20">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-spruce-light flex items-center justify-center text-brass font-display italic text-lg ring-1 ring-white/10">S</div>
+          <div className="flex items-center gap-2.5">
+            <LogoSG size={38} />
             <span className="font-display text-lg tracking-tight text-paper">Semou <span className="text-brass-light">Group</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-8 font-body text-sm text-paper/70">

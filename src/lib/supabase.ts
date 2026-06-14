@@ -99,6 +99,8 @@ export type CFALivraison = {
   delai_max_jours: number
   livreur_nom: string | null
   livreur_telephone: string | null
+  livreur_service: string | null
+  numero_suivi: string | null
   frais_livraison: number
   frais_payes: boolean
 }

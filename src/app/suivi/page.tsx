@@ -3,15 +3,11 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Search, Loader2, AlertCircle, Package, Truck, CheckCircle2, Clock, XCircle, CreditCard } from 'lucide-react'
+import LogoSG from '@/components/LogoSG'
 import { supabase } from '@/lib/supabase'
 import type { CFAClient, CFACommande, CFAVersement, CFALivraison } from '@/lib/supabase'
 
 /* ── Utilitaires ── */
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, '')
-  if (digits.startsWith('221')) return digits
-  return '221' + (digits.startsWith('0') ? digits.slice(1) : digits)
-}
 function formatFcfa(n: number) { return n.toLocaleString('fr-SN') + ' F' }
 function formatDate(iso: string | null) {
   if (!iso) return '—'
@@ -159,7 +155,22 @@ function LivraisonTimeline({ livraison }: { livraison: CFALivraison | null }) {
             <div className="font-mono text-xs text-paper/60 mt-0.5">{formatDate(livraison.date_planifiee)}</div>
           </div>
         )}
-        {livraison.frais_livraison !== null && (
+        {livraison.livreur_nom && (
+          <div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45">Livreur</div>
+            <div className="font-mono text-xs text-paper/70 mt-0.5">
+              {livraison.livreur_nom}
+              {livraison.livreur_telephone && <span className="text-paper/45 ml-1">· {livraison.livreur_telephone.replace(/^221/, '')}</span>}
+            </div>
+          </div>
+        )}
+        {livraison.numero_suivi && (
+          <div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45">N° de suivi</div>
+            <div className="font-mono text-xs text-brass-light mt-0.5">{livraison.numero_suivi}</div>
+          </div>
+        )}
+        {livraison.frais_livraison > 0 && (
           <div>
             <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45">Frais livraison</div>
             <div className={`font-mono text-xs mt-0.5 ${livraison.frais_payes ? 'text-spruce-light' : 'text-clay'}`}>
@@ -317,29 +328,10 @@ export default function Suivi() {
 
   async function fetchDossier(tel: string) {
     setStage('loading')
-    const normalized = normalizePhone(tel)
-    const { data: client, error: clientErr } = await supabase
-      .from('cfa_clients').select('*').eq('telephone', normalized).single()
-    if (clientErr || !client) { setStage('notfound'); return }
-
-    const { data: commandes, error: cmdErr } = await supabase
-      .from('cfa_commandes').select('*, produit:cfa_produits(nom)')
-      .eq('client_id', client.id).order('created_at', { ascending: false })
-    if (cmdErr) { setErrMsg(cmdErr.message); setStage('error'); return }
-
-    const ids = (commandes ?? []).map(c => c.id)
-    const [verRes, livRes] = await Promise.all([
-      ids.length > 0 ? supabase.from('cfa_versements').select('*').in('commande_id', ids).order('numero_versement') : Promise.resolve({ data: [] }),
-      ids.length > 0 ? supabase.from('cfa_livraisons').select('*').in('commande_id', ids) : Promise.resolve({ data: [] }),
-    ])
-    const versements: CFAVersement[] = (verRes.data ?? []) as CFAVersement[]
-    const livraisons: CFALivraison[] = (livRes.data ?? []) as CFALivraison[]
-    const commandesWithDetails: CommandeWithDetails[] = (commandes ?? []).map(cmd => ({
-      ...cmd,
-      versements: versements.filter(v => v.commande_id === cmd.id),
-      livraison:  livraisons.find(l => l.commande_id === cmd.id) ?? null,
-    }))
-    setResult({ client: client as CFAClient, commandes: commandesWithDetails })
+    const { data, error } = await supabase.rpc('get_dossier_client', { p_telephone: tel })
+    if (error) { setErrMsg(error.message); setStage('error'); return }
+    if (!data)  { setStage('notfound'); return }
+    setResult(data as ResultData)
     setStage('result')
   }
 
@@ -422,6 +414,7 @@ export default function Suivi() {
           <ArrowLeft className="w-4 h-4" /> Retour
         </Link>
         <div className="mb-8">
+          <LogoSG size={52} className="mb-4" />
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</span>
           <h1 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05] text-paper">Suivi de<br /><span className="italic text-brass-light">commande.</span></h1>
           <p className="font-body text-paper/65 text-sm mt-4 leading-relaxed">Entrez le numéro de téléphone enregistré lors de votre inscription.</p>

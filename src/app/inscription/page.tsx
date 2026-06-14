@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Upload, AlertCircle, Loader2, ChevronRight, CreditCard, CheckCircle2 } from 'lucide-react'
+import LogoSG from '@/components/LogoSG'
 import { supabase } from '@/lib/supabase'
 import type { CFAProduit } from '@/lib/supabase'
 import StampMark from '@/components/StampMark'
@@ -308,6 +309,7 @@ export default function Inscription() {
         </Link>
 
         <div className="mb-10">
+          <LogoSG size={52} className="mb-4" />
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</span>
           <h1 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05] text-paper">
             Formulaire<br /><span className="italic text-brass-light">d&apos;inscription.</span>

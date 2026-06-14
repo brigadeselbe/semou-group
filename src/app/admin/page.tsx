@@ -1,21 +1,24 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import LogoSG from '@/components/LogoSG'
 import { supabase } from '@/lib/supabase'
-import type { CFAClient, CFACommande, CFAVersement, CFAProduit } from '@/lib/supabase'
+import type { CFAClient, CFACommande, CFAVersement, CFAProduit, CFALivraison } from '@/lib/supabase'
 import {
   Lock, LogOut, Search, CheckCircle2, XCircle, Loader2, ChevronDown,
   Users, FileText, ExternalLink, ShoppingBag,
   TrendingUp, AlertCircle, Package, Plus, Edit2, Trash2, ToggleLeft,
-  ToggleRight, Star, MapPin, Download,
+  ToggleRight, Star, MapPin, Download, Truck,
 } from 'lucide-react'
 
 /* ── Types ── */
 type CommandeAdmin = CFACommande & {
-  client:    { prenom: string; nom: string; telephone: string } | null
-  produit:   { nom: string } | null
+  client:     { prenom: string; nom: string; telephone: string } | null
+  produit:    { nom: string } | null
   versements: CFAVersement[]
+  livraison:  CFALivraison | null
 }
+type LivEdit = { statut: string; livreur: string; tel: string; suivi: string; datePlanifiee: string }
 type DashStats = {
   total_clients: number; en_attente: number; valides: number; rejetes: number
   total_commandes: number; commandes_en_cours: number; commandes_soldees: number
@@ -27,8 +30,7 @@ type CommandeFilter = 'TOUS' | 'EN_COURS' | 'SOLDE' | 'ANNULE'
 type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits'
 
 /* ── Constantes ── */
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? 'SEMOU2026'
-const SESSION_KEY    = 'sg_admin_session'
+const SESSION_KEY = 'sg_admin_session'
 
 const CLI_STYLE: Record<string, string> = {
   EN_ATTENTE: 'text-brass bg-brass/10 border-brass/20',
@@ -46,9 +48,22 @@ const VER_STYLE: Record<string, string> = {
   EN_ATTENTE: 'text-paper/60 bg-white/4 border-white/8',
   EN_RETARD:  'text-clay bg-clay/10 border-clay/20',
 }
+const LIV_STYLE: Record<string, string> = {
+  EN_ATTENTE: 'text-brass bg-brass/10 border-brass/20',
+  PLANIFIEE:  'text-paper/70 bg-white/5 border-white/10',
+  EN_ROUTE:   'text-spruce-light bg-spruce/15 border-spruce/25',
+  LIVREE:     'text-spruce-light bg-spruce/15 border-spruce/25',
+}
 const CLI_LBL: Record<string, string>  = { EN_ATTENTE: 'En attente', VALIDE: 'Validé', REJETE: 'Rejeté', SUSPENDU: 'Suspendu' }
 const CMD_LBL: Record<string, string>  = { EN_COURS: 'En cours', SOLDE: 'Soldé', ANNULE: 'Annulé', EN_ATTENTE: 'En attente' }
 const VER_LBL: Record<string, string>  = { PAYE: 'Payé', EN_ATTENTE: 'À venir', EN_RETARD: 'En retard' }
+const LIV_LBL: Record<string, string>  = { EN_ATTENTE: 'En attente', PLANIFIEE: 'Planifiée', EN_ROUTE: 'En route', LIVREE: 'Livrée' }
+const LIV_STEPS = [
+  { key: 'EN_ATTENTE', lbl: 'En attente' },
+  { key: 'PLANIFIEE',  lbl: 'Planifiée'  },
+  { key: 'EN_ROUTE',   lbl: 'En route'   },
+  { key: 'LIVREE',     lbl: 'Livrée'     },
+]
 
 function fmt(iso: string | null) {
   if (!iso) return '—'
@@ -81,6 +96,46 @@ function SignedDocLink({ path, label }: { path: string; label: string }) {
   )
 }
 
+type LivStats = { en_attente: number; planifiee: number; en_route: number; livree: number }
+
+/* ── Proxy /api/admin/rpc — le mot de passe reste côté serveur ── */
+async function adminRpc(rpc: string, params: Record<string, unknown> = {}) {
+  const res = await fetch('/api/admin/rpc', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ rpc, params }),
+  })
+  const json = await res.json().catch(() => ({ error: 'Erreur réseau' }))
+  if (!res.ok) return { data: null, error: { message: (json.error as string) ?? 'Erreur' } }
+  return { data: json.data as unknown, error: null }
+}
+
+/* ── Login rate-limiting (sessionStorage, réinitialisé à la fermeture de l'onglet) ── */
+const MAX_ATTEMPTS = 5
+const LOCKOUT_MS   = 5 * 60 * 1000
+
+function getAttempts() {
+  try { return JSON.parse(sessionStorage.getItem('sg_login_attempts') ?? '{"n":0,"t":0}') as { n: number; t: number } }
+  catch { return { n: 0, t: 0 } }
+}
+function trackFail() {
+  const { n, t } = getAttempts()
+  const now = Date.now()
+  sessionStorage.setItem('sg_login_attempts', JSON.stringify({
+    n: now - t < LOCKOUT_MS ? n + 1 : 1,
+    t: now - t < LOCKOUT_MS ? t      : now,
+  }))
+}
+function clearAttempts() { sessionStorage.removeItem('sg_login_attempts') }
+function lockoutMins(): number {
+  const { n, t } = getAttempts()
+  if (n >= MAX_ATTEMPTS) {
+    const rem = LOCKOUT_MS - (Date.now() - t)
+    if (rem > 0) return Math.ceil(rem / 60000)
+  }
+  return 0
+}
+
 /* ── Formulaire produit ── */
 const EMPTY_PRODUIT = {
   nom: '', description: '', prix_vente: 0, apport_minimum: 0,
@@ -93,11 +148,10 @@ type ProduitForm = typeof EMPTY_PRODUIT
    PAGE PRINCIPALE
 ══════════════════════════════════════════ */
 export default function Admin() {
-  const [stage,    setStage]    = useState<'login' | 'loading' | 'dashboard'>('login')
-  const [pwd,      setPwd]      = useState('')
-  const [pwdErr,   setPwdErr]   = useState('')
-  const [adminPwd, setAdminPwd] = useState('')
-  const [tab,      setTab]      = useState<Tab>('dashboard')
+  const [stage,  setStage]  = useState<'login' | 'loading' | 'dashboard'>('login')
+  const [pwd,    setPwd]    = useState('')
+  const [pwdErr, setPwdErr] = useState('')
+  const [tab,    setTab]    = useState<Tab>('dashboard')
 
   /* Clients */
   const [clients,   setClients]   = useState<CFAClient[]>([])
@@ -129,15 +183,19 @@ export default function Admin() {
   const [uploadingMedia, setUploadingMedia] = useState(false)
 
   /* Stats */
-  const [stats,      setStats]      = useState<DashStats | null>(null)
-  const [statsLoading, setStatsLoading] = useState(false)
+  const [stats,         setStats]        = useState<DashStats | null>(null)
+  const [statsLoading,  setStatsLoading] = useState(false)
+  const [livStats, setLivStats] = useState<LivStats | null>(null)
   const [matSearch,   setMatSearch]   = useState('')
   const [matMode,     setMatMode]     = useState<'matricule' | 'nom' | 'telephone'>('matricule')
   const [matResults,  setMatResults]  = useState<CFAClient[] | 'idle'>('idle')
-  const [matLoading,  setMatLoading]  = useState(false)
 
   /* Versement manuel */
   const [markingVers, setMarkingVers] = useState<string | null>(null)
+
+  /* Livraison */
+  const [livEdits,  setLivEdits]  = useState<Record<string, LivEdit>>({})
+  const [savingLiv, setSavingLiv] = useState<string | null>(null)
 
   /* Nouvelle commande */
   const [newCmdClient,  setNewCmdClient]  = useState<CFAClient | null>(null)
@@ -149,44 +207,38 @@ export default function Admin() {
 
   /* Restaurer session */
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem(SESSION_KEY) : null
-    if (saved) { setAdminPwd(saved); loadAll(saved) }
+    const saved = typeof window !== 'undefined' ? sessionStorage.getItem(SESSION_KEY) : null
+    if (saved) loadAll()
   }, []) // eslint-disable-line
 
-  async function loadAll(pwd: string) {
+  async function loadAll() {
     setStage('loading')
-    const [{ data: cls }] = await Promise.all([
-      supabase.from('cfa_clients').select('*').order('created_at', { ascending: false }),
-    ])
-    if (!cls) { setStage('login'); return }
+    const { data: cls, error } = await adminRpc('admin_get_all_clients')
+    if (error || !cls) { setStage('login'); return }
     setClients(cls as CFAClient[])
     setStage('dashboard')
-    loadStats(pwd)
+    loadStats()
   }
 
-  async function loadStats(pwd: string) {
+  async function loadStats() {
     setStatsLoading(true)
-    const { data, error } = await supabase.rpc('admin_get_stats', { p_password: pwd })
+    const [{ data, error }, { data: livs }] = await Promise.all([
+      adminRpc('admin_get_stats'),
+      adminRpc('admin_get_livraison_stats'),
+    ])
     if (!error && data) setStats(data as DashStats)
+    if (livs) setLivStats(livs as LivStats)
     setStatsLoading(false)
   }
 
   const loadCommandes = useCallback(async () => {
     if (cmdLoaded) return
     setCmdLoading(true)
-    const { data: cmds } = await supabase
-      .from('cfa_commandes')
-      .select('*, client:cfa_clients(prenom, nom, telephone), produit:cfa_produits(nom)')
-      .order('created_at', { ascending: false })
+    const { data: cmds } = await adminRpc('admin_get_commandes_full')
     if (!cmds) { setCmdLoading(false); return }
-    const ids = cmds.map(c => c.id)
-    const { data: vers } = ids.length > 0
-      ? await supabase.from('cfa_versements').select('*').in('commande_id', ids).order('numero_versement')
-      : { data: [] }
-    const vm: Record<string, CFAVersement[]> = {}
-    ;(vers ?? []).forEach(v => { if (!vm[v.commande_id]) vm[v.commande_id] = []; vm[v.commande_id].push(v) })
-    setCommandes(cmds.map(c => ({ ...c, versements: vm[c.id] ?? [] })) as CommandeAdmin[])
-    setCmdLoaded(true); setCmdLoading(false)
+    setCommandes(cmds as CommandeAdmin[])
+    setCmdLoaded(true)
+    setCmdLoading(false)
   }, [cmdLoaded])
 
   const loadProduits = useCallback(async () => {
@@ -197,32 +249,49 @@ export default function Admin() {
     setProdLoading(false)
   }, [prodLoaded])
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    if (pwd !== ADMIN_PASSWORD) { setPwdErr('Mot de passe incorrect.'); return }
-    localStorage.setItem(SESSION_KEY, pwd); setAdminPwd(pwd); loadAll(pwd)
+    const mins = lockoutMins()
+    if (mins > 0) { setPwdErr(`Trop de tentatives — réessayez dans ${mins} min.`); return }
+    setPwdErr('')
+    setStage('loading')
+    const res = await fetch('/api/admin/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ password: pwd }),
+    })
+    if (!res.ok) {
+      trackFail()
+      const rem = lockoutMins()
+      setPwdErr(rem > 0 ? `Trop de tentatives — réessayez dans ${rem} min.` : 'Mot de passe incorrect.')
+      setStage('login')
+      return
+    }
+    clearAttempts()
+    sessionStorage.setItem(SESSION_KEY, '1')
+    loadAll()
   }
 
   function handleLogout() {
-    localStorage.removeItem(SESSION_KEY)
-    setAdminPwd(''); setClients([]); setCommandes([]); setProduits([])
+    sessionStorage.removeItem(SESSION_KEY)
+    fetch('/api/admin/logout', { method: 'POST' }).catch(() => null)
+    setClients([]); setCommandes([]); setProduits([])
     setCmdLoaded(false); setProdLoaded(false); setStats(null)
     setStage('login'); setPwd('')
   }
 
   async function handleUpdateStatut(clientId: string, newStatut: string) {
     setUpdating(clientId)
-    const { error } = await supabase.rpc('admin_update_client_statut', {
-      p_client_id: clientId, p_statut: newStatut, p_password: adminPwd,
+    const { error } = await adminRpc('admin_update_client_statut', {
+      p_client_id: clientId, p_statut: newStatut,
     })
     if (error) { alert('Erreur : ' + error.message); setUpdating(null); return }
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, statut: newStatut } : c))
-    // SMS notification (non bloquant)
     if (newStatut === 'VALIDE' || newStatut === 'REJETE') {
       fetch('/api/sms/statut', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_id: clientId, statut: newStatut, password: adminPwd }),
+        body: JSON.stringify({ client_id: clientId, statut: newStatut }),
       }).catch(() => null)
     }
     setUpdating(null)
@@ -230,8 +299,7 @@ export default function Admin() {
 
   async function handleMarquerPaye(versId: string, cmdId: string, moyen = 'ESPECES') {
     setMarkingVers(versId)
-    const { error } = await supabase.rpc('admin_marquer_versement_paye', {
-      p_password:     adminPwd,
+    const { error } = await adminRpc('admin_marquer_versement_paye', {
       p_versement_id: versId,
       p_moyen:        moyen,
     })
@@ -256,12 +324,37 @@ export default function Admin() {
     setMarkingVers(null)
   }
 
+  async function handleUpdateLivraison(cmdId: string, edit: LivEdit) {
+    setSavingLiv(cmdId)
+    const { data: livId, error } = await adminRpc('admin_update_livraison', {
+      p_commande_id:    cmdId,
+      p_statut:         edit.statut,
+      p_livreur_nom:    edit.livreur || null,
+      p_livreur_tel:    edit.tel || null,
+      p_numero_suivi:   edit.suivi || null,
+      p_date_planifiee: edit.datePlanifiee || null,
+    })
+    if (error) { alert('Erreur livraison : ' + error.message); setSavingLiv(null); return }
+    setCommandes(prev => prev.map(cmd => {
+      if (cmd.id !== cmdId) return cmd
+      const base: CFALivraison = cmd.livraison ?? {
+        id: livId as string, commande_id: cmdId, client_id: cmd.client_id,
+        statut: edit.statut, livreur_nom: null, livreur_telephone: null, livreur_service: null,
+        adresse_livraison: null, ville_livraison: null, region_livraison: null,
+        telephone_livraison: null, date_planifiee: edit.datePlanifiee || null,
+        date_livraison_effective: null, delai_max_jours: 10,
+        frais_livraison: 0, frais_payes: false, numero_suivi: null,
+      }
+      return { ...cmd, livraison: { ...base, id: livId as string, statut: edit.statut, livreur_nom: edit.livreur || null, livreur_telephone: edit.tel || null, numero_suivi: edit.suivi || null, date_planifiee: edit.datePlanifiee || null } }
+    }))
+    setSavingLiv(null)
+  }
+
   async function handleCreateCommande(e: React.FormEvent) {
     e.preventDefault()
     if (!newCmdClient || !newCmdProduit) return
     setCreatingCmd(true)
-    const { data: cmdId, error } = await supabase.rpc('admin_creer_commande', {
-      p_password:       adminPwd,
+    const { data: cmdId, error } = await adminRpc('admin_creer_commande', {
       p_client_id:      newCmdClient.id,
       p_produit_id:     newCmdProduit,
       p_nb_mensualites: newCmdMens,
@@ -276,25 +369,22 @@ export default function Admin() {
     setCreatingCmd(false)
   }
 
-  async function handleMatSearch(e: React.FormEvent) {
+  function handleMatSearch(e: React.FormEvent) {
     e.preventDefault()
-    const q = matSearch.trim()
+    const q = matSearch.trim().toLowerCase()
     if (!q) return
-    setMatLoading(true); setMatResults('idle')
-    let query = supabase.from('cfa_clients').select('*').order('created_at', { ascending: false })
+    let results: CFAClient[]
     if (matMode === 'matricule') {
-      query = query.ilike('matricule', `%${q}%`)
+      results = clients.filter(c => c.matricule?.toLowerCase().includes(q))
     } else if (matMode === 'telephone') {
-      // Normaliser : retirer le 221 en tête si présent
       const tel = q.replace(/^\+?221/, '').replace(/\s/g, '')
-      query = query.or(`telephone.ilike.%${tel}%,telephone.ilike.%221${tel}%`)
+      results = clients.filter(c => (c.telephone ?? '').includes(tel))
     } else {
-      // nom : chercher dans prenom OU nom
-      query = query.or(`prenom.ilike.%${q}%,nom.ilike.%${q}%`)
+      results = clients.filter(c =>
+        (c.prenom ?? '').toLowerCase().includes(q) || (c.nom ?? '').toLowerCase().includes(q)
+      )
     }
-    const { data } = await query.limit(10)
-    setMatResults((data ?? []) as CFAClient[])
-    setMatLoading(false)
+    setMatResults(results.slice(0, 10))
   }
 
   /* Exports Excel */
@@ -324,35 +414,24 @@ export default function Admin() {
 
   async function exportCommandes() {
     const XLSX = (await import('xlsx')).default
-    // Fetch data fresh to be safe
-    const { data: cmds } = await supabase
-      .from('cfa_commandes')
-      .select('*, client:cfa_clients(prenom, nom, telephone), produit:cfa_produits(nom)')
-      .order('created_at', { ascending: false })
+    const { data: raw } = await adminRpc('admin_get_commandes_full')
+    const cmds = raw as CommandeAdmin[] | null
     if (!cmds?.length) return
-    const ids = cmds.map((c: CommandeAdmin) => c.id)
-    const { data: vers } = await supabase
-      .from('cfa_versements').select('*').in('commande_id', ids).order('numero_versement')
-    const vm: Record<string, CFAVersement[]> = {}
-    ;(vers ?? []).forEach((v: CFAVersement) => {
-      if (!vm[v.commande_id]) vm[v.commande_id] = []
-      vm[v.commande_id].push(v)
-    })
     const rows: Record<string, string | number>[] = []
-    cmds.forEach((cmd: CommandeAdmin) => {
+    cmds.forEach(cmd => {
       const base = {
-        Référence:         cmd.reference ?? cmd.id,
-        Client:            `${cmd.client?.prenom ?? ''} ${cmd.client?.nom ?? ''}`.trim(),
-        Téléphone:         cmd.client?.telephone ?? '',
-        Produit:           cmd.produit?.nom ?? '',
-        'Statut commande': cmd.statut,
-        'Prix vente':      cmd.prix_vente,
-        'Apport payé':     cmd.apport_paye,
-        'Reste à payer':   cmd.reste_a_payer,
-        Mensualités:       cmd.nb_mensualites,
+        Référence:           cmd.reference ?? cmd.id,
+        Client:              `${cmd.client?.prenom ?? ''} ${cmd.client?.nom ?? ''}`.trim(),
+        Téléphone:           cmd.client?.telephone ?? '',
+        Produit:             cmd.produit?.nom ?? '',
+        'Statut commande':   cmd.statut,
+        'Prix vente':        cmd.prix_vente,
+        'Apport payé':       cmd.apport_paye,
+        'Reste à payer':     cmd.reste_a_payer,
+        Mensualités:         cmd.nb_mensualites,
         'Mensualité (FCFA)': cmd.montant_mensualite,
       }
-      const versements = vm[cmd.id] ?? []
+      const versements = cmd.versements ?? []
       if (versements.length === 0) {
         rows.push(base)
       } else {
@@ -412,8 +491,7 @@ export default function Admin() {
       photoUrl = pub.publicUrl
     }
 
-    const { error } = await supabase.rpc('admin_upsert_produit', {
-      p_password:       adminPwd,
+    const { error } = await adminRpc('admin_upsert_produit', {
       p_id:             editProd?.id ?? null,
       p_nom:            prodForm.nom,
       p_description:    prodForm.description || null,
@@ -463,22 +541,21 @@ export default function Admin() {
 
   async function handleDeleteMedia(mediaId: string, url: string, type: 'IMAGE' | 'VIDEO') {
     const bucket = type === 'IMAGE' ? 'produit-photos' : 'produit-videos'
-    // Extraire le path depuis l'URL publique
     const pathMatch = url.match(/\/object\/public\/[^/]+\/(.+)$/)
     if (pathMatch) await supabase.storage.from(bucket).remove([pathMatch[1]])
-    await supabase.from('cfa_produit_medias').delete().eq('id', mediaId)
+    await adminRpc('admin_delete_media', { p_media_id: mediaId })
     setProdMedias(prev => prev.filter(m => m.id !== mediaId))
   }
 
   async function handleDeleteProd(id: string) {
     if (!confirm('Supprimer ce produit ?')) return
-    const { error } = await supabase.rpc('admin_delete_produit', { p_password: adminPwd, p_id: id })
+    const { error } = await adminRpc('admin_delete_produit', { p_id: id })
     if (error) alert('Erreur : ' + error.message)
     else setProduits(prev => prev.filter(p => p.id !== id))
   }
   async function handleToggleActif(p: CFAProduit) {
-    const { error } = await supabase.rpc('admin_upsert_produit', {
-      p_password: adminPwd, p_id: p.id,
+    const { error } = await adminRpc('admin_upsert_produit', {
+      p_id: p.id,
       p_nom: p.nom, p_description: p.description, p_prix_vente: p.prix_vente,
       p_apport_minimum: p.apport_minimum, p_nb_mensualites: p.nb_mensualites_max,
       p_stock: p.stock, p_stock_illimite: p.stock_illimite, p_actif: !p.actif,
@@ -556,11 +633,14 @@ export default function Admin() {
     <div className="min-h-screen px-4 md:px-8 py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</div>
-          <h1 className="font-display text-2xl md:text-3xl text-paper mt-0.5">
-            Tableau de bord <span className="italic text-brass-light">administrateur</span>
-          </h1>
+        <div className="flex items-center gap-3">
+          <LogoSG size={44} />
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</div>
+            <h1 className="font-display text-2xl md:text-3xl text-paper mt-0.5">
+              Tableau de bord <span className="italic text-brass-light">administrateur</span>
+            </h1>
+          </div>
         </div>
         <button onClick={handleLogout}
           className="flex items-center gap-2 font-mono text-xs text-paper/60 hover:text-clay border border-white/8 rounded-full px-4 py-2 transition-colors">
@@ -617,6 +697,43 @@ export default function Admin() {
             ))}
           </div>
 
+          {/* Livraisons */}
+          <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-brass" />
+                <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70">Livraisons</div>
+              </div>
+              {(livStats?.en_attente ?? 0) + (livStats?.planifiee ?? 0) + (livStats?.en_route ?? 0) > 0 && (
+                <button onClick={() => switchTab('commandes')}
+                  className="font-mono text-[10px] uppercase tracking-[0.1em] text-brass hover:text-brass-light transition-colors">
+                  Gérer →
+                </button>
+              )}
+            </div>
+            {statsLoading ? (
+              <div className="flex gap-3">
+                {Array(4).fill(0).map((_, i) => <div key={i} className="h-14 w-24 bg-void rounded-xl animate-pulse" />)}
+              </div>
+            ) : livStats ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { val: livStats.en_attente, lbl: 'En attente', color: livStats.en_attente > 0 ? 'text-brass-light' : 'text-paper/55' },
+                  { val: livStats.planifiee,  lbl: 'Planifiées',  color: livStats.planifiee  > 0 ? 'text-paper/80'   : 'text-paper/55' },
+                  { val: livStats.en_route,   lbl: 'En route',    color: livStats.en_route   > 0 ? 'text-spruce-light': 'text-paper/55' },
+                  { val: livStats.livree,     lbl: 'Livrées',     color: 'text-spruce-light' },
+                ].map(({ val, lbl, color }) => (
+                  <div key={lbl} className="bg-void rounded-xl px-4 py-3">
+                    <div className={`font-display text-2xl ${color}`}>{val}</div>
+                    <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mt-0.5">{lbl}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="font-mono text-[10px] text-paper/45">Aucune donnée.</p>
+            )}
+          </div>
+
           {/* Recherche fonctionnaire */}
           <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
@@ -649,9 +766,9 @@ export default function Admin() {
                                            'ex : 77 123 45 67'
                 }
                 className="flex-1 bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-2 placeholder:text-paper/60 transition-colors" />
-              <button type="submit" disabled={matLoading}
-                className="font-mono text-xs text-brass border border-brass/30 rounded-full px-4 py-1.5 hover:bg-brass/10 transition-colors disabled:opacity-50">
-                {matLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Chercher'}
+              <button type="submit"
+                className="font-mono text-xs text-brass border border-brass/30 rounded-full px-4 py-1.5 hover:bg-brass/10 transition-colors">
+                Chercher
               </button>
             </form>
 
@@ -923,9 +1040,16 @@ export default function Admin() {
                           </thead>
                           <tbody>
                             {filteredCmds.map((cmd, i) => {
-                              const payees = cmd.versements.filter(v => v.statut === 'PAYE').length
-                              const total  = cmd.versements.length || cmd.nb_mensualites
-                              const retard = cmd.versements.filter(v => v.statut === 'EN_RETARD').length
+                              const payees  = cmd.versements.filter(v => v.statut === 'PAYE').length
+                              const total   = cmd.versements.length || cmd.nb_mensualites
+                              const retard  = cmd.versements.filter(v => v.statut === 'EN_RETARD').length
+                              const livEdit: LivEdit = livEdits[cmd.id] ?? {
+                                statut:        cmd.livraison?.statut ?? 'EN_ATTENTE',
+                                livreur:       cmd.livraison?.livreur_nom ?? '',
+                                tel:           cmd.livraison?.livreur_telephone ?? '',
+                                suivi:         cmd.livraison?.numero_suivi ?? '',
+                                datePlanifiee: cmd.livraison?.date_planifiee?.slice(0, 10) ?? '',
+                              }
                               return (
                                 <>
                                   <tr key={cmd.id}
@@ -985,6 +1109,62 @@ export default function Admin() {
                                               ))}
                                             </div>
                                           )}
+
+                                        {/* ── Livraison ── */}
+                                        <div className="mt-4 pt-4 border-t border-white/8">
+                                          <div className="flex items-center gap-2 mb-3">
+                                            <Truck className="w-3.5 h-3.5 text-brass/70" />
+                                            <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/55">Livraison</span>
+                                            {cmd.livraison && <Badge statut={cmd.livraison.statut} s={LIV_STYLE} l={LIV_LBL} />}
+                                          </div>
+                                          {/* Étapes */}
+                                          <div className="flex gap-1.5 flex-wrap mb-3">
+                                            {LIV_STEPS.map(({ key, lbl }) => (
+                                              <button key={key} type="button"
+                                                onClick={() => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, statut: key } }))}
+                                                className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1 rounded-full border transition-colors ${
+                                                  livEdit.statut === key
+                                                    ? 'bg-brass/15 border-brass/40 text-brass'
+                                                    : 'border-white/10 text-paper/55 hover:border-white/20 hover:text-paper/60'
+                                                }`}>
+                                                {lbl}
+                                              </button>
+                                            ))}
+                                          </div>
+                                          {/* Détails livreur */}
+                                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 max-w-2xl">
+                                            <input
+                                              placeholder="Nom livreur"
+                                              value={livEdit.livreur}
+                                              onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, livreur: e.target.value } }))}
+                                              className="bg-void border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors" />
+                                            <input
+                                              placeholder="Tél livreur"
+                                              value={livEdit.tel}
+                                              onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, tel: e.target.value } }))}
+                                              className="bg-void border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors" />
+                                            <input
+                                              placeholder="N° suivi"
+                                              value={livEdit.suivi}
+                                              onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, suivi: e.target.value } }))}
+                                              className="bg-void border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors" />
+                                            <input
+                                              type="date"
+                                              title="Date de livraison prévue"
+                                              value={livEdit.datePlanifiee}
+                                              onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, datePlanifiee: e.target.value } }))}
+                                              className="bg-void border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper/70 focus:border-brass/40 outline-none transition-colors" />
+                                          </div>
+                                          <button
+                                            onClick={() => handleUpdateLivraison(cmd.id, livEdit)}
+                                            disabled={savingLiv === cmd.id}
+                                            className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-spruce-light border border-spruce/30 rounded-full px-3 py-1.5 hover:bg-spruce/10 transition-colors disabled:opacity-50">
+                                            {savingLiv === cmd.id
+                                              ? <Loader2 className="w-3 h-3 animate-spin" />
+                                              : <Truck className="w-3 h-3" />}
+                                            {cmd.livraison ? 'Mettre à jour la livraison' : 'Créer la livraison'}
+                                          </button>
+                                        </div>
                                       </td>
                                     </tr>
                                   )}
@@ -1031,7 +1211,7 @@ export default function Admin() {
                     <select value={prodForm.etat} onChange={e => setProdForm(p => ({ ...p, etat: e.target.value }))}
                       className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-1.5 transition-colors">
                       <option value="NEUF">Neuf</option>
-                      <option value="RECONDITIONNE">Reconditionné</option>
+                      <option value="BON_ETAT">Bon état</option>
                       <option value="OCCASION">Occasion</option>
                     </select>
                   </FormField>
@@ -1209,10 +1389,10 @@ export default function Admin() {
                         <div className="flex items-center gap-3">
                           <span className={`font-mono text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border ${
                             p.etat === 'NEUF' ? 'text-spruce-light border-spruce/25 bg-spruce/10'
-                            : p.etat === 'RECONDITIONNE' ? 'text-brass border-brass/25 bg-brass/10'
+                            : p.etat === 'BON_ETAT' ? 'text-brass border-brass/25 bg-brass/10'
                             : 'text-paper/65 border-white/10 bg-white/4'
                           }`}>
-                            {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'RECONDITIONNE' ? 'Reconditionné' : 'Occasion'}
+                            {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'BON_ETAT' ? 'Bon état' : 'Occasion'}
                           </span>
                           <span className={`font-mono text-[10px] uppercase tracking-[0.1em] ${p.stock_illimite ? 'text-spruce-light' : p.stock > 0 ? 'text-paper/70' : 'text-clay'}`}>
                             {p.stock_illimite ? '∞ illimité' : `${p.stock} en stock`}
