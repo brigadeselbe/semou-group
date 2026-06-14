@@ -63,7 +63,7 @@ export default async function Home() {
             <span className="font-display text-lg tracking-tight text-paper">Semou <span className="text-brass-light">Group</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-8 font-body text-sm text-paper/70">
-            <a href="#produits"  className="hover:text-paper transition-colors">Catalogue</a>
+            <Link href="/produits" className="hover:text-paper transition-colors">Catalogue</Link>
             <a href="#parcours"  className="hover:text-paper transition-colors">Le parcours</a>
             <a href="#syndicat"  className="hover:text-paper transition-colors">CUSEMS</a>
           </nav>
@@ -168,9 +168,15 @@ export default async function Home() {
                   Nos <span className="italic text-brass-light">produits.</span>
                 </h2>
               </div>
-              <p className="font-body text-paper/65 text-sm md:text-base max-w-sm leading-relaxed">
-                Payez en plusieurs fois sans intérêt — uniquement sur votre salaire fonctionnaire.
-              </p>
+              <div className="flex flex-col items-end gap-4">
+                <p className="font-body text-paper/65 text-sm md:text-base max-w-sm leading-relaxed">
+                  Payez en plusieurs fois sans intérêt — uniquement sur votre salaire fonctionnaire.
+                </p>
+                <Link href="/produits"
+                  className="font-body text-sm text-brass-light border border-brass/25 px-5 py-2 rounded-full hover:bg-brass/8 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                  Voir tout le catalogue <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {(produits as CFAProduit[]).map(p => (
