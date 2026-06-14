@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { ChevronRight, ChevronLeft, X, Play, Images } from 'lucide-react'
+import { ChevronRight, ChevronLeft, X, Play, Images, Bell, CheckCircle2, Loader2 } from 'lucide-react'
 import type { CFAProduit, CFAProduitMedia } from '@/lib/supabase'
 
 function fcfa(n: number) { return n.toLocaleString('fr-SN') + ' F' }
@@ -101,9 +101,21 @@ function Lightbox({ medias, startIndex, onClose }: {
 }
 
 export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?: CFAProduitMedia[] }) {
-  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
+  const [lightboxIdx,  setLightboxIdx]  = useState<number | null>(null)
+  const [waitPhone,    setWaitPhone]    = useState('')
+  const [waitState,    setWaitState]    = useState<'idle' | 'open' | 'done'>('idle')
+  const [waitLoading,  setWaitLoading]  = useState(false)
   const menMin = Math.ceil((p.prix_vente - p.apport_minimum) / p.nb_mensualites_max)
   const stockOk = p.stock_illimite || p.stock > 0
+
+  async function rejoindreWaitlist(e: React.FormEvent) {
+    e.preventDefault(); setWaitLoading(true)
+    await fetch('/api/waitlist', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ produit_id: p.id, telephone: waitPhone }),
+    })
+    setWaitLoading(false); setWaitState('done')
+  }
 
   // Cover : premier média IMAGE, sinon VIDEO, sinon photo_url
   const cover = medias[0] ?? null
@@ -190,10 +202,25 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
               className="flex items-center justify-center gap-2 w-full font-body text-sm font-medium bg-spruce-light text-paper px-4 py-3 rounded-full hover:bg-spruce transition-colors group-hover:glow-green">
               Commander <ChevronRight className="w-4 h-4" />
             </Link>
-          ) : (
-            <div className="flex items-center justify-center gap-2 w-full font-body text-sm text-paper/45 px-4 py-3 rounded-full border border-white/5">
-              Stock épuisé
+          ) : waitState === 'done' ? (
+            <div className="flex items-center justify-center gap-2 w-full font-body text-sm text-spruce-light px-4 py-3 rounded-full border border-spruce/25 bg-spruce/8">
+              <CheckCircle2 className="w-4 h-4" /> Vous serez notifié par SMS !
             </div>
+          ) : waitState === 'open' ? (
+            <form onSubmit={rejoindreWaitlist} className="flex gap-2">
+              <input required type="tel" value={waitPhone} onChange={e => setWaitPhone(e.target.value)}
+                placeholder="77 XXX XX XX" autoFocus
+                className="flex-1 min-w-0 bg-void border border-white/10 rounded-full px-3 py-2 font-mono text-xs text-paper placeholder:text-paper/35 focus:outline-none focus:border-brass/40" />
+              <button type="submit" disabled={waitLoading}
+                className="flex-shrink-0 bg-brass/15 border border-brass/25 text-brass-light px-3 py-2 rounded-full font-mono text-xs hover:bg-brass/25 transition-colors disabled:opacity-50">
+                {waitLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'OK'}
+              </button>
+            </form>
+          ) : (
+            <button onClick={() => setWaitState('open')}
+              className="flex items-center justify-center gap-2 w-full font-body text-sm text-brass/80 px-4 py-3 rounded-full border border-brass/15 hover:border-brass/35 hover:text-brass-light transition-colors">
+              <Bell className="w-3.5 h-3.5" /> Me notifier quand disponible
+            </button>
           )}
         </div>
       </div>

@@ -10,6 +10,7 @@ import {
   TrendingUp, AlertCircle, Package, Plus, Edit2, Trash2, ToggleLeft,
   ToggleRight, Star, MapPin, Download, Truck,
 } from 'lucide-react'
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 /* ── Types ── */
 type CommandeAdmin = CFACommande & {
@@ -708,6 +709,52 @@ export default function Admin() {
               </div>
             ))}
           </div>
+
+          {/* Graphiques */}
+          {stats && !statsLoading && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Pie — dossiers */}
+              <div className="bg-surface border border-white/6 rounded-2xl p-5">
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/50 mb-4">Répartition des dossiers</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={[
+                      { name: 'Validés',    value: stats.valides    },
+                      { name: 'En attente', value: stats.en_attente },
+                      { name: 'Rejetés',    value: stats.rejetes    },
+                    ]} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                      <Cell fill="#4a8c6a" />
+                      <Cell fill="#c9a84c" />
+                      <Cell fill="#b85c4a" />
+                    </Pie>
+                    <Tooltip contentStyle={{ background: '#0f1410', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, fontFamily: 'monospace', fontSize: 11 }} />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontFamily: 'monospace', fontSize: 10 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Bar — versements */}
+              <div className="bg-surface border border-white/6 rounded-2xl p-5">
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/50 mb-4">État des versements</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={[
+                    { name: 'Payés',    v: stats.versements_payes  },
+                    { name: 'Retard',   v: stats.versements_retard },
+                    { name: 'À venir',  v: Math.max(0, (stats.total_commandes * 6) - stats.versements_payes - stats.versements_retard) },
+                  ]} barSize={32}>
+                    <XAxis dataKey="name" tick={{ fontFamily: 'monospace', fontSize: 10, fill: 'rgba(240,235,220,0.45)' }} axisLine={false} tickLine={false} />
+                    <YAxis hide />
+                    <Tooltip contentStyle={{ background: '#0f1410', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, fontFamily: 'monospace', fontSize: 11 }} />
+                    <Bar dataKey="v" name="Versements" radius={[6,6,0,0]}>
+                      <Cell fill="#4a8c6a" />
+                      <Cell fill="#b85c4a" />
+                      <Cell fill="rgba(255,255,255,0.12)" />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
 
           {/* Livraisons */}
           <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">

@@ -295,6 +295,12 @@ function CommandeCard({ commande, telephone }: {
                         Payer
                       </button>
                     )}
+                    {v.statut === 'PAYE' && (
+                      <a href={`/recu/${v.id}?tel=${encodeURIComponent(telephone)}`} target="_blank" rel="noreferrer"
+                        className="font-mono text-[9px] text-paper/40 hover:text-brass-light transition-colors">
+                        Reçu↗
+                      </a>
+                    )}
                   </div>
                 </div>
               ))}

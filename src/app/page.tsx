@@ -1,6 +1,7 @@
 import StampMark from "@/components/StampMark";
 import Ticker from "@/components/Ticker";
 import ProduitCard from "@/components/ProduitCard";
+import Calculateur from "@/components/Calculateur";
 import LogoSG from "@/components/LogoSG";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -185,6 +186,11 @@ export default async function Home() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* ── Calculateur mensualités ── */}
+      {produits && produits.length > 0 && (
+        <Calculateur produits={produits as CFAProduit[]} />
       )}
 
       {/* ── Corps éligibles ── */}

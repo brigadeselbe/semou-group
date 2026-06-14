@@ -7,36 +7,56 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 )
 
-// Vercel Cron — tourne tous les jours à 8h00 WAT
-// Protégé par CRON_SECRET (Vercel l'envoie automatiquement)
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('fr-SN', { day: '2-digit', month: 'long' })
+}
+
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
-  const { data: rappels, error } = await supabase.rpc('get_rappels_to_send')
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  let smsSent = 0; let errors = 0
 
-  let sent = 0; let failed = 0
+  const { data: rappels, error: rErr } = await supabase.rpc('get_rappels_sms')
+  if (rErr) console.error('[CRON] get_rappels_sms:', rErr.message)
 
   for (const r of rappels ?? []) {
-    const dateStr = new Date(r.date_echeance).toLocaleDateString('fr-SN', {
-      day: '2-digit', month: 'long',
-    })
-
-    let message: string
-    switch (r.type_rappel) {
-      case 'J7':     message = smsTemplates.rappelJ7(r.prenom, r.versement_num, r.montant_prevu, dateStr); break
-      case 'J3':     message = smsTemplates.rappelJ3(r.prenom, r.versement_num, r.montant_prevu, dateStr); break
-      case 'JOUR_J': message = smsTemplates.rappelJourJ(r.prenom, r.versement_num, r.montant_prevu); break
-      case 'RETARD': message = smsTemplates.rappelRetard(r.prenom, r.versement_num, r.montant_prevu); break
-      default:       continue
+    const row = r as {
+      versement_id: string; numero_versement: number; montant_prevu: number
+      date_echeance: string; type_rappel: string; telephone: string; prenom: string
     }
+    let message: string | null = null
+    const date = formatDate(row.date_echeance)
+    if (row.type_rappel === 'J7')     message = smsTemplates.rappelJ7(row.prenom,    row.numero_versement, row.montant_prevu, date)
+    if (row.type_rappel === 'J3')     message = smsTemplates.rappelJ3(row.prenom,    row.numero_versement, row.montant_prevu, date)
+    if (row.type_rappel === 'JOUR_J') message = smsTemplates.rappelJourJ(row.prenom, row.numero_versement, row.montant_prevu)
+    if (row.type_rappel === 'RETARD') message = smsTemplates.rappelRetard(row.prenom, row.numero_versement, row.montant_prevu)
 
-    const ok = await sendSMS(r.telephone, message)
-    ok ? sent++ : failed++
+    if (message) {
+      const ok = await sendSMS(row.telephone, message)
+      if (ok) {
+        await supabase.rpc('marquer_rappel_envoye', { p_versement_id: row.versement_id, p_type: row.type_rappel })
+        smsSent++
+      } else { errors++ }
+    }
   }
 
-  return NextResponse.json({ sent, failed, total: (rappels ?? []).length })
+  /* Alerte stock bas → SMS admin */
+  const adminPhone = process.env.ADMIN_PHONE
+  if (adminPhone) {
+    const { data: stockBas } = await supabase.rpc('get_stock_bas')
+    for (const p of stockBas ?? []) {
+      const prod = p as { nom: string; stock: number }
+      const msg = prod.stock === 0
+        ? `SEMOU ADMIN — Stock épuisé : "${prod.nom}". Pensez à réapprovisionner.`
+        : `SEMOU ADMIN — Stock bas : "${prod.nom}" (${prod.stock} restant).`
+      const ok = await sendSMS(adminPhone, msg)
+      if (ok) smsSent++
+    }
+  }
+
+  console.log(`[CRON rappels] SMS: ${smsSent}, erreurs: ${errors}`)
+  return NextResponse.json({ ok: true, smsSent, errors })
 }
