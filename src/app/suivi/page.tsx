@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Search, Loader2, AlertCircle, Package, Truck, CheckCircle2, Clock, XCircle, CreditCard, Eye, EyeOff } from 'lucide-react'
 import LogoSG from '@/components/LogoSG'
+import { supabase } from '@/lib/supabase'
 import type { CFAClient, CFACommande, CFAVersement, CFALivraison } from '@/lib/supabase'
 
 /* ── Utilitaires ── */
@@ -312,7 +313,7 @@ function CommandeCard({ commande, telephone }: {
 }
 
 /* ── Page principale ── */
-type Stage = 'search' | 'sending' | 'otp' | 'verifying' | 'result' | 'notfound' | 'error'
+type Stage = 'search' | 'loading' | 'result' | 'notfound' | 'error'
 
 export default function Suivi() {
   const [phone,         setPhone]         = useState('')
@@ -320,9 +321,6 @@ export default function Suivi() {
   const [errMsg,        setErrMsg]        = useState('')
   const [result,        setResult]        = useState<ResultData | null>(null)
   const [showSensitive, setShowSensitive] = useState(false)
-  const [otpCode,       setOtpCode]       = useState('')
-  const [otpError,      setOtpError]      = useState('')
-  const [resendSecs,    setResendSecs]    = useState(0)
 
   /* Lire le résultat paiement depuis l'URL */
   useEffect(() => {
@@ -334,51 +332,12 @@ export default function Suivi() {
     }
   }, [])
 
-  /* Décompte renvoi SMS */
-  useEffect(() => {
-    if (resendSecs <= 0) return
-    const t = setTimeout(() => setResendSecs(s => s - 1), 1000)
-    return () => clearTimeout(t)
-  }, [resendSecs])
-
-  async function sendOtp(tel: string) {
-    setStage('sending'); setErrMsg('')
-    const res  = await fetch('/api/otp/send', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telephone: tel }),
-    }).catch(() => null)
-    if (!res || !res.ok) {
-      const json = await res?.json().catch(() => ({}))
-      setErrMsg((json?.error as string) ?? 'Erreur réseau — réessayez.')
-      setStage('error')
-      return
-    }
-    setStage('otp')
-    setResendSecs(60)
-    setOtpCode('')
-    setOtpError('')
-  }
-
   async function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    await sendOtp(phone)
-  }
-
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault(); setOtpError('')
-    setStage('verifying')
-    const res  = await fetch('/api/otp/verify', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telephone: phone, code: otpCode.trim() }),
-    }).catch(() => null)
-    const json = await res?.json().catch(() => ({}))
-    if (!res || !res.ok) {
-      setOtpError((json?.error as string) ?? 'Erreur réseau.')
-      setStage('otp')
-      return
-    }
-    if (json.notfound) { setStage('notfound'); return }
-    setResult(json.data as ResultData)
+    e.preventDefault(); setErrMsg(''); setStage('loading')
+    const { data, error } = await supabase.rpc('get_dossier_client', { p_telephone: phone })
+    if (error) { setErrMsg(error.message); setStage('error'); return }
+    if (!data)  { setStage('notfound'); return }
+    setResult(data as ResultData)
     setStage('result')
     setShowSensitive(false)
   }
@@ -458,63 +417,6 @@ export default function Suivi() {
     )
   }
 
-  /* ── Écran saisie code OTP ── */
-  if (stage === 'otp' || stage === 'verifying') {
-    const masked = phone.replace(/(\d{2})(\d+)(\d{2})$/, '$1 •••• $3')
-    return (
-      <div className="min-h-screen flex items-center justify-center px-6 py-20">
-        <div className="max-w-md w-full">
-          <div className="fixed top-1/3 left-1/2 -translate-x-1/2 w-80 h-60 bg-spruce/20 blur-[100px] rounded-full pointer-events-none" />
-          <button onClick={() => { setStage('search'); setOtpCode(''); setOtpError('') }}
-            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/65 hover:text-brass-light transition-colors mb-10">
-            <ArrowLeft className="w-4 h-4" /> Modifier le numéro
-          </button>
-          <div className="mb-8">
-            <LogoSG size={52} className="mb-4" />
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">Vérification</span>
-            <h1 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05] text-paper">Code<br /><span className="italic text-brass-light">SMS.</span></h1>
-            <p className="font-body text-paper/65 text-sm mt-4 leading-relaxed">
-              Un code à 6 chiffres a été envoyé au <span className="text-paper font-mono">{masked}</span>. Valable 10 minutes.
-            </p>
-          </div>
-          <div className="relative bg-surface border border-white/6 rounded-2xl glow-green p-6 md:p-8">
-            <form onSubmit={handleVerify} className="space-y-6">
-              <div>
-                <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 block mb-3">Code reçu par SMS</label>
-                <input
-                  required autoFocus
-                  type="text" inputMode="numeric" maxLength={6}
-                  value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="_ _ _ _ _ _"
-                  className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-3xl text-center tracking-[0.5em] text-paper pb-2 transition-colors placeholder:text-paper/30" />
-              </div>
-              {otpError && (
-                <div className="flex items-start gap-3 bg-clay/10 border border-clay/25 rounded-xl p-4">
-                  <AlertCircle className="w-4 h-4 text-clay flex-shrink-0 mt-0.5" />
-                  <p className="font-body text-sm text-clay">{otpError}</p>
-                </div>
-              )}
-              <button type="submit" disabled={stage === 'verifying' || otpCode.length < 6}
-                className="w-full flex items-center justify-center gap-2 font-body font-medium bg-spruce-light text-paper px-8 py-4 rounded-full hover:bg-spruce transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                {stage === 'verifying' ? <><Loader2 className="w-4 h-4 animate-spin" /> Vérification…</> : <><CheckCircle2 className="w-4 h-4" /> Accéder à mon dossier</>}
-              </button>
-              <div className="text-center">
-                {resendSecs > 0 ? (
-                  <p className="font-mono text-xs text-paper/40">Renvoyer dans {resendSecs}s</p>
-                ) : (
-                  <button type="button" onClick={() => sendOtp(phone)}
-                    className="font-mono text-xs text-brass-light hover:underline underline-offset-2 transition-colors">
-                    Renvoyer le code
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   /* ── Écran de recherche ── */
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-20">
@@ -528,7 +430,7 @@ export default function Suivi() {
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">CFA CUSEMS Authentique</span>
           <h1 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05] text-paper">Suivi de<br /><span className="italic text-brass-light">commande.</span></h1>
           <p className="font-body text-paper/65 text-sm mt-4 leading-relaxed">
-            Entrez votre numéro — vous recevrez un code SMS pour accéder à votre dossier.
+            Entrez le numéro de téléphone enregistré lors de votre inscription.
           </p>
         </div>
         <div className="relative bg-surface border border-white/6 rounded-2xl glow-green p-6 md:p-8">
@@ -554,9 +456,9 @@ export default function Suivi() {
                 </div>
               </div>
             )}
-            <button type="submit" disabled={stage === 'sending'}
+            <button type="submit" disabled={stage === 'loading'}
               className="w-full flex items-center justify-center gap-2 font-body font-medium bg-spruce-light text-paper px-8 py-4 rounded-full hover:bg-spruce transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {stage === 'sending' ? <><Loader2 className="w-4 h-4 animate-spin" /> Envoi du code…</> : <><Search className="w-4 h-4" /> Recevoir mon code SMS</>}
+              {stage === 'loading' ? <><Loader2 className="w-4 h-4 animate-spin" /> Recherche…</> : <><Search className="w-4 h-4" /> Consulter mon dossier</>}
             </button>
           </form>
         </div>
