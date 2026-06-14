@@ -176,6 +176,7 @@ export default function Admin() {
   const [showForm,    setShowForm]    = useState(false)
   const [prodForm,    setProdForm]    = useState<ProduitForm>(EMPTY_PRODUIT)
   const [savingProd,  setSavingProd]  = useState(false)
+  const [justCreated, setJustCreated] = useState(false)
   const [photoFile,    setPhotoFile]    = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [prodMedias,   setProdMedias]   = useState<import('@/lib/supabase').CFAProduitMedia[]>([])
@@ -459,7 +460,7 @@ export default function Admin() {
   function openNewProd() {
     setEditProd(null); setProdForm(EMPTY_PRODUIT)
     setPhotoFile(null); setPhotoPreview(null)
-    setProdMedias([])
+    setProdMedias([]); setJustCreated(false)
     setShowForm(true)
   }
   function openEditProd(p: CFAProduit) {
@@ -491,7 +492,8 @@ export default function Admin() {
       photoUrl = pub.publicUrl
     }
 
-    const { error } = await adminRpc('admin_upsert_produit', {
+    const isNew = !editProd
+    const { data: returnedId, error } = await adminRpc('admin_upsert_produit', {
       p_id:             editProd?.id ?? null,
       p_nom:            prodForm.nom,
       p_description:    prodForm.description || null,
@@ -506,9 +508,19 @@ export default function Admin() {
       p_etat:           prodForm.etat,
     })
     if (error) { alert('Erreur : ' + error.message); setSavingProd(false); return }
-    setProdLoaded(false); await loadProduits()
-    setShowForm(false); setSavingProd(false)
+
+    setSavingProd(false)
     setPhotoFile(null); setPhotoPreview(null)
+    setProdLoaded(false); await loadProduits()
+
+    if (isNew && returnedId) {
+      /* Basculer immédiatement en mode édition pour permettre l'upload des médias */
+      const { data: newProd } = await supabase
+        .from('cfa_produits').select('*').eq('id', returnedId as string).single()
+      if (newProd) { setJustCreated(true); openEditProd(newProd as CFAProduit); return }
+    }
+    setJustCreated(false)
+    setShowForm(false)
   }
   async function loadProdMedias(produitId: string) {
     setMediasLoading(true)
@@ -1197,9 +1209,15 @@ export default function Admin() {
           {/* Formulaire produit */}
           {showForm && (
             <div className="bg-surface border border-brass/20 rounded-2xl p-5 md:p-6 mb-6">
-              <div className="font-mono text-xs uppercase tracking-[0.2em] text-brass mb-5">
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-brass mb-3">
                 {editProd ? `Modifier — ${editProd.nom}` : 'Nouveau produit'}
               </div>
+              {justCreated && (
+                <div className="flex items-center gap-2 bg-spruce/15 border border-spruce/25 rounded-xl px-4 py-2.5 mb-4">
+                  <CheckCircle2 className="w-4 h-4 text-spruce-light flex-shrink-0" />
+                  <p className="font-body text-sm text-spruce-light">Produit créé ! Ajoutez maintenant vos photos et vidéos ci-dessous.</p>
+                </div>
+              )}
               <form onSubmit={handleSaveProd}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <FormField label="Nom du produit *">
@@ -1256,8 +1274,7 @@ export default function Admin() {
                 {/* ── Médias (images + vidéos) ── */}
                 <div className="mt-4 mb-2">
                   <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 mb-3">
-                    Médias — images &amp; vidéos
-                    {editProd && <span className="ml-2 text-paper/60">(sauvegarder le produit d&apos;abord pour un nouveau)</span>}
+                    Photos &amp; vidéos
                   </div>
 
                   {/* Grille des médias existants */}
