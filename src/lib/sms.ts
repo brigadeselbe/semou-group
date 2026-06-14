@@ -70,6 +70,9 @@ export const smsTemplates = {
   rappelRetard: (prenom: string, n: number, montant: number) =>
     `Bonjour ${prenom}, votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA est EN RETARD. Régularisez sur ${APP_URL}/suivi. Semou Group`,
 
+  otpCode: (code: string) =>
+    `Votre code de verification Semou Group : ${code}. Valable 10 minutes. Ne le partagez pas.`,
+
   paiementConfirme: (prenom: string, montant: number, reste: number) =>
     reste > 0
       ? `Bonjour ${prenom}, paiement de ${montant.toLocaleString('fr-SN')} F confirmé ! Reste dû : ${reste.toLocaleString('fr-SN')} F. Merci. Semou Group`
