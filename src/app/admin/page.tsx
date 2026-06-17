@@ -111,31 +111,7 @@ async function adminRpc(rpc: string, params: Record<string, unknown> = {}) {
   return { data: json.data as unknown, error: null }
 }
 
-/* ── Login rate-limiting (sessionStorage, réinitialisé à la fermeture de l'onglet) ── */
-const MAX_ATTEMPTS = 5
-const LOCKOUT_MS   = 5 * 60 * 1000
-
-function getAttempts() {
-  try { return JSON.parse(sessionStorage.getItem('sg_login_attempts') ?? '{"n":0,"t":0}') as { n: number; t: number } }
-  catch { return { n: 0, t: 0 } }
-}
-function trackFail() {
-  const { n, t } = getAttempts()
-  const now = Date.now()
-  sessionStorage.setItem('sg_login_attempts', JSON.stringify({
-    n: now - t < LOCKOUT_MS ? n + 1 : 1,
-    t: now - t < LOCKOUT_MS ? t      : now,
-  }))
-}
-function clearAttempts() { sessionStorage.removeItem('sg_login_attempts') }
-function lockoutMins(): number {
-  const { n, t } = getAttempts()
-  if (n >= MAX_ATTEMPTS) {
-    const rem = LOCKOUT_MS - (Date.now() - t)
-    if (rem > 0) return Math.ceil(rem / 60000)
-  }
-  return 0
-}
+/* Rate-limiting géré côté serveur (cookie HttpOnly signé) — plus rien côté client */
 
 /* ── Formulaire produit ── */
 const EMPTY_PRODUIT = {
@@ -253,8 +229,6 @@ export default function Admin() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    const mins = lockoutMins()
-    if (mins > 0) { setPwdErr(`Trop de tentatives — réessayez dans ${mins} min.`); return }
     setPwdErr('')
     setStage('loading')
     const res = await fetch('/api/admin/login', {
@@ -263,13 +237,11 @@ export default function Admin() {
       body:    JSON.stringify({ password: pwd }),
     })
     if (!res.ok) {
-      trackFail()
-      const rem = lockoutMins()
-      setPwdErr(rem > 0 ? `Trop de tentatives — réessayez dans ${rem} min.` : 'Mot de passe incorrect.')
+      const json = await res.json().catch(() => ({}))
+      setPwdErr(json.error ?? 'Mot de passe incorrect.')
       setStage('login')
       return
     }
-    clearAttempts()
     sessionStorage.setItem(SESSION_KEY, '1')
     loadAll()
   }
@@ -616,10 +588,19 @@ export default function Admin() {
               <input type="password" required value={pwd}
                 onChange={e => { setPwd(e.target.value); setPwdErr('') }}
                 placeholder="••••••••"
-                className="w-full bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-base text-paper pb-2 transition-colors placeholder:text-paper/40" />
-              {pwdErr && <p className="font-mono text-[10px] text-clay mt-2">{pwdErr}</p>}
+                autoComplete="current-password"
+                disabled={pwdErr.includes('bloqué') || pwdErr.includes('Réessayez')}
+                className="w-full bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-base text-paper pb-2 transition-colors placeholder:text-paper/40 disabled:opacity-40" />
+              {pwdErr && (
+                <p className={`font-mono text-[10px] mt-2 ${pwdErr.includes('bloqué') || pwdErr.includes('Réessayez') ? 'text-clay flex items-center gap-1' : 'text-clay'}`}>
+                  {(pwdErr.includes('bloqué') || pwdErr.includes('Réessayez')) && <Lock className="w-3 h-3 flex-shrink-0" />}
+                  {pwdErr}
+                </p>
+              )}
             </div>
-            <button type="submit" className="w-full font-body font-medium bg-spruce-light text-paper py-3 rounded-full hover:bg-spruce transition-colors">
+            <button type="submit"
+              disabled={pwdErr.includes('bloqué') || pwdErr.includes('Réessayez')}
+              className="w-full font-body font-medium bg-spruce-light text-paper py-3 rounded-full hover:bg-spruce transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               Accéder au tableau de bord
             </button>
           </form>
