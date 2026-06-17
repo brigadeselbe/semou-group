@@ -14,6 +14,7 @@ const ALLOWED_RPCS = new Set([
   'admin_upsert_produit',
   'admin_delete_produit',
   'admin_delete_media',
+  'admin_import_clients',
 ])
 
 export async function POST(req: NextRequest) {

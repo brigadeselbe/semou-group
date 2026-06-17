@@ -8,7 +8,7 @@ import {
   Lock, LogOut, Search, CheckCircle2, XCircle, Loader2, ChevronDown,
   Users, FileText, ExternalLink, ShoppingBag,
   TrendingUp, AlertCircle, Package, Plus, Edit2, Trash2, ToggleLeft,
-  ToggleRight, Star, MapPin, Download, Truck,
+  ToggleRight, Star, MapPin, Download, Truck, Upload, X,
 } from 'lucide-react'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
@@ -28,7 +28,7 @@ type DashStats = {
 }
 type ClientFilter   = 'TOUS' | 'EN_ATTENTE' | 'VALIDE' | 'REJETE'
 type CommandeFilter = 'TOUS' | 'EN_COURS' | 'SOLDE' | 'ANNULE'
-type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits'
+type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits' | 'livraisons'
 
 /* ── Constantes ── */
 const SESSION_KEY = 'sg_admin_session'
@@ -116,7 +116,7 @@ async function adminRpc(rpc: string, params: Record<string, unknown> = {}) {
 /* ── Formulaire produit ── */
 const EMPTY_PRODUIT = {
   nom: '', description: '', prix_vente: 0, apport_minimum: 0,
-  nb_mensualites_max: 6, stock: 1, stock_illimite: false,
+  nb_mensualites_max: 6, stock: 1, stock_illimite: false, stock_seuil: 3,
   actif: true, en_vedette: false, etat: 'NEUF',
 }
 type ProduitForm = typeof EMPTY_PRODUIT
@@ -143,6 +143,10 @@ export default function Admin() {
   const [cmdLoading, setCmdLoading] = useState(false)
   const [cmdFilter,  setCmdFilter]  = useState<CommandeFilter>('TOUS')
   const [cmdSearch,  setCmdSearch]  = useState('')
+  const [cmdProduit, setCmdProduit] = useState('')
+  const [cmdMois,    setCmdMois]    = useState('')
+  const [livFilter,  setLivFilter]  = useState('TOUS')
+  const [livSearch,  setLivSearch]  = useState('')
   const [cmdExpand,  setCmdExpand]  = useState<string | null>(null)
 
   /* Produits */
@@ -164,6 +168,15 @@ export default function Admin() {
   const [stats,         setStats]        = useState<DashStats | null>(null)
   const [statsLoading,  setStatsLoading] = useState(false)
   const [livStats, setLivStats] = useState<LivStats | null>(null)
+  const [stockBas, setStockBas] = useState<{ id: string; nom: string; stock: number; stock_seuil: number }[]>([])
+
+  /* Import Excel clients */
+  type ImportRow = Record<string, string>
+  type ImportResult = { upserted: number; errors: { ligne: string; tel?: string; erreur: string }[] }
+  const [importOpen,    setImportOpen]    = useState(false)
+  const [importRows,    setImportRows]    = useState<ImportRow[]>([])
+  const [importLoading, setImportLoading] = useState(false)
+  const [importResult,  setImportResult]  = useState<ImportResult | null>(null)
   const [matSearch,   setMatSearch]   = useState('')
   const [matMode,     setMatMode]     = useState<'matricule' | 'nom' | 'telephone'>('matricule')
   const [matResults,  setMatResults]  = useState<CFAClient[] | 'idle'>('idle')
@@ -200,12 +213,14 @@ export default function Admin() {
 
   async function loadStats() {
     setStatsLoading(true)
-    const [{ data, error }, { data: livs }] = await Promise.all([
+    const [{ data, error }, { data: livs }, { data: sb }] = await Promise.all([
       adminRpc('admin_get_stats'),
       adminRpc('admin_get_livraison_stats'),
+      supabase.rpc('get_stock_bas'),
     ])
     if (!error && data) setStats(data as DashStats)
     if (livs) setLivStats(livs as LivStats)
+    if (sb) setStockBas(sb as { id: string; nom: string; stock: number; stock_seuil: number }[])
     setStatsLoading(false)
   }
 
@@ -361,28 +376,114 @@ export default function Admin() {
     setMatResults(results.slice(0, 10))
   }
 
-  /* Exports Excel */
+  /* ── Import Excel clients ── */
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportResult(null)
+    setImportRows([])
+    const XLSX  = (await import('xlsx')).default
+    const buf   = await file.arrayBuffer()
+    const wb    = XLSX.read(buf, { type: 'array' })
+    const ws    = wb.Sheets[wb.SheetNames[0]]
+    const raw   = XLSX.utils.sheet_to_json(ws, { defval: '' }) as Record<string, unknown>[]
+
+    const norm = (s: string) =>
+      s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '')
+
+    const COL: Record<string, string> = {
+      prenom: 'prenom', nom: 'nom', telephone: 'telephone', matricule: 'matricule',
+      corps: 'corps', region: 'region', ia: 'ia', iaacademie: 'ia', ief: 'ief',
+      ecole: 'ecole', grade: 'grade', ministere: 'ministere', statut: 'statut',
+    }
+
+    const rows: ImportRow[] = raw
+      .map((r, i) => {
+        const out: ImportRow = { _ligne: String(i + 2) }
+        for (const [k, v] of Object.entries(r)) {
+          const mapped = COL[norm(k)]
+          if (mapped) out[mapped] = String(v ?? '').trim()
+        }
+        return out
+      })
+      .filter(r => r.telephone)
+
+    setImportRows(rows)
+  }
+
+  async function handleImportConfirm() {
+    if (!importRows.length) return
+    setImportLoading(true)
+    const { data, error } = await adminRpc('admin_import_clients', { p_clients: importRows })
+    setImportLoading(false)
+    if (error) {
+      setImportResult({ upserted: 0, errors: [{ ligne: '?', erreur: error.message }] })
+      return
+    }
+    const res = data as ImportResult
+    setImportResult(res)
+    if (res.upserted > 0) {
+      const { data: fresh } = await adminRpc('admin_get_all_clients')
+      if (fresh) setClients(fresh as CFAClient[])
+    }
+  }
+
+  /* ── Exports Excel ── */
   async function exportClients() {
     const XLSX = (await import('xlsx')).default
+    const today = new Date().toLocaleDateString('fr-FR')
+
+    /* Feuille 1 : liste complète */
     const rows = filteredClients.map(c => ({
-      Prénom:        c.prenom,
-      Nom:           c.nom,
-      Téléphone:     c.telephone,
-      Matricule:     c.matricule ?? '',
-      Corps:         c.corps ?? '',
-      Région:        c.region ?? '',
-      'IA/Académie': c.ia ?? '',
-      IEF:           c.ief ?? '',
-      École:         c.ecole ?? '',
-      Grade:         c.grade ?? '',
-      Ministère:     c.ministere ?? '',
-      Statut:        c.statut,
-      Date:          (c as CFAClient & { created_at: string }).created_at
-                       ? new Date((c as CFAClient & { created_at: string }).created_at).toLocaleDateString('fr-FR') : '',
+      Prénom:              c.prenom,
+      Nom:                 c.nom,
+      Téléphone:           c.telephone,
+      Matricule:           c.matricule ?? '',
+      Corps:               c.corps ?? '',
+      Région:              c.region ?? '',
+      'IA / Académie':     c.ia ?? '',
+      IEF:                 c.ief ?? '',
+      École:               c.ecole ?? '',
+      Statut:              c.statut,
+      'Date inscription':  (c as CFAClient & { created_at?: string }).created_at
+                             ? new Date((c as CFAClient & { created_at: string }).created_at).toLocaleDateString('fr-FR') : '',
     }))
     const ws = XLSX.utils.json_to_sheet(rows)
+    ws['!cols'] = [
+      { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 18 },
+      { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 14 },
+      { wch: 24 }, { wch: 12 }, { wch: 16 },
+    ]
+
+    /* Feuille 2 : synthèse */
+    const byStatut:  Record<string, number> = {}
+    const byCorps:   Record<string, number> = {}
+    const byRegion:  Record<string, number> = {}
+    filteredClients.forEach(c => {
+      byStatut[c.statut]          = (byStatut[c.statut]         ?? 0) + 1
+      if (c.corps)  byCorps[c.corps]   = (byCorps[c.corps]   ?? 0) + 1
+      if (c.region) byRegion[c.region] = (byRegion[c.region] ?? 0) + 1
+    })
+    const sep = { Indicateur: '────────────────', Valeur: '' }
+    const synthRows = [
+      { Indicateur: 'Export Semou Group',   Valeur: today },
+      { Indicateur: 'Total dossiers',       Valeur: filteredClients.length },
+      sep,
+      { Indicateur: 'PAR STATUT',           Valeur: '' },
+      ...Object.entries(byStatut).map(([k, v]) => ({ Indicateur: k, Valeur: v })),
+      sep,
+      { Indicateur: 'PAR CORPS',            Valeur: '' },
+      ...Object.entries(byCorps).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ Indicateur: k, Valeur: v })),
+      sep,
+      { Indicateur: 'PAR RÉGION',           Valeur: '' },
+      ...Object.entries(byRegion).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ Indicateur: k, Valeur: v })),
+    ]
+    const wsSynth = XLSX.utils.json_to_sheet(synthRows)
+    wsSynth['!cols'] = [{ wch: 24 }, { wch: 14 }]
+
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Clients')
+    XLSX.utils.book_append_sheet(wb, ws,      'Clients')
+    XLSX.utils.book_append_sheet(wb, wsSynth, 'Synthèse')
     XLSX.writeFile(wb, `clients_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
@@ -391,41 +492,88 @@ export default function Admin() {
     const { data: raw } = await adminRpc('admin_get_commandes_full')
     const cmds = raw as CommandeAdmin[] | null
     if (!cmds?.length) return
+
+    const fcfa = (n: number) => n.toLocaleString('fr-FR') + ' F CFA'
+    let totalVente = 0, totalCollecte = 0, totalRestant = 0
+    const byProduit: Record<string, { count: number; vente: number; collecte: number }> = {}
+    const byStatut:  Record<string, number> = {}
+
+    /* Feuille 1 : détail versements */
     const rows: Record<string, string | number>[] = []
     cmds.forEach(cmd => {
+      totalVente    += cmd.prix_vente    ?? 0
+      totalCollecte += cmd.apport_paye  ?? 0
+      totalRestant  += cmd.reste_a_payer ?? 0
+      const prod = cmd.produit?.nom ?? 'Inconnu'
+      if (!byProduit[prod]) byProduit[prod] = { count: 0, vente: 0, collecte: 0 }
+      byProduit[prod].count    += 1
+      byProduit[prod].vente    += cmd.prix_vente   ?? 0
+      byProduit[prod].collecte += cmd.apport_paye  ?? 0
+      byStatut[cmd.statut] = (byStatut[cmd.statut] ?? 0) + 1
+
       const base = {
         Référence:           cmd.reference ?? cmd.id,
         Client:              `${cmd.client?.prenom ?? ''} ${cmd.client?.nom ?? ''}`.trim(),
         Téléphone:           cmd.client?.telephone ?? '',
-        Produit:             cmd.produit?.nom ?? '',
+        Produit:             prod,
         'Statut commande':   cmd.statut,
-        'Prix vente':        cmd.prix_vente,
-        'Apport payé':       cmd.apport_paye,
-        'Reste à payer':     cmd.reste_a_payer,
+        'Prix vente (F)':    cmd.prix_vente,
+        'Apport payé (F)':   cmd.apport_paye,
+        'Reste dû (F)':      cmd.reste_a_payer,
         Mensualités:         cmd.nb_mensualites,
-        'Mensualité (FCFA)': cmd.montant_mensualite,
+        'Mensualité (F)':    cmd.montant_mensualite,
       }
-      const versements = cmd.versements ?? []
-      if (versements.length === 0) {
+      const vers = cmd.versements ?? []
+      if (vers.length === 0) {
         rows.push(base)
       } else {
-        versements.forEach(v => {
-          rows.push({
-            ...base,
-            'N° vers.':         v.numero_versement,
-            'Montant prévu':    v.montant_prevu,
-            'Montant payé':     v.montant_paye,
-            'Statut versement': v.statut,
-            'Date échéance':    v.date_echeance ? new Date(v.date_echeance).toLocaleDateString('fr-FR') : '',
-            'Date paiement':    v.date_paiement ? new Date(v.date_paiement).toLocaleDateString('fr-FR') : '',
-            Moyen:              v.moyen_paiement ?? '',
-          })
-        })
+        vers.forEach(v => rows.push({
+          ...base,
+          'N° vers.':          v.numero_versement,
+          'Prévu (F)':         v.montant_prevu,
+          'Payé (F)':          v.montant_paye,
+          'Statut versement':  v.statut,
+          'Date échéance':     v.date_echeance ? new Date(v.date_echeance).toLocaleDateString('fr-FR') : '',
+          'Date paiement':     v.date_paiement ? new Date(v.date_paiement).toLocaleDateString('fr-FR') : '',
+          Moyen:               v.moyen_paiement ?? '',
+        }))
       }
     })
     const ws = XLSX.utils.json_to_sheet(rows)
+    ws['!cols'] = [
+      { wch: 18 }, { wch: 22 }, { wch: 14 }, { wch: 22 }, { wch: 14 },
+      { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+      { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 12 },
+    ]
+
+    /* Feuille 2 : synthèse financière */
+    const sep = { Indicateur: '────────────────', Valeur: '' }
+    const synthRows = [
+      { Indicateur: 'Export Semou Group',        Valeur: new Date().toLocaleDateString('fr-FR') },
+      { Indicateur: 'Total commandes',           Valeur: cmds.length },
+      sep,
+      { Indicateur: 'BILAN FINANCIER',           Valeur: '' },
+      { Indicateur: 'Montant total commandé',    Valeur: fcfa(totalVente) },
+      { Indicateur: 'Total collecté',            Valeur: fcfa(totalCollecte) },
+      { Indicateur: 'Total restant à collecter', Valeur: fcfa(totalRestant) },
+      sep,
+      { Indicateur: 'PAR STATUT',                Valeur: '' },
+      ...Object.entries(byStatut).map(([k, v]) => ({ Indicateur: k, Valeur: v })),
+      sep,
+      { Indicateur: 'PAR PRODUIT',               Valeur: '' },
+      ...Object.entries(byProduit)
+        .sort((a, b) => b[1].count - a[1].count)
+        .map(([k, v]) => ({
+          Indicateur: k,
+          Valeur: `${v.count} cmd · collecté ${fcfa(v.collecte)} / ${fcfa(v.vente)}`,
+        })),
+    ]
+    const wsSynth = XLSX.utils.json_to_sheet(synthRows)
+    wsSynth['!cols'] = [{ wch: 28 }, { wch: 38 }]
+
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Commandes')
+    XLSX.utils.book_append_sheet(wb, ws,      'Commandes')
+    XLSX.utils.book_append_sheet(wb, wsSynth, 'Synthèse')
     XLSX.writeFile(wb, `commandes_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
@@ -441,7 +589,7 @@ export default function Admin() {
     setProdForm({
       nom: p.nom, description: p.description ?? '', prix_vente: p.prix_vente,
       apport_minimum: p.apport_minimum, nb_mensualites_max: p.nb_mensualites_max,
-      stock: p.stock, stock_illimite: p.stock_illimite, actif: p.actif,
+      stock: p.stock, stock_illimite: p.stock_illimite, stock_seuil: p.stock_seuil ?? 3, actif: p.actif,
       en_vedette: p.en_vedette, etat: p.etat,
     })
     setPhotoFile(null); setPhotoPreview(p.photo_url ?? null)
@@ -476,6 +624,7 @@ export default function Admin() {
       p_nb_mensualites: Number(prodForm.nb_mensualites_max),
       p_stock:          Number(prodForm.stock),
       p_stock_illimite: prodForm.stock_illimite,
+      p_stock_seuil:    Number(prodForm.stock_seuil),
       p_actif:          prodForm.actif,
       p_en_vedette:     prodForm.en_vedette,
       p_etat:           prodForm.etat,
@@ -543,7 +692,7 @@ export default function Admin() {
       p_id: p.id,
       p_nom: p.nom, p_description: p.description, p_prix_vente: p.prix_vente,
       p_apport_minimum: p.apport_minimum, p_nb_mensualites: p.nb_mensualites_max,
-      p_stock: p.stock, p_stock_illimite: p.stock_illimite, p_actif: !p.actif,
+      p_stock: p.stock, p_stock_illimite: p.stock_illimite, p_stock_seuil: p.stock_seuil ?? 3, p_actif: !p.actif,
       p_en_vedette: p.en_vedette, p_etat: p.etat,
     })
     if (!error) setProduits(prev => prev.map(x => x.id === p.id ? { ...x, actif: !p.actif } : x))
@@ -551,7 +700,7 @@ export default function Admin() {
 
   function switchTab(t: Tab) {
     setTab(t)
-    if (t === 'commandes' && !cmdLoaded) loadCommandes()
+    if ((t === 'commandes' || t === 'livraisons') && !cmdLoaded) loadCommandes()
     if (t === 'produits'  && !prodLoaded) loadProduits()
   }
 
@@ -560,12 +709,37 @@ export default function Admin() {
     const q  = cliSearch.toLowerCase()
     return ok && (!q || [c.prenom, c.nom, c.telephone, c.matricule ?? '', c.region ?? ''].some(v => v.toLowerCase().includes(q)))
   })
+  const produitOptions = [...new Set(commandes.map(c => c.produit?.nom ?? '').filter(Boolean))].sort()
+  const moisOptions = [...new Set(
+    commandes.map(c => (c.created_at ?? '').slice(0, 7)).filter(Boolean)
+  )].sort().reverse()
+
   const filteredCmds = commandes.filter(c => {
-    const ok = cmdFilter === 'TOUS' || c.statut === cmdFilter
-    const q  = cmdSearch.toLowerCase()
+    if (cmdFilter !== 'TOUS' && c.statut !== cmdFilter) return false
+    if (cmdProduit && (c.produit?.nom ?? '') !== cmdProduit) return false
+    if (cmdMois && !(c.created_at ?? '').startsWith(cmdMois)) return false
+    const q   = cmdSearch.toLowerCase()
     const nom = `${c.client?.prenom ?? ''} ${c.client?.nom ?? ''}`.toLowerCase()
-    return ok && (!q || nom.includes(q) || c.reference.toLowerCase().includes(q) || (c.produit?.nom ?? '').toLowerCase().includes(q))
+    return !q || nom.includes(q) || c.reference.toLowerCase().includes(q) || (c.produit?.nom ?? '').toLowerCase().includes(q)
   })
+
+  const filteredVerse   = filteredCmds.reduce((s, c) => s + c.apport_paye, 0)
+  const filteredRestant = filteredCmds.reduce((s, c) => s + c.reste_a_payer, 0)
+  const filteredRetard  = filteredCmds.filter(c => c.versements.some(v => v.statut === 'EN_RETARD')).length
+
+  const livCmds = commandes.filter(c => {
+    const s = c.livraison?.statut ?? 'EN_ATTENTE'
+    if (livFilter !== 'TOUS' && s !== livFilter) return false
+    const q = livSearch.toLowerCase()
+    const nom = `${c.client?.prenom ?? ''} ${c.client?.nom ?? ''}`.toLowerCase()
+    return !q || nom.includes(q) || c.reference.toLowerCase().includes(q) || (c.client?.telephone ?? '').includes(q)
+  })
+  const livCounts = {
+    enAttente: commandes.filter(c => !c.livraison || c.livraison.statut === 'EN_ATTENTE').length,
+    planifiee: commandes.filter(c => c.livraison?.statut === 'PLANIFIEE').length,
+    enRoute:   commandes.filter(c => c.livraison?.statut === 'EN_ROUTE').length,
+    livree:    commandes.filter(c => c.livraison?.statut === 'LIVREE').length,
+  }
 
   /* ── LOGIN ── */
   if (stage === 'login') return (
@@ -617,10 +791,11 @@ export default function Admin() {
 
   /* ── DASHBOARD ── */
   const TABS: { key: Tab; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { key: 'dashboard', label: 'Vue d\'ensemble', icon: TrendingUp },
-    { key: 'clients',   label: 'Dossiers',        icon: Users },
-    { key: 'commandes', label: 'Commandes',        icon: ShoppingBag },
-    { key: 'produits',  label: 'Produits',         icon: Package },
+    { key: 'dashboard',   label: 'Vue d\'ensemble', icon: TrendingUp },
+    { key: 'clients',     label: 'Dossiers',        icon: Users },
+    { key: 'commandes',   label: 'Commandes',       icon: ShoppingBag },
+    { key: 'livraisons',  label: 'Livraisons',      icon: Truck },
+    { key: 'produits',    label: 'Produits',        icon: Package },
   ]
 
   return (
@@ -657,6 +832,25 @@ export default function Admin() {
       {/* ═══════ VUE D'ENSEMBLE ═══════ */}
       {tab === 'dashboard' && (
         <div className="space-y-6">
+          {/* Bannière alerte stock bas */}
+          {stockBas.length > 0 && (
+            <div className="bg-clay/8 border border-clay/25 rounded-xl p-4 flex items-start gap-3">
+              <span className="text-lg leading-none mt-0.5">⚠️</span>
+              <div className="flex-1 min-w-0">
+                <div className="font-mono text-xs font-medium text-clay uppercase tracking-[0.12em] mb-2">
+                  Stock bas — {stockBas.length} produit{stockBas.length > 1 ? 's' : ''} à réapprovisionner
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {stockBas.map(p => (
+                    <button key={p.id} onClick={() => setTab('produits')}
+                      className="font-mono text-[11px] bg-clay/10 border border-clay/20 text-paper/80 rounded-full px-3 py-1 hover:bg-clay/20 transition-colors">
+                      {p.nom} — {p.stock === 0 ? 'épuisé' : `${p.stock} / ${p.stock_seuil}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           {/* Stats principales */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {statsLoading
@@ -896,13 +1090,123 @@ export default function Admin() {
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45">
               {filteredClients.length} dossier{filteredClients.length > 1 ? 's' : ''}
             </span>
-            {filteredClients.length > 0 && (
-              <button onClick={exportClients}
-                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-brass border border-paper/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
-                <Download className="w-3 h-3" /> Excel
+            <div className="flex items-center gap-2">
+              <button onClick={() => { setImportOpen(o => !o); setImportRows([]); setImportResult(null) }}
+                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-spruce-light border border-paper/8 hover:border-spruce/30 rounded-lg px-3 py-1.5 transition-colors">
+                <Upload className="w-3 h-3" /> Importer
               </button>
-            )}
+              {filteredClients.length > 0 && (
+                <button onClick={exportClients}
+                  className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-brass border border-paper/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
+                  <Download className="w-3 h-3" /> Excel
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Panel import Excel */}
+          {importOpen && (
+            <div className="bg-surface border border-paper/8 rounded-2xl p-5 mb-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="font-mono text-xs font-medium text-paper/80 uppercase tracking-[0.12em]">
+                  Importer des clients depuis Excel
+                </div>
+                <button onClick={() => setImportOpen(false)} className="text-paper/40 hover:text-paper/70">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Format attendu */}
+              <div className="bg-surface-2 rounded-xl p-3 text-paper/55 font-mono text-[10px] leading-relaxed">
+                Colonnes reconnues : <span className="text-paper/75">Prénom · Nom · Téléphone · Matricule · Corps · Région · IA / Académie · IEF · École · Statut</span>
+                <br />Téléphone = clé unique — un client existant sera mis à jour.
+              </div>
+
+              {/* Sélecteur de fichier */}
+              {!importResult && (
+                <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-paper/12 hover:border-brass/30 rounded-xl p-6 cursor-pointer transition-colors group">
+                  <Upload className="w-6 h-6 text-paper/35 group-hover:text-brass/60 transition-colors" />
+                  <span className="font-mono text-xs text-paper/50 group-hover:text-paper/70 transition-colors">
+                    Cliquer ou glisser un fichier .xlsx
+                  </span>
+                  <input type="file" accept=".xlsx,.xls,.csv" className="hidden"
+                    onChange={handleImportFile} />
+                </label>
+              )}
+
+              {/* Aperçu des lignes parsées */}
+              {importRows.length > 0 && !importResult && (
+                <div className="space-y-3">
+                  <div className="font-mono text-[11px] text-paper/60">
+                    <span className="text-spruce-light font-medium">{importRows.length} ligne{importRows.length > 1 ? 's' : ''}</span> avec téléphone détectées
+                  </div>
+                  <div className="overflow-x-auto rounded-xl border border-paper/6">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-paper/5 bg-surface-2">
+                          {['Prénom','Nom','Téléphone','Matricule','Corps','Région'].map(h => (
+                            <th key={h} className="px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 whitespace-nowrap">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {importRows.slice(0, 5).map((r, i) => (
+                          <tr key={i} className="border-b border-paper/4 last:border-0">
+                            <td className="px-3 py-2 font-body text-xs text-paper/80">{r.prenom}</td>
+                            <td className="px-3 py-2 font-body text-xs text-paper/80">{r.nom}</td>
+                            <td className="px-3 py-2 font-mono text-xs text-paper/70">{r.telephone}</td>
+                            <td className="px-3 py-2 font-mono text-xs text-paper/55">{r.matricule ?? '—'}</td>
+                            <td className="px-3 py-2 font-body text-xs text-paper/55">{r.corps ?? '—'}</td>
+                            <td className="px-3 py-2 font-body text-xs text-paper/55">{r.region ?? '—'}</td>
+                          </tr>
+                        ))}
+                        {importRows.length > 5 && (
+                          <tr><td colSpan={6} className="px-3 py-2 font-mono text-[10px] text-paper/40 text-center">
+                            + {importRows.length - 5} autres lignes…
+                          </td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  <button onClick={handleImportConfirm} disabled={importLoading}
+                    className="flex items-center gap-2 bg-spruce text-paper font-mono text-xs px-5 py-2.5 rounded-xl hover:bg-spruce-dark transition-colors disabled:opacity-50">
+                    {importLoading
+                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Import en cours…</>
+                      : <><Upload className="w-3.5 h-3.5" /> Importer {importRows.length} client{importRows.length > 1 ? 's' : ''}</>
+                    }
+                  </button>
+                </div>
+              )}
+
+              {/* Résultats */}
+              {importResult && (
+                <div className="space-y-3">
+                  <div className={`flex items-center gap-2 font-mono text-sm font-medium ${importResult.upserted > 0 ? 'text-spruce-light' : 'text-clay'}`}>
+                    {importResult.upserted > 0
+                      ? <><CheckCircle2 className="w-4 h-4" /> {importResult.upserted} client{importResult.upserted > 1 ? 's' : ''} importé{importResult.upserted > 1 ? 's' : ''} avec succès</>
+                      : <><XCircle className="w-4 h-4" /> Aucun client importé</>
+                    }
+                  </div>
+                  {importResult.errors.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-clay/80 mb-1.5">
+                        {importResult.errors.length} erreur{importResult.errors.length > 1 ? 's' : ''}
+                      </div>
+                      {importResult.errors.map((e, i) => (
+                        <div key={i} className="font-mono text-[10px] text-paper/60 bg-clay/5 border border-clay/15 rounded-lg px-3 py-1.5">
+                          Ligne {e.ligne}{e.tel ? ` (${e.tel})` : ''} — {e.erreur}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={() => { setImportRows([]); setImportResult(null) }}
+                    className="font-mono text-[10px] text-paper/50 hover:text-paper/70 underline underline-offset-2 transition-colors">
+                    Importer un autre fichier
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           <div className="bg-surface border border-paper/6 rounded-2xl overflow-hidden">
             {filteredClients.length === 0
               ? <div className="py-16 text-center font-body text-paper/55 text-sm">Aucun dossier trouvé.</div>
@@ -1025,18 +1329,18 @@ export default function Admin() {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                   {[
-                    { val: commandes.length,                                   lbl: 'Total commandes', color: 'text-paper' },
-                    { val: commandes.filter(c => c.statut === 'EN_COURS').length, lbl: 'En cours',     color: 'text-brass-light' },
-                    { val: commandes.filter(c => c.statut === 'SOLDE').length,    lbl: 'Soldées',      color: 'text-spruce-light' },
-                    { val: fcfa(commandes.reduce((s, c) => s + c.apport_paye, 0)), lbl: 'Total versé', color: 'text-brass-light' },
+                    { val: filteredCmds.length,   lbl: 'Commandes',       color: 'text-paper' },
+                    { val: filteredRetard,          lbl: 'En retard',       color: filteredRetard > 0 ? 'text-clay' : 'text-paper/50' },
+                    { val: fcfa(filteredVerse),     lbl: 'Total collecté',  color: 'text-spruce-light' },
+                    { val: fcfa(filteredRestant),   lbl: 'Restant à collecter', color: 'text-brass-light' },
                   ].map(({ val, lbl, color }) => (
                     <div key={lbl} className="bg-surface border border-paper/6 rounded-xl p-4">
-                      <div className={`font-display text-xl md:text-2xl ${color} leading-tight`}>{val}</div>
+                      <div className={`font-display text-lg md:text-xl ${color} leading-tight`}>{val}</div>
                       <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/55 mt-0.5">{lbl}</div>
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <div className="flex flex-col sm:flex-row gap-3 mb-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper/45" />
                     <input type="text" placeholder="Référence, client, produit…"
@@ -1053,6 +1357,29 @@ export default function Admin() {
                       </button>
                     ))}
                   </div>
+                </div>
+                {/* Filtres avancés : produit + mois */}
+                <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                  <select value={cmdProduit} onChange={e => setCmdProduit(e.target.value)}
+                    className="flex-1 bg-surface border border-paper/8 rounded-xl px-3 py-2 font-mono text-xs text-paper/80 focus:border-brass/40 outline-none transition-colors">
+                    <option value="">Tous les produits</option>
+                    {produitOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                  <select value={cmdMois} onChange={e => setCmdMois(e.target.value)}
+                    className="flex-1 bg-surface border border-paper/8 rounded-xl px-3 py-2 font-mono text-xs text-paper/80 focus:border-brass/40 outline-none transition-colors">
+                    <option value="">Tous les mois</option>
+                    {moisOptions.map(m => {
+                      const [y, mo] = m.split('-')
+                      const label = new Date(Number(y), Number(mo) - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+                      return <option key={m} value={m}>{label}</option>
+                    })}
+                  </select>
+                  {(cmdProduit || cmdMois) && (
+                    <button onClick={() => { setCmdProduit(''); setCmdMois('') }}
+                      className="flex items-center gap-1 font-mono text-[10px] text-paper/50 hover:text-clay border border-paper/8 rounded-xl px-3 py-2 transition-colors whitespace-nowrap">
+                      <X className="w-3 h-3" /> Réinitialiser
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45">
@@ -1291,6 +1618,16 @@ export default function Admin() {
                       </label>
                     </div>
                   </FormField>
+                  {!prodForm.stock_illimite && (
+                    <FormField label="Seuil d'alerte stock">
+                      <div className="flex items-center gap-2">
+                        <input type="number" min="1" value={prodForm.stock_seuil}
+                          onChange={e => setProdForm(p => ({ ...p, stock_seuil: +e.target.value }))}
+                          className="w-24 bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
+                        <span className="font-mono text-xs text-paper/50">unités min avant alerte</span>
+                      </div>
+                    </FormField>
+                  )}
                 </div>
                 <FormField label="Description">
                   <textarea value={prodForm.description}
@@ -1441,8 +1778,16 @@ export default function Admin() {
                           }`}>
                             {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'BON_ETAT' ? 'Bon état' : 'Occasion'}
                           </span>
-                          <span className={`font-mono text-[10px] uppercase tracking-[0.1em] ${p.stock_illimite ? 'text-spruce-light' : p.stock > 0 ? 'text-paper/70' : 'text-clay'}`}>
-                            {p.stock_illimite ? '∞ illimité' : `${p.stock} en stock`}
+                          <span className={`font-mono text-[10px] uppercase tracking-[0.1em] ${
+                            p.stock_illimite ? 'text-spruce-light'
+                            : p.stock === 0 ? 'text-clay font-semibold'
+                            : p.stock <= (p.stock_seuil ?? 3) ? 'text-brass-light'
+                            : 'text-paper/70'
+                          }`}>
+                            {p.stock_illimite ? '∞ illimité'
+                              : p.stock === 0 ? '⚠ épuisé'
+                              : p.stock <= (p.stock_seuil ?? 3) ? `⚠ ${p.stock} en stock`
+                              : `${p.stock} en stock`}
                           </span>
                         </div>
                         <button onClick={() => handleToggleActif(p)}
@@ -1536,6 +1881,146 @@ export default function Admin() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ═══════ LIVRAISONS ═══════ */}
+      {tab === 'livraisons' && (
+        <>
+          {cmdLoading
+            ? <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 text-brass animate-spin" /></div>
+            : (
+              <>
+                {/* Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  {[
+                    { val: livCounts.enAttente, lbl: 'En attente',  color: livCounts.enAttente > 0 ? 'text-brass-light' : 'text-paper/50' },
+                    { val: livCounts.planifiee, lbl: 'Planifiées',  color: 'text-paper/70' },
+                    { val: livCounts.enRoute,   lbl: 'En route',    color: 'text-spruce-light' },
+                    { val: livCounts.livree,    lbl: 'Livrées ✓',  color: 'text-spruce-light' },
+                  ].map(({ val, lbl, color }) => (
+                    <div key={lbl} className="bg-surface border border-paper/6 rounded-xl p-4">
+                      <div className={`font-display text-2xl ${color} leading-tight`}>{val}</div>
+                      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/55 mt-0.5">{lbl}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Filtres */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper/45" />
+                    <input type="text" placeholder="Client, téléphone, référence…"
+                      value={livSearch} onChange={e => setLivSearch(e.target.value)}
+                      className="w-full bg-surface border border-paper/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/65 focus:border-brass/40 outline-none transition-colors" />
+                  </div>
+                  <div className="flex gap-1 bg-surface border border-paper/8 rounded-xl p-1">
+                    {(['TOUS', 'EN_ATTENTE', 'PLANIFIEE', 'EN_ROUTE', 'LIVREE']).map(f => (
+                      <button key={f} onClick={() => setLivFilter(f)}
+                        className={`font-mono text-[10px] uppercase tracking-[0.08em] px-2.5 py-1.5 rounded-lg transition-colors ${
+                          livFilter === f ? 'bg-void text-brass border border-brass/20' : 'text-paper/60 hover:text-paper/60'
+                        }`}>
+                        {LIV_LBL[f] ?? 'Tous'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45 mb-3">
+                  {livCmds.length} commande{livCmds.length > 1 ? 's' : ''}
+                </div>
+
+                {/* Cartes livraison */}
+                {livCmds.length === 0
+                  ? <div className="py-16 text-center font-body text-paper/55 text-sm">Aucune commande.</div>
+                  : (
+                    <div className="space-y-3">
+                      {livCmds.map(cmd => {
+                        const livEdit: LivEdit = livEdits[cmd.id] ?? {
+                          statut:        cmd.livraison?.statut ?? 'EN_ATTENTE',
+                          livreur:       cmd.livraison?.livreur_nom ?? '',
+                          tel:           cmd.livraison?.livreur_telephone ?? '',
+                          suivi:         cmd.livraison?.numero_suivi ?? '',
+                          datePlanifiee: cmd.livraison?.date_planifiee?.slice(0, 10) ?? '',
+                        }
+                        return (
+                          <div key={cmd.id} className="bg-surface border border-paper/6 rounded-2xl p-5">
+                            {/* En-tête */}
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                              <div>
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <span className="font-mono text-xs font-medium text-brass-light">{cmd.reference}</span>
+                                  <span className="font-mono text-[10px] text-paper/40">·</span>
+                                  <span className="font-body text-xs text-paper/70">{cmd.produit?.nom ?? '—'}</span>
+                                </div>
+                                <div className="font-body text-sm text-paper font-medium">
+                                  {cmd.client?.prenom} {cmd.client?.nom}
+                                  <span className="font-mono text-xs text-paper/50 ml-2">{cmd.client?.telephone}</span>
+                                </div>
+                              </div>
+                              <Badge statut={livEdit.statut} s={LIV_STYLE} l={LIV_LBL} />
+                            </div>
+
+                            {/* Info livreur si existante */}
+                            {cmd.livraison?.livreur_nom && (
+                              <div className="flex flex-wrap gap-3 mb-3 text-paper/55 font-mono text-[10px]">
+                                <span>🚚 {cmd.livraison.livreur_nom}</span>
+                                {cmd.livraison.livreur_telephone && <span>📞 {cmd.livraison.livreur_telephone}</span>}
+                                {cmd.livraison.numero_suivi && <span>📦 {cmd.livraison.numero_suivi}</span>}
+                                {cmd.livraison.date_planifiee && <span>📅 {fmt(cmd.livraison.date_planifiee)}</span>}
+                                {cmd.livraison.date_livraison_effective && (
+                                  <span className="text-spruce-light">✓ Livré le {fmt(cmd.livraison.date_livraison_effective)}</span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Formulaire inline */}
+                            <div className="border-t border-paper/6 pt-3 mt-1">
+                              <div className="flex gap-1.5 flex-wrap mb-3">
+                                {LIV_STEPS.map(({ key, lbl }) => (
+                                  <button key={key} type="button"
+                                    onClick={() => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, statut: key } }))}
+                                    className={`font-mono text-[10px] uppercase tracking-[0.08em] px-3 py-1 rounded-full border transition-colors ${
+                                      livEdit.statut === key
+                                        ? 'bg-brass/15 border-brass/40 text-brass'
+                                        : 'border-paper/10 text-paper/50 hover:border-paper/25 hover:text-paper/70'
+                                    }`}>
+                                    {lbl}
+                                  </button>
+                                ))}
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                                <input placeholder="Nom livreur" value={livEdit.livreur}
+                                  onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, livreur: e.target.value } }))}
+                                  className="bg-surface-2 border border-paper/12 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/40 focus:border-brass/40 outline-none transition-colors" />
+                                <input placeholder="Tél livreur" value={livEdit.tel}
+                                  onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, tel: e.target.value } }))}
+                                  className="bg-surface-2 border border-paper/12 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/40 focus:border-brass/40 outline-none transition-colors" />
+                                <input placeholder="N° suivi" value={livEdit.suivi}
+                                  onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, suivi: e.target.value } }))}
+                                  className="bg-surface-2 border border-paper/12 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/40 focus:border-brass/40 outline-none transition-colors" />
+                                <input type="date" title="Date planifiée" value={livEdit.datePlanifiee}
+                                  onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, datePlanifiee: e.target.value } }))}
+                                  className="bg-surface-2 border border-paper/12 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper/70 focus:border-brass/40 outline-none transition-colors" />
+                              </div>
+                              <button onClick={() => handleUpdateLivraison(cmd.id, livEdit)}
+                                disabled={savingLiv === cmd.id}
+                                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-spruce-light border border-spruce/30 rounded-full px-3 py-1.5 hover:bg-spruce/10 transition-colors disabled:opacity-50">
+                                {savingLiv === cmd.id
+                                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                                  : <Truck className="w-3 h-3" />}
+                                {cmd.livraison ? 'Mettre à jour' : 'Créer la livraison'}
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                }
+              </>
+            )
+          }
+        </>
       )}
 
       <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/12 text-center mt-10">

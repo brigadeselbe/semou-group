@@ -40,6 +40,7 @@ export type CFAProduit = {
   nb_mensualites_max: number
   stock: number
   stock_illimite: boolean
+  stock_seuil: number
   actif: boolean
   en_vedette: boolean
   etat: string
@@ -61,6 +62,7 @@ export type CFACommande = {
   livraison_id: string | null
   notes: string | null
   date_fin_prevue: string | null
+  created_at?: string
   produit?: { nom: string } | null
 }
 
