@@ -13,7 +13,7 @@ function MediaThumb({ m, onClick }: { m: CFAProduitMedia; onClick: () => void })
       <button onClick={onClick} className="relative w-full h-44 bg-void overflow-hidden group/vid">
         <video src={m.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
         <div className="absolute inset-0 flex items-center justify-center bg-void/40 group-hover/vid:bg-void/20 transition-colors">
-          <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
+          <div className="w-12 h-12 rounded-full bg-paper/10 border border-paper/20 flex items-center justify-center backdrop-blur-sm">
             <Play className="w-5 h-5 text-paper fill-paper ml-0.5" />
           </div>
         </div>
@@ -39,7 +39,7 @@ function Lightbox({ medias, startIndex, onClose }: {
   const next = useCallback(() => setIdx(i => (i + 1) % medias.length), [medias.length])
 
   return (
-    <div className="fixed inset-0 z-50 bg-void/95 backdrop-blur-md flex flex-col items-center justify-center p-4"
+    <div className="fixed inset-0 z-50 bg-void/95 backdrop-blur-md flex flex-col items-center justify-center p-4 [--color-paper:#F7F3EC]"
       onClick={onClose}>
       <button onClick={onClose}
         className="absolute top-4 right-4 text-paper/65 hover:text-paper transition-colors">
@@ -48,7 +48,7 @@ function Lightbox({ medias, startIndex, onClose }: {
 
       <div className="relative w-full max-w-3xl" onClick={e => e.stopPropagation()}>
         {/* Media principal */}
-        <div className="w-full rounded-2xl overflow-hidden bg-white/4 border border-white/8"
+        <div className="w-full rounded-2xl overflow-hidden bg-paper/4 border border-paper/8"
           style={{ aspectRatio: '16/9' }}>
           {m.type === 'VIDEO' ? (
             <video src={m.url} controls autoPlay className="w-full h-full object-contain" />
@@ -62,11 +62,11 @@ function Lightbox({ medias, startIndex, onClose }: {
         {medias.length > 1 && (
           <>
             <button onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-void/70 border border-white/10 flex items-center justify-center hover:bg-void transition-colors">
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-void/70 border border-paper/10 flex items-center justify-center hover:bg-void transition-colors">
               <ChevronLeft className="w-5 h-5 text-paper" />
             </button>
             <button onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-void/70 border border-white/10 flex items-center justify-center hover:bg-void transition-colors">
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-void/70 border border-paper/10 flex items-center justify-center hover:bg-void transition-colors">
               <ChevronRight className="w-5 h-5 text-paper" />
             </button>
           </>
@@ -83,9 +83,9 @@ function Lightbox({ medias, startIndex, onClose }: {
         <div className="flex gap-2 mt-4 overflow-x-auto max-w-3xl pb-1">
           {medias.map((t, i) => (
             <button key={t.id} onClick={() => setIdx(i)}
-              className={`flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden border-2 transition-colors ${i === idx ? 'border-brass' : 'border-white/10 hover:border-white/30'}`}>
+              className={`flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden border-2 transition-colors ${i === idx ? 'border-brass' : 'border-paper/10 hover:border-paper/30'}`}>
               {t.type === 'VIDEO' ? (
-                <div className="w-full h-full bg-white/8 flex items-center justify-center">
+                <div className="w-full h-full bg-paper/8 flex items-center justify-center">
                   <Play className="w-3 h-3 text-paper/70 fill-paper/50" />
                 </div>
               ) : (
@@ -124,7 +124,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
 
   return (
     <>
-      <div className="relative bg-surface border border-white/6 rounded-2xl overflow-hidden flex flex-col hover:border-brass/20 transition-colors group">
+      <div className="relative bg-surface border border-paper/6 rounded-2xl overflow-hidden flex flex-col hover:border-brass/20 transition-colors group">
 
         {/* Cover / galerie */}
         {hasMedia ? (
@@ -132,7 +132,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
             <MediaThumb m={cover} onClick={() => setLightboxIdx(0)} />
             {nbExtra > 0 && (
               <button onClick={() => setLightboxIdx(0)}
-                className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-void/70 backdrop-blur-sm border border-white/10 rounded-full px-2.5 py-1">
+                className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-void/70 backdrop-blur-sm border border-paper/10 rounded-full px-2.5 py-1">
                 <Images className="w-3 h-3 text-paper/70" />
                 <span className="font-mono text-[10px] text-paper/70">+{nbExtra}</span>
               </button>
@@ -150,7 +150,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
         <div className="flex items-center gap-2 px-5 pt-5 pb-3">
           <span className={`font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
             p.etat === 'NEUF' ? 'text-spruce-light bg-spruce/15 border-spruce/25'
-            : p.etat === 'OCCASION' ? 'text-paper/65 bg-white/4 border-white/8'
+            : p.etat === 'OCCASION' ? 'text-paper/65 bg-paper/4 border-paper/8'
             : 'text-brass bg-brass/10 border-brass/20'
           }`}>
             {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'OCCASION' ? 'Occasion' : 'Bon état'}
@@ -161,7 +161,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
             </span>
           )}
           {!stockOk && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-paper/55 bg-white/4 border-white/8 ml-auto">
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-paper/55 bg-paper/4 border-paper/8 ml-auto">
               Épuisé
             </span>
           )}
@@ -176,7 +176,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
         </div>
 
         {/* Chiffres */}
-        <div className="grid grid-cols-2 gap-px bg-white/5 border-t border-b border-white/5 mx-0">
+        <div className="grid grid-cols-2 gap-px bg-paper/5 border-t border-b border-paper/5 mx-0">
           <div className="bg-surface-2 px-5 py-3.5">
             <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Prix total</div>
             <div className="font-display text-2xl text-brass-light mt-0.5">{fcfa(p.prix_vente)}</div>
@@ -210,7 +210,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
             <form onSubmit={rejoindreWaitlist} className="flex gap-2">
               <input required type="tel" value={waitPhone} onChange={e => setWaitPhone(e.target.value)}
                 placeholder="77 XXX XX XX" autoFocus
-                className="flex-1 min-w-0 bg-void border border-white/10 rounded-full px-3 py-2 font-mono text-xs text-paper placeholder:text-paper/35 focus:outline-none focus:border-brass/40" />
+                className="flex-1 min-w-0 bg-surface-2 border border-paper/12 rounded-full px-3 py-2 font-mono text-xs text-paper placeholder:text-paper/40 focus:outline-none focus:border-brass/40" />
               <button type="submit" disabled={waitLoading}
                 className="flex-shrink-0 bg-brass/15 border border-brass/25 text-brass-light px-3 py-2 rounded-full font-mono text-xs hover:bg-brass/25 transition-colors disabled:opacity-50">
                 {waitLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'OK'}

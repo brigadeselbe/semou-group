@@ -1,14 +1,14 @@
-/* Semou Group v2 — dark premium */
+/* Semou Group v3 — crème chaud */
 @import "tailwindcss";
 
 @theme {
   /* ── Couleurs ── */
   --color-ink:        #1A1A17;
-  --color-paper:      #F7F3EC;
+  --color-paper:      #1C1A14;   /* texte principal sombre */
   --color-parchment:  #EFE8D8;
-  --color-void:       #080808;
-  --color-surface:    #111110;
-  --color-surface-2:  #1A1A18;
+  --color-void:       #080808;   /* réservé aux overlays/modals */
+  --color-surface:    #FFFFFF;   /* cartes blanches */
+  --color-surface-2:  #EDE8DF;   /* cartes secondaires crème */
   --color-clay:       #B5694A;
 
   --color-spruce:       #0D3B2E;
@@ -65,15 +65,14 @@ html {
 
 body {
   overflow-x: hidden;
-  background-color: #080808;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  background-color: #FAF8F3;
 }
 
-/* ── Scrollbar dark ── */
+/* ── Scrollbar light ── */
 ::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: #080808; }
-::-webkit-scrollbar-thumb { background: #1F5C45; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #C9A227; }
+::-webkit-scrollbar-track { background: #F0EBE1; }
+::-webkit-scrollbar-thumb { background: #C9A227; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #1F5C45; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -99,7 +98,7 @@ body {
   left: 0;
   right: 0;
   height: 12px;
-  background-image: radial-gradient(circle at 8px 0, transparent 6px, #080808 6.5px);
+  background-image: radial-gradient(circle at 8px 0, transparent 6px, #FAF8F3 6.5px);
   background-size: 16px 12px;
   background-repeat: repeat-x;
 }
@@ -117,9 +116,18 @@ body {
   border-radius: 50%;
 }
 
+/* Sections sombres — restaure la palette claire pour le texte et les bordures */
+.bg-void,
+.bg-spruce,
+.bg-spruce-dark {
+  --color-paper: #F7F3EC;
+  --color-surface: #111110;
+  --color-surface-2: #1A1A18;
+}
+
 .glass {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(28,26,20,0.03);
+  border: 1px solid rgba(28,26,20,0.07);
   backdrop-filter: blur(12px);
 }
 

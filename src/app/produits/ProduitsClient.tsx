@@ -60,7 +60,7 @@ export default function ProduitsClient({
               className={`font-mono text-[11px] uppercase tracking-[0.15em] px-3.5 py-1.5 rounded-full border transition-colors ${
                 filter === t.key
                   ? 'bg-brass text-void border-brass'
-                  : 'text-paper/55 border-white/10 hover:border-white/25 hover:text-paper/80'
+                  : 'text-paper/55 border-paper/10 hover:border-paper/25 hover:text-paper/80'
               }`}>
               {t.label}
             </button>
@@ -75,7 +75,7 @@ export default function ProduitsClient({
             placeholder="Rechercher…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full sm:w-52 pl-8 pr-4 py-1.5 bg-surface border border-white/10 rounded-full font-body text-sm text-paper placeholder:text-paper/35 focus:outline-none focus:border-brass/40 transition-colors"
+            className="w-full sm:w-52 pl-8 pr-4 py-1.5 bg-surface border border-paper/10 rounded-full font-body text-sm text-paper placeholder:text-paper/35 focus:outline-none focus:border-brass/40 transition-colors"
           />
         </div>
       </div>

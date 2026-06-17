@@ -37,7 +37,7 @@ const CLI_STYLE: Record<string, string> = {
   EN_ATTENTE: 'text-brass bg-brass/10 border-brass/20',
   VALIDE:     'text-spruce-light bg-spruce/15 border-spruce/25',
   REJETE:     'text-clay bg-clay/10 border-clay/20',
-  SUSPENDU:   'text-paper/65 bg-white/5 border-white/10',
+  SUSPENDU:   'text-paper/65 bg-paper/5 border-paper/10',
 }
 const CMD_STYLE: Record<string, string> = {
   EN_COURS: 'text-brass bg-brass/10 border-brass/20',
@@ -46,12 +46,12 @@ const CMD_STYLE: Record<string, string> = {
 }
 const VER_STYLE: Record<string, string> = {
   PAYE:       'text-spruce-light bg-spruce/15 border-spruce/25',
-  EN_ATTENTE: 'text-paper/60 bg-white/4 border-white/8',
+  EN_ATTENTE: 'text-paper/60 bg-paper/4 border-paper/8',
   EN_RETARD:  'text-clay bg-clay/10 border-clay/20',
 }
 const LIV_STYLE: Record<string, string> = {
   EN_ATTENTE: 'text-brass bg-brass/10 border-brass/20',
-  PLANIFIEE:  'text-paper/70 bg-white/5 border-white/10',
+  PLANIFIEE:  'text-paper/70 bg-paper/5 border-paper/10',
   EN_ROUTE:   'text-spruce-light bg-spruce/15 border-spruce/25',
   LIVREE:     'text-spruce-light bg-spruce/15 border-spruce/25',
 }
@@ -74,7 +74,7 @@ function fcfa(n: number) { return n.toLocaleString('fr-SN') + ' F' }
 
 function Badge({ statut, s, l }: { statut: string; s: Record<string, string>; l: Record<string, string> }) {
   return (
-    <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded-full border ${s[statut] ?? 'text-paper/55 bg-white/5 border-white/8'}`}>
+    <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded-full border ${s[statut] ?? 'text-paper/55 bg-paper/5 border-paper/8'}`}>
       {l[statut] ?? statut}
     </span>
   )
@@ -600,7 +600,7 @@ export default function Admin() {
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="relative max-w-sm w-full">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-60 h-40 bg-brass/10 blur-[80px] rounded-full pointer-events-none" />
-        <div className="relative bg-surface border border-white/6 rounded-2xl p-8 md:p-10">
+        <div className="relative bg-surface border border-paper/6 rounded-2xl p-8 md:p-10">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-full bg-brass/10 border border-brass/20 flex items-center justify-center">
               <Lock className="w-4 h-4 text-brass" />
@@ -616,7 +616,7 @@ export default function Admin() {
               <input type="password" required value={pwd}
                 onChange={e => { setPwd(e.target.value); setPwdErr('') }}
                 placeholder="••••••••"
-                className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-base text-paper pb-2 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-base text-paper pb-2 transition-colors placeholder:text-paper/40" />
               {pwdErr && <p className="font-mono text-[10px] text-clay mt-2">{pwdErr}</p>}
             </div>
             <button type="submit" className="w-full font-body font-medium bg-spruce-light text-paper py-3 rounded-full hover:bg-spruce transition-colors">
@@ -656,13 +656,13 @@ export default function Admin() {
           </div>
         </div>
         <button onClick={handleLogout}
-          className="flex items-center gap-2 font-mono text-xs text-paper/60 hover:text-clay border border-white/8 rounded-full px-4 py-2 transition-colors">
+          className="flex items-center gap-2 font-mono text-xs text-paper/60 hover:text-clay border border-paper/8 rounded-full px-4 py-2 transition-colors">
           <LogOut className="w-3.5 h-3.5" /> Déconnexion
         </button>
       </div>
 
       {/* Onglets */}
-      <div className="flex gap-1 bg-surface border border-white/8 rounded-xl p-1 mb-6 overflow-x-auto max-w-full">
+      <div className="flex gap-1 bg-surface border border-paper/8 rounded-xl p-1 mb-6 overflow-x-auto max-w-full">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => switchTab(key)}
             className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] px-3 md:px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
@@ -680,7 +680,7 @@ export default function Admin() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {statsLoading
               ? Array(4).fill(0).map((_, i) => (
-                  <div key={i} className="bg-surface border border-white/6 rounded-xl p-4 animate-pulse h-24" />
+                  <div key={i} className="bg-surface border border-paper/6 rounded-xl p-4 animate-pulse h-24" />
                 ))
               : [
                   { emoji: '👨‍🏫', val: stats?.total_clients ?? clients.length, lbl: 'Fonctionnaires inscrits', color: 'text-paper' },
@@ -688,7 +688,7 @@ export default function Admin() {
                   { emoji: '⚠️', val: stats?.versements_retard ?? 0, lbl: 'Versements en retard',     color: 'text-clay' },
                   { emoji: '💰', val: fcfa(stats?.fcfa_collectes ?? 0), lbl: 'FCFA collectés',        color: 'text-brass-light' },
                 ].map(({ emoji, val, lbl, color }) => (
-                  <div key={lbl} className="bg-surface border border-white/6 rounded-xl p-4">
+                  <div key={lbl} className="bg-surface border border-paper/6 rounded-xl p-4">
                     <div className="text-xl mb-2">{emoji}</div>
                     <div className={`font-display text-xl md:text-2xl ${color} leading-tight`}>{val}</div>
                     <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/55 mt-0.5">{lbl}</div>
@@ -703,7 +703,7 @@ export default function Admin() {
               { val: stats?.commandes_en_cours ?? 0, lbl: 'En cours',         color: 'text-brass-light' },
               { val: stats?.commandes_soldees ?? 0,  lbl: 'Soldées',          color: 'text-spruce-light' },
             ].map(({ val, lbl, color }) => (
-              <div key={lbl} className="bg-surface border border-white/6 rounded-xl px-4 py-3 flex items-center gap-4">
+              <div key={lbl} className="bg-surface border border-paper/6 rounded-xl px-4 py-3 flex items-center gap-4">
                 <div className={`font-display text-2xl ${color}`}>{val}</div>
                 <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/55">{lbl}</div>
               </div>
@@ -714,7 +714,7 @@ export default function Admin() {
           {stats && !statsLoading && (
             <div className="grid md:grid-cols-2 gap-4">
               {/* Pie — dossiers */}
-              <div className="bg-surface border border-white/6 rounded-2xl p-5">
+              <div className="bg-surface border border-paper/6 rounded-2xl p-5">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/50 mb-4">Répartition des dossiers</div>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
@@ -734,7 +734,7 @@ export default function Admin() {
               </div>
 
               {/* Bar — versements */}
-              <div className="bg-surface border border-white/6 rounded-2xl p-5">
+              <div className="bg-surface border border-paper/6 rounded-2xl p-5">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/50 mb-4">État des versements</div>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={[
@@ -757,7 +757,7 @@ export default function Admin() {
           )}
 
           {/* Livraisons */}
-          <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">
+          <div className="bg-surface border border-paper/6 rounded-2xl p-5 md:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-brass" />
@@ -772,7 +772,7 @@ export default function Admin() {
             </div>
             {statsLoading ? (
               <div className="flex gap-3">
-                {Array(4).fill(0).map((_, i) => <div key={i} className="h-14 w-24 bg-void rounded-xl animate-pulse" />)}
+                {Array(4).fill(0).map((_, i) => <div key={i} className="h-14 w-24 bg-surface-2 rounded-xl animate-pulse" />)}
               </div>
             ) : livStats ? (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -782,7 +782,7 @@ export default function Admin() {
                   { val: livStats.en_route,   lbl: 'En route',    color: livStats.en_route   > 0 ? 'text-spruce-light': 'text-paper/55' },
                   { val: livStats.livree,     lbl: 'Livrées',     color: 'text-spruce-light' },
                 ].map(({ val, lbl, color }) => (
-                  <div key={lbl} className="bg-void rounded-xl px-4 py-3">
+                  <div key={lbl} className="bg-surface-2 rounded-xl px-4 py-3">
                     <div className={`font-display text-2xl ${color}`}>{val}</div>
                     <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mt-0.5">{lbl}</div>
                   </div>
@@ -794,14 +794,14 @@ export default function Admin() {
           </div>
 
           {/* Recherche fonctionnaire */}
-          <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">
+          <div className="bg-surface border border-paper/6 rounded-2xl p-5 md:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Search className="w-4 h-4 text-brass" />
               <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70">Recherche fonctionnaire</div>
             </div>
 
             {/* Sélecteur de critère */}
-            <div className="flex gap-1 bg-void border border-white/8 rounded-xl p-1 mb-4 w-fit">
+            <div className="flex gap-1 bg-surface-2 border border-paper/10 rounded-xl p-1 mb-4 w-fit">
               {([
                 ['matricule', 'Matricule'],
                 ['nom',       'Nom'],
@@ -824,7 +824,7 @@ export default function Admin() {
                   matMode === 'nom'       ? 'ex : Diallo ou Fatou' :
                                            'ex : 77 123 45 67'
                 }
-                className="flex-1 bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-2 placeholder:text-paper/60 transition-colors" />
+                className="flex-1 bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-sm text-paper pb-2 placeholder:text-paper/40 transition-colors" />
               <button type="submit"
                 className="font-mono text-xs text-brass border border-brass/30 rounded-full px-4 py-1.5 hover:bg-brass/10 transition-colors">
                 Chercher
@@ -839,7 +839,7 @@ export default function Admin() {
                 ) : (
                   <div className="space-y-3">
                     {matResults.map(c => (
-                      <div key={c.id} className="bg-void border border-white/6 rounded-xl p-4">
+                      <div key={c.id} className="bg-surface-2 border border-paper/10 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div className="font-display text-base text-paper">{c.prenom} {c.nom}</div>
                           <Badge statut={c.statut} s={CLI_STYLE} l={CLI_LBL} />
@@ -865,7 +865,7 @@ export default function Admin() {
 
           {/* Répartition par région */}
           {stats?.regions && stats.regions.length > 0 && (
-            <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6">
+            <div className="bg-surface border border-paper/6 rounded-2xl p-5 md:p-6">
               <div className="flex items-center gap-2 mb-5">
                 <MapPin className="w-4 h-4 text-brass" />
                 <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70">Fonctionnaires par région</div>
@@ -877,7 +877,7 @@ export default function Admin() {
                   return (
                     <div key={r.region} className="flex items-center gap-3">
                       <span className="font-mono text-xs text-paper/70 w-28 flex-shrink-0">{r.region}</span>
-                      <div className="flex-1 h-1.5 bg-void rounded-full overflow-hidden">
+                      <div className="flex-1 h-1.5 bg-paper/8 rounded-full overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-spruce to-spruce-light rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                       <span className="font-mono text-xs text-paper/65 w-6 text-right flex-shrink-0">{r.nb_clients}</span>
@@ -898,9 +898,9 @@ export default function Admin() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper/45" />
               <input type="text" placeholder="Nom, téléphone, matricule, région…"
                 value={cliSearch} onChange={e => setCliSearch(e.target.value)}
-                className="w-full bg-surface border border-white/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/65 focus:border-brass/40 outline-none transition-colors" />
+                className="w-full bg-surface border border-paper/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/65 focus:border-brass/40 outline-none transition-colors" />
             </div>
-            <div className="flex gap-1 bg-surface border border-white/8 rounded-xl p-1">
+            <div className="flex gap-1 bg-surface border border-paper/8 rounded-xl p-1">
               {(['TOUS', 'EN_ATTENTE', 'VALIDE', 'REJETE'] as ClientFilter[]).map(f => (
                 <button key={f} onClick={() => setCliFilter(f)}
                   className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg transition-colors ${
@@ -917,19 +917,19 @@ export default function Admin() {
             </span>
             {filteredClients.length > 0 && (
               <button onClick={exportClients}
-                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-brass border border-white/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
+                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-brass border border-paper/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
                 <Download className="w-3 h-3" /> Excel
               </button>
             )}
           </div>
-          <div className="bg-surface border border-white/6 rounded-2xl overflow-hidden">
+          <div className="bg-surface border border-paper/6 rounded-2xl overflow-hidden">
             {filteredClients.length === 0
               ? <div className="py-16 text-center font-body text-paper/55 text-sm">Aucun dossier trouvé.</div>
               : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-white/5">
+                      <tr className="border-b border-paper/5">
                         {['Nom & Prénom', 'Téléphone', 'Matricule', 'Corps / Région', 'Date', 'Statut', 'Actions'].map(h => (
                           <th key={h} className="text-left font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45 px-4 py-3 whitespace-nowrap">{h}</th>
                         ))}
@@ -939,7 +939,7 @@ export default function Admin() {
                       {filteredClients.map((c, i) => (
                         <>
                           <tr key={c.id}
-                            className={`border-b border-white/4 hover:bg-white/2 transition-colors cursor-pointer ${i % 2 ? 'bg-void/30' : ''}`}
+                            className={`border-b border-paper/4 hover:bg-paper/2 transition-colors cursor-pointer ${i % 2 ? 'bg-void/30' : ''}`}
                             onClick={() => setCliExpand(cliExpand === c.id ? null : c.id)}>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <div className="font-body text-sm font-medium text-paper">{c.prenom} {c.nom}</div>
@@ -990,7 +990,7 @@ export default function Admin() {
                             </td>
                           </tr>
                           {cliExpand === c.id && (
-                            <tr key={`${c.id}-d`} className="bg-void/50 border-b border-white/4">
+                            <tr key={`${c.id}-d`} className="bg-void/50 border-b border-paper/4">
                               <td colSpan={7} className="px-4 py-4">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                                   {[
@@ -1049,7 +1049,7 @@ export default function Admin() {
                     { val: commandes.filter(c => c.statut === 'SOLDE').length,    lbl: 'Soldées',      color: 'text-spruce-light' },
                     { val: fcfa(commandes.reduce((s, c) => s + c.apport_paye, 0)), lbl: 'Total versé', color: 'text-brass-light' },
                   ].map(({ val, lbl, color }) => (
-                    <div key={lbl} className="bg-surface border border-white/6 rounded-xl p-4">
+                    <div key={lbl} className="bg-surface border border-paper/6 rounded-xl p-4">
                       <div className={`font-display text-xl md:text-2xl ${color} leading-tight`}>{val}</div>
                       <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/55 mt-0.5">{lbl}</div>
                     </div>
@@ -1060,9 +1060,9 @@ export default function Admin() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper/45" />
                     <input type="text" placeholder="Référence, client, produit…"
                       value={cmdSearch} onChange={e => setCmdSearch(e.target.value)}
-                      className="w-full bg-surface border border-white/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/65 focus:border-brass/40 outline-none transition-colors" />
+                      className="w-full bg-surface border border-paper/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/65 focus:border-brass/40 outline-none transition-colors" />
                   </div>
-                  <div className="flex gap-1 bg-surface border border-white/8 rounded-xl p-1">
+                  <div className="flex gap-1 bg-surface border border-paper/8 rounded-xl p-1">
                     {(['TOUS', 'EN_COURS', 'SOLDE', 'ANNULE'] as CommandeFilter[]).map(f => (
                       <button key={f} onClick={() => setCmdFilter(f)}
                         className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg transition-colors ${
@@ -1079,19 +1079,19 @@ export default function Admin() {
                   </span>
                   {commandes.length > 0 && (
                     <button onClick={exportCommandes}
-                      className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-brass border border-white/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
+                      className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/65 hover:text-brass border border-paper/8 hover:border-brass/30 rounded-lg px-3 py-1.5 transition-colors">
                       <Download className="w-3 h-3" /> Excel
                     </button>
                   )}
                 </div>
-                <div className="bg-surface border border-white/6 rounded-2xl overflow-hidden">
+                <div className="bg-surface border border-paper/6 rounded-2xl overflow-hidden">
                   {filteredCmds.length === 0
                     ? <div className="py-16 text-center font-body text-paper/55 text-sm">Aucune commande.</div>
                     : (
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
-                            <tr className="border-b border-white/5">
+                            <tr className="border-b border-paper/5">
                               {['Référence', 'Client', 'Produit', 'Total', 'Versé', 'Reste', 'Mensualités', 'Statut'].map(h => (
                                 <th key={h} className="text-left font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45 px-4 py-3 whitespace-nowrap">{h}</th>
                               ))}
@@ -1112,7 +1112,7 @@ export default function Admin() {
                               return (
                                 <>
                                   <tr key={cmd.id}
-                                    className={`border-b border-white/4 hover:bg-white/2 transition-colors cursor-pointer ${i % 2 ? 'bg-void/30' : ''}`}
+                                    className={`border-b border-paper/4 hover:bg-paper/2 transition-colors cursor-pointer ${i % 2 ? 'bg-void/30' : ''}`}
                                     onClick={() => setCmdExpand(cmdExpand === cmd.id ? null : cmd.id)}>
                                     <td className="px-4 py-3"><span className="font-mono text-xs text-brass-light">{cmd.reference}</span></td>
                                     <td className="px-4 py-3 whitespace-nowrap">
@@ -1127,7 +1127,7 @@ export default function Admin() {
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap">
                                       <div className="flex items-center gap-2">
-                                        <div className="w-16 h-1 bg-void rounded-full overflow-hidden">
+                                        <div className="w-16 h-1 bg-paper/8 rounded-full overflow-hidden">
                                           <div className="h-full bg-spruce-light rounded-full" style={{ width: total > 0 ? `${Math.round(payees/total*100)}%` : '0%' }} />
                                         </div>
                                         <span className="font-mono text-[10px] text-paper/65">{payees}/{total}</span>
@@ -1137,7 +1137,7 @@ export default function Admin() {
                                     <td className="px-4 py-3 whitespace-nowrap"><Badge statut={cmd.statut} s={CMD_STYLE} l={CMD_LBL} /></td>
                                   </tr>
                                   {cmdExpand === cmd.id && (
-                                    <tr key={`${cmd.id}-d`} className="bg-void/50 border-b border-white/4">
+                                    <tr key={`${cmd.id}-d`} className="bg-void/50 border-b border-paper/4">
                                       <td colSpan={8} className="px-4 py-4">
                                         <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/55 mb-3">
                                           Échéancier · {cmd.montant_mensualite > 0 ? `${fcfa(cmd.montant_mensualite)} / mois` : ''}
@@ -1170,7 +1170,7 @@ export default function Admin() {
                                           )}
 
                                         {/* ── Livraison ── */}
-                                        <div className="mt-4 pt-4 border-t border-white/8">
+                                        <div className="mt-4 pt-4 border-t border-paper/8">
                                           <div className="flex items-center gap-2 mb-3">
                                             <Truck className="w-3.5 h-3.5 text-brass/70" />
                                             <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/55">Livraison</span>
@@ -1184,7 +1184,7 @@ export default function Admin() {
                                                 className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1 rounded-full border transition-colors ${
                                                   livEdit.statut === key
                                                     ? 'bg-brass/15 border-brass/40 text-brass'
-                                                    : 'border-white/10 text-paper/55 hover:border-white/20 hover:text-paper/60'
+                                                    : 'border-paper/10 text-paper/55 hover:border-paper/20 hover:text-paper/60'
                                                 }`}>
                                                 {lbl}
                                               </button>
@@ -1196,23 +1196,23 @@ export default function Admin() {
                                               placeholder="Nom livreur"
                                               value={livEdit.livreur}
                                               onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, livreur: e.target.value } }))}
-                                              className="bg-void border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors" />
+                                              className="bg-surface-2 border border-paper/12 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/40 focus:border-brass/40 outline-none transition-colors" />
                                             <input
                                               placeholder="Tél livreur"
                                               value={livEdit.tel}
                                               onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, tel: e.target.value } }))}
-                                              className="bg-void border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors" />
+                                              className="bg-surface-2 border border-paper/12 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/40 focus:border-brass/40 outline-none transition-colors" />
                                             <input
                                               placeholder="N° suivi"
                                               value={livEdit.suivi}
                                               onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, suivi: e.target.value } }))}
-                                              className="bg-void border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors" />
+                                              className="bg-surface-2 border border-paper/12 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper placeholder:text-paper/40 focus:border-brass/40 outline-none transition-colors" />
                                             <input
                                               type="date"
                                               title="Date de livraison prévue"
                                               value={livEdit.datePlanifiee}
                                               onChange={e => setLivEdits(p => ({ ...p, [cmd.id]: { ...livEdit, datePlanifiee: e.target.value } }))}
-                                              className="bg-void border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper/70 focus:border-brass/40 outline-none transition-colors" />
+                                              className="bg-surface-2 border border-paper/12 rounded-lg px-2.5 py-1.5 font-mono text-xs text-paper/70 focus:border-brass/40 outline-none transition-colors" />
                                           </div>
                                           <button
                                             onClick={() => handleUpdateLivraison(cmd.id, livEdit)}
@@ -1270,11 +1270,11 @@ export default function Admin() {
                   <FormField label="Nom du produit *">
                     <input required value={prodForm.nom} onChange={e => setProdForm(p => ({ ...p, nom: e.target.value }))}
                       placeholder="ex : Samsung Galaxy A55"
-                      className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-1.5 placeholder:text-paper/60 transition-colors" />
+                      className="w-full bg-transparent border-b border-paper/12 focus:border-brass outline-none font-body text-sm text-paper pb-1.5 placeholder:text-paper/40 transition-colors" />
                   </FormField>
                   <FormField label="État">
                     <select value={prodForm.etat} onChange={e => setProdForm(p => ({ ...p, etat: e.target.value }))}
-                      className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-1.5 transition-colors">
+                      className="w-full bg-transparent border-b border-paper/12 focus:border-brass outline-none font-body text-sm text-paper pb-1.5 transition-colors">
                       <option value="NEUF">Neuf</option>
                       <option value="BON_ETAT">Bon état</option>
                       <option value="OCCASION">Occasion</option>
@@ -1283,24 +1283,24 @@ export default function Admin() {
                   <FormField label="Prix de vente (FCFA) *">
                     <input required type="number" min="0" value={prodForm.prix_vente}
                       onChange={e => setProdForm(p => ({ ...p, prix_vente: +e.target.value }))}
-                      className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
+                      className="w-full bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
                   </FormField>
                   <FormField label="Apport minimum (FCFA) *">
                     <input required type="number" min="0" value={prodForm.apport_minimum}
                       onChange={e => setProdForm(p => ({ ...p, apport_minimum: +e.target.value }))}
-                      className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
+                      className="w-full bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
                   </FormField>
                   <FormField label="Nb mensualités max">
                     <input type="number" min="1" max="36" value={prodForm.nb_mensualites_max}
                       onChange={e => setProdForm(p => ({ ...p, nb_mensualites_max: +e.target.value }))}
-                      className="w-full bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
+                      className="w-full bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
                   </FormField>
                   <FormField label={prodForm.stock_illimite ? 'Stock illimité' : 'Stock disponible'}>
                     <div className="flex items-center gap-3">
                       {!prodForm.stock_illimite && (
                         <input type="number" min="0" value={prodForm.stock}
                           onChange={e => setProdForm(p => ({ ...p, stock: +e.target.value }))}
-                          className="w-24 bg-void border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
+                          className="w-24 bg-transparent border-b border-paper/12 focus:border-brass outline-none font-mono text-sm text-paper pb-1.5 transition-colors" />
                       )}
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={prodForm.stock_illimite}
@@ -1315,7 +1315,7 @@ export default function Admin() {
                   <textarea value={prodForm.description}
                     onChange={e => setProdForm(p => ({ ...p, description: e.target.value }))}
                     rows={2} placeholder="Description courte du produit…"
-                    className="w-full bg-void border border-white/8 rounded-lg p-2.5 font-body text-sm text-paper placeholder:text-paper/60 focus:border-brass/40 outline-none resize-none transition-colors" />
+                    className="w-full bg-surface-2 border border-paper/12 rounded-lg p-2.5 font-body text-sm text-paper placeholder:text-paper/40 focus:border-brass/40 outline-none resize-none transition-colors" />
                 </FormField>
 
                 {/* ── Médias (images + vidéos) ── */}
@@ -1332,12 +1332,12 @@ export default function Admin() {
                   ) : prodMedias.length > 0 && (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
                       {prodMedias.map(m => (
-                        <div key={m.id} className="relative aspect-square rounded-xl overflow-hidden border border-white/8 bg-void group/m">
+                        <div key={m.id} className="relative aspect-square rounded-xl overflow-hidden border border-paper/8 bg-void group/m">
                           {m.type === 'IMAGE' ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img src={m.url} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-white/4">
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-paper/4">
                               <Plus className="w-5 h-5 text-paper/65 rotate-45" />
                               <span className="font-mono text-[9px] text-paper/45">Vidéo</span>
                             </div>
@@ -1358,13 +1358,13 @@ export default function Admin() {
                   {/* Boutons d'upload — actifs seulement si le produit est déjà enregistré */}
                   {editProd ? (
                     <div className="flex flex-wrap gap-2">
-                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-white/15 hover:border-brass/40 text-paper/65 hover:text-brass'}`}>
+                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-paper/15 hover:border-brass/40 text-paper/65 hover:text-brass'}`}>
                         {uploadingMedia ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 rotate-180" />}
                         + Images
                         <input type="file" multiple accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingMedia}
                           onChange={e => { if (e.target.files?.length) handleUploadMedias(e.target.files, 'IMAGE', editProd.id) }} />
                       </label>
-                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-white/15 hover:border-brass/40 text-paper/65 hover:text-brass'}`}>
+                      <label className={`flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] border border-dashed rounded-xl px-3 py-2 cursor-pointer transition-colors ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-paper/15 hover:border-brass/40 text-paper/65 hover:text-brass'}`}>
                         {uploadingMedia ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 rotate-180" />}
                         + Vidéo MP4
                         <input type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" disabled={uploadingMedia}
@@ -1373,7 +1373,7 @@ export default function Admin() {
                       <span className="font-mono text-[9px] text-paper/60 self-center">max 50 Mo par vidéo · JPG/PNG/WebP pour images</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 border border-dashed border-white/15 rounded-xl px-4 py-3 text-paper/50">
+                    <div className="flex items-center gap-2 border border-dashed border-paper/15 rounded-xl px-4 py-3 text-paper/50">
                       <span className="font-mono text-[10px]">👆 Remplis les infos ci-dessus puis clique <strong className="text-paper/75">"Créer le produit"</strong> — les boutons photos &amp; vidéos apparaîtront ici automatiquement.</span>
                     </div>
                   )}
@@ -1398,7 +1398,7 @@ export default function Admin() {
                     {editProd ? 'Enregistrer' : 'Créer le produit'}
                   </button>
                   <button type="button" onClick={() => setShowForm(false)}
-                    className="font-body text-sm text-paper/65 border border-white/8 px-6 py-2.5 rounded-full hover:text-paper/60 transition-colors">
+                    className="font-body text-sm text-paper/65 border border-paper/8 px-6 py-2.5 rounded-full hover:text-paper/60 transition-colors">
                     Annuler
                   </button>
                 </div>
@@ -1413,7 +1413,7 @@ export default function Admin() {
               : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {produits.map(p => (
-                    <div key={p.id} className={`bg-surface border rounded-2xl p-5 transition-colors ${p.actif ? 'border-white/6' : 'border-white/3 opacity-60'}`}>
+                    <div key={p.id} className={`bg-surface border rounded-2xl p-5 transition-colors ${p.actif ? 'border-paper/6' : 'border-paper/3 opacity-60'}`}>
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -1437,15 +1437,15 @@ export default function Admin() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 mb-3">
-                        <div className="bg-void rounded-lg px-3 py-2">
+                        <div className="bg-surface-2 rounded-lg px-3 py-2">
                           <div className="font-mono text-[9px] uppercase tracking-wider text-paper/45 mb-0.5">Prix</div>
                           <div className="font-mono text-xs text-brass-light">{fcfa(p.prix_vente)}</div>
                         </div>
-                        <div className="bg-void rounded-lg px-3 py-2">
+                        <div className="bg-surface-2 rounded-lg px-3 py-2">
                           <div className="font-mono text-[9px] uppercase tracking-wider text-paper/45 mb-0.5">Apport</div>
                           <div className="font-mono text-xs text-paper/60">{fcfa(p.apport_minimum)}</div>
                         </div>
-                        <div className="bg-void rounded-lg px-3 py-2">
+                        <div className="bg-surface-2 rounded-lg px-3 py-2">
                           <div className="font-mono text-[9px] uppercase tracking-wider text-paper/45 mb-0.5">Mensualités</div>
                           <div className="font-mono text-xs text-paper/60">max {p.nb_mensualites_max}×</div>
                         </div>
@@ -1456,7 +1456,7 @@ export default function Admin() {
                           <span className={`font-mono text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border ${
                             p.etat === 'NEUF' ? 'text-spruce-light border-spruce/25 bg-spruce/10'
                             : p.etat === 'BON_ETAT' ? 'text-brass border-brass/25 bg-brass/10'
-                            : 'text-paper/65 border-white/10 bg-white/4'
+                            : 'text-paper/65 border-paper/10 bg-paper/4'
                           }`}>
                             {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'BON_ETAT' ? 'Bon état' : 'Occasion'}
                           </span>
@@ -1481,7 +1481,7 @@ export default function Admin() {
       {newCmdClient && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/80 backdrop-blur-sm p-4"
           onClick={() => !creatingCmd && setNewCmdClient(null)}>
-          <div className="bg-void border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl"
+          <div className="bg-void border border-paper/10 rounded-2xl w-full max-w-md p-6 shadow-2xl"
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display text-lg text-brass">Créer une commande</h2>
@@ -1491,7 +1491,7 @@ export default function Admin() {
             </div>
 
             {/* Client info (lecture seule) */}
-            <div className="bg-white/4 rounded-xl px-4 py-3 mb-5">
+            <div className="bg-paper/4 rounded-xl px-4 py-3 mb-5">
               <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/55 mb-0.5">Client</div>
               <div className="font-body text-paper/80 text-sm">{newCmdClient.prenom} {newCmdClient.nom}</div>
               <div className="font-mono text-[10px] text-paper/65">{newCmdClient.telephone} · {newCmdClient.matricule}</div>
@@ -1505,7 +1505,7 @@ export default function Admin() {
                   <div className="flex items-center gap-2 text-paper/55 text-xs"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>
                 ) : (
                   <select value={newCmdProduit} onChange={e => setNewCmdProduit(e.target.value)} required
-                    className="w-full bg-white/6 border border-white/10 rounded-xl px-3 py-2.5 text-paper text-sm focus:outline-none focus:border-brass/50 transition-colors">
+                    className="w-full bg-paper/6 border border-paper/10 rounded-xl px-3 py-2.5 text-paper text-sm focus:outline-none focus:border-brass/50 transition-colors">
                     <option value="">-- Sélectionner un produit --</option>
                     {produits.map(p => (
                       <option key={p.id} value={p.id}>{p.nom} — {p.prix_vente.toLocaleString('fr-FR')} FCFA</option>
@@ -1532,7 +1532,7 @@ export default function Admin() {
                 <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">Apport déjà payé (FCFA)</label>
                 <input type="number" min={0} value={newCmdApport}
                   onChange={e => setNewCmdApport(Number(e.target.value))}
-                  className="w-full bg-white/6 border border-white/10 rounded-xl px-3 py-2.5 text-paper text-sm focus:outline-none focus:border-brass/50 transition-colors" />
+                  className="w-full bg-paper/6 border border-paper/10 rounded-xl px-3 py-2.5 text-paper text-sm focus:outline-none focus:border-brass/50 transition-colors" />
               </div>
 
               {/* Moyen de paiement */}
@@ -1541,7 +1541,7 @@ export default function Admin() {
                 <div className="grid grid-cols-3 gap-2">
                   {[['ESPECES', 'Espèces'], ['WAVE', 'Wave'], ['ORANGE', 'Orange']].map(([val, lbl]) => (
                     <button key={val} type="button" onClick={() => setNewCmdMoyen(val)}
-                      className={`font-mono text-[10px] uppercase py-2 rounded-xl border transition-colors ${newCmdMoyen === val ? 'bg-brass/15 border-brass/50 text-brass' : 'border-white/10 text-paper/65 hover:border-white/20'}`}>
+                      className={`font-mono text-[10px] uppercase py-2 rounded-xl border transition-colors ${newCmdMoyen === val ? 'bg-brass/15 border-brass/50 text-brass' : 'border-paper/10 text-paper/65 hover:border-paper/20'}`}>
                       {lbl}
                     </button>
                   ))}

@@ -69,7 +69,7 @@ export default async function Home() {
             <a href="#syndicat"  className="hover:text-paper transition-colors">CUSEMS</a>
           </nav>
           <Link href="/inscription"
-            className="font-body text-sm font-medium bg-spruce-light text-paper px-5 py-2.5 rounded-full hover:bg-spruce transition-colors flex items-center gap-1.5 ring-1 ring-white/10">
+            className="font-body text-sm font-medium bg-spruce-light text-paper px-5 py-2.5 rounded-full hover:bg-spruce transition-colors flex items-center gap-1.5 ring-1 ring-paper/10">
             S&apos;inscrire <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
@@ -100,11 +100,11 @@ export default async function Home() {
                   Demander mon dossier <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link href="/suivi"
-                  className="font-body font-medium border border-white/10 px-7 py-4 rounded-full hover:border-brass/40 hover:text-brass-light transition-colors text-paper/70">
+                  className="font-body font-medium border border-paper/10 px-7 py-4 rounded-full hover:border-brass/40 hover:text-brass-light transition-colors text-paper/70">
                   Suivre ma commande
                 </Link>
               </div>
-              <div className="mt-14 grid grid-cols-3 gap-px bg-white/5 rounded-2xl overflow-hidden max-w-lg border border-white/5">
+              <div className="mt-14 grid grid-cols-3 gap-px bg-paper/5 rounded-2xl overflow-hidden max-w-lg border border-paper/5">
                 {[
                   { val: "30%", lbl: "Acompte initial" },
                   { val: "≤ 6", lbl: "Mensualités" },
@@ -120,8 +120,8 @@ export default async function Home() {
 
             {/* Bordereau card */}
             <div className="relative md:pt-8">
-              <div className="relative bg-surface border border-white/6 rounded-sm glow-green p-6 md:p-8 perforated">
-                <div className="flex items-center justify-between border-b border-dashed border-white/8 pb-4 mb-4">
+              <div className="relative bg-surface border border-paper/6 rounded-sm glow-green p-6 md:p-8 perforated">
+                <div className="flex items-center justify-between border-b border-dashed border-paper/8 pb-4 mb-4">
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55">Bordereau N°</div>
                     <div className="font-mono text-sm font-medium text-paper">SG-2026-017731</div>
@@ -139,11 +139,11 @@ export default async function Home() {
                   <Row label="Prix total"   value="145 000 F" />
                   <Row label="Acompte versé" value="40 000 F" highlight />
                 </div>
-                <div className="mt-5 pt-4 border-t border-dashed border-white/8">
+                <div className="mt-5 pt-4 border-t border-dashed border-paper/8">
                   <div className="flex items-center justify-between font-mono text-xs text-paper/60 mb-2">
                     <span>Progression</span><span>3 / 6 mensualités</span>
                   </div>
-                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-paper/5 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-spruce-light to-brass-light rounded-full w-1/2" />
                   </div>
                 </div>
@@ -208,7 +208,7 @@ export default async function Home() {
               d&apos;agent de l&apos;État sénégalais — quel que soit le ministère ou le corps.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/4 border border-white/5 rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-paper/4 border border-paper/5 rounded-2xl overflow-hidden">
             {CORPS.map(c => (
               <div key={c.label} className="bg-surface hover:bg-surface-2 transition-all px-5 py-8 flex flex-col gap-3 group cursor-default">
                 <span className="text-3xl">{c.icon}</span>
@@ -239,7 +239,7 @@ export default async function Home() {
                     <step.icon className="w-7 h-7 mb-4 text-brass" strokeWidth={1.5} />
                     <h3 className="font-display text-xl md:text-2xl mb-3 text-paper">{step.title}</h3>
                     <p className="font-body text-sm text-paper/70 leading-relaxed">{step.desc}</p>
-                    {i < STEPS.length - 1 && <div className="hidden md:block absolute top-2 -right-3 w-6 h-px bg-white/10" />}
+                    {i < STEPS.length - 1 && <div className="hidden md:block absolute top-2 -right-3 w-6 h-px bg-paper/10" />}
                   </div>
                 ))}
               </div>
@@ -282,7 +282,7 @@ export default async function Home() {
               { rot: "-2deg", top: "80px", bg: "bg-surface",   z: 1 },
             ].map((card, i) => (
               <div key={i}
-                className={`absolute inset-x-4 md:inset-x-12 ${card.bg} border border-white/6 rounded-sm shadow-xl p-6 perforated`}
+                className={`absolute inset-x-4 md:inset-x-12 ${card.bg} border border-paper/6 rounded-sm shadow-xl p-6 perforated`}
                 style={{ top: card.top, transform: `rotate(${card.rot})`, zIndex: card.z }}>
                 {i === 0 && (
                   <>
@@ -292,7 +292,7 @@ export default async function Home() {
                     </div>
                     <div className="font-display text-2xl sm:text-3xl md:text-5xl text-brass-light mb-1">33 000 F</div>
                     <div className="font-mono text-xs text-paper/55">Réglé via Wave · 11 juin 2026</div>
-                    <div className="mt-6 pt-4 border-t border-dashed border-white/8 font-mono text-xs text-paper/55 flex justify-between">
+                    <div className="mt-6 pt-4 border-t border-dashed border-paper/8 font-mono text-xs text-paper/55 flex justify-between">
                       <span>Reste à payer</span><span className="text-clay font-medium">99 000 F</span>
                     </div>
                   </>
@@ -306,7 +306,7 @@ export default async function Home() {
       {/* ── Syndicat CTA ── */}
       <section id="syndicat" className="px-6 md:px-10 py-20 md:py-28 relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-surface border border-white/6 rounded-3xl px-8 md:px-16 py-16 md:py-24 relative overflow-hidden">
+          <div className="bg-surface border border-paper/6 rounded-3xl px-8 md:px-16 py-16 md:py-24 relative overflow-hidden">
             <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-brass/5 blur-[80px]" />
             <div className="absolute -right-20 -top-20 w-60 h-60 rounded-full border border-brass/10" />
             <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full border border-brass/8" />
@@ -354,7 +354,7 @@ export default async function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-white/5 px-6 md:px-10 py-10 relative z-10">
+      <footer className="border-t border-paper/5 px-6 md:px-10 py-10 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-paper/45">
           <span>© 2026 Semou Group × CFA CUSEMS Authentique</span>
           <span>Récépissé N. 0413/MINT/DGAT/DLP — 21 Novembre 2017</span>

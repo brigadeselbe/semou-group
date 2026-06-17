@@ -51,17 +51,17 @@ export default async function RecuPage({ params, searchParams }: {
           Imprimer / Télécharger PDF
         </button>
         <button onClick={() => window.close()}
-          className="bg-white/10 text-paper font-body text-sm px-5 py-2.5 rounded-full hover:bg-white/15 transition-colors">
+          className="bg-paper/8 text-paper font-body text-sm px-5 py-2.5 rounded-full hover:bg-paper/15 transition-colors">
           Fermer
         </button>
       </div>
 
       {/* Reçu */}
-      <div className="min-h-screen bg-void py-16 px-6 print:py-0 print:px-0 print:bg-white">
-        <div className="max-w-lg mx-auto bg-surface print:bg-white border border-white/8 print:border-gray-200 rounded-2xl print:rounded-none overflow-hidden">
+      <div className="min-h-screen bg-[#FAF8F3] py-16 px-6 print:py-0 print:px-0 print:bg-white">
+        <div className="max-w-lg mx-auto bg-surface print:bg-white border border-paper/8 print:border-gray-200 rounded-2xl print:rounded-none overflow-hidden">
 
           {/* En-tête */}
-          <div className="bg-spruce/20 print:bg-gray-50 px-8 py-6 border-b border-white/6 print:border-gray-200">
+          <div className="bg-spruce/20 print:bg-gray-50 px-8 py-6 border-b border-paper/6 print:border-gray-200">
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-display text-2xl text-paper print:text-gray-900">Semou Group</div>
@@ -89,7 +89,7 @@ export default async function RecuPage({ params, searchParams }: {
               )}
             </div>
 
-            <div className="border-t border-dashed border-white/8 print:border-gray-200" />
+            <div className="border-t border-dashed border-paper/8 print:border-gray-200" />
 
             {/* Commande */}
             <div className="grid grid-cols-2 gap-4">
@@ -111,7 +111,7 @@ export default async function RecuPage({ params, searchParams }: {
               </div>
             </div>
 
-            <div className="border-t border-dashed border-white/8 print:border-gray-200" />
+            <div className="border-t border-dashed border-paper/8 print:border-gray-200" />
 
             {/* Paiement */}
             <div className="grid grid-cols-2 gap-4">
@@ -136,7 +136,7 @@ export default async function RecuPage({ params, searchParams }: {
             </div>
 
             {/* Pied de page */}
-            <div className="border-t border-white/6 print:border-gray-200 pt-4 text-center">
+            <div className="border-t border-paper/6 print:border-gray-200 pt-4 text-center">
               <p className="font-mono text-[9px] text-paper/35 print:text-gray-400 leading-relaxed">
                 Ce reçu est généré automatiquement par la plateforme Semou Group.<br />
                 Conservez-le comme preuve de votre paiement.<br />

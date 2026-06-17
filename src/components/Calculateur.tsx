@@ -48,14 +48,14 @@ export default function Calculateur({ produits }: { produits: CFAProduit[] }) {
           </div>
 
           {/* Formulaire */}
-          <div className="bg-surface border border-white/6 rounded-2xl p-6 md:p-8">
+          <div className="bg-surface border border-paper/6 rounded-2xl p-6 md:p-8">
             {/* Produit */}
             <div className="mb-5">
               <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45 block mb-2">Produit</label>
               <select
                 value={produitId}
                 onChange={e => { setProduitId(e.target.value); setApport('') }}
-                className="w-full bg-void border border-white/10 rounded-xl px-4 py-3 font-body text-sm text-paper focus:outline-none focus:border-brass/40 transition-colors">
+                className="w-full bg-surface-2 border border-paper/12 rounded-xl px-4 py-3 font-body text-sm text-paper focus:outline-none focus:border-brass/40 transition-colors">
                 {actifs.map(p => (
                   <option key={p.id} value={p.id}>{p.nom} — {fcfa(p.prix_vente)}</option>
                 ))}
@@ -74,7 +74,7 @@ export default function Calculateur({ produits }: { produits: CFAProduit[] }) {
                     placeholder={String(produit.apport_minimum)}
                     value={apport}
                     onChange={e => setApport(e.target.value)}
-                    className="w-full bg-void border border-white/10 rounded-xl px-4 py-3 font-mono text-sm text-paper focus:outline-none focus:border-brass/40 transition-colors placeholder:text-paper/30"
+                    className="w-full bg-surface-2 border border-paper/12 rounded-xl px-4 py-3 font-mono text-sm text-paper focus:outline-none focus:border-brass/40 transition-colors placeholder:text-paper/40"
                   />
                 </div>
 
@@ -95,13 +95,13 @@ export default function Calculateur({ produits }: { produits: CFAProduit[] }) {
 
                 {/* Résultat */}
                 {calcul && (
-                  <div className="bg-void rounded-2xl border border-white/8 p-5 mb-5">
+                  <div className="bg-surface-2 rounded-2xl border border-paper/10 p-5 mb-5">
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div>
                         <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/40 mb-1">Apport</div>
                         <div className="font-mono text-sm font-medium text-paper">{fcfa(calcul.apportVal)}</div>
                       </div>
-                      <div className="border-x border-white/6">
+                      <div className="border-x border-paper/6">
                         <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/40 mb-1">Reste dû</div>
                         <div className="font-mono text-sm font-medium text-paper">{fcfa(calcul.reste)}</div>
                       </div>
@@ -110,7 +110,7 @@ export default function Calculateur({ produits }: { produits: CFAProduit[] }) {
                         <div className="font-display text-2xl text-brass-light">{fcfa(calcul.mensual)}</div>
                       </div>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-white/6 text-center font-mono text-[10px] text-paper/45">
+                    <div className="mt-3 pt-3 border-t border-paper/6 text-center font-mono text-[10px] text-paper/45">
                       {calcul.nbMois}× {fcfa(calcul.mensual)} = {fcfa(calcul.reste)} en {calcul.nbMois} mois
                     </div>
                   </div>

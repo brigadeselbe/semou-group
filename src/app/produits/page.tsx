@@ -32,7 +32,7 @@ export default async function ProduitsPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-void/80 backdrop-blur-md border-b border-white/5">
+      <header className="sticky top-0 z-30 bg-[#FAF8F3]/90 backdrop-blur-md border-b border-paper/8">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <LogoSG size={34} />
@@ -44,7 +44,7 @@ export default async function ProduitsPage() {
             <Link href="/suivi"      className="hover:text-paper transition-colors">Suivi commande</Link>
           </nav>
           <Link href="/inscription"
-            className="font-body text-sm font-medium bg-spruce-light text-paper px-4 py-2 rounded-full hover:bg-spruce transition-colors flex items-center gap-1.5 ring-1 ring-white/10">
+            className="font-body text-sm font-medium bg-spruce-light text-paper px-4 py-2 rounded-full hover:bg-spruce transition-colors flex items-center gap-1.5 ring-1 ring-paper/10">
             S&apos;inscrire <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -97,7 +97,7 @@ export default async function ProduitsPage() {
       </section>
 
       {/* Footer CTA */}
-      <div className="relative z-10 border-t border-white/5 px-6 md:px-10 py-12">
+      <div className="relative z-10 border-t border-paper/5 px-6 md:px-10 py-12">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
             <p className="font-display text-xl text-paper">Prêt à commander ?</p>

@@ -31,12 +31,12 @@ const STATUT_COLORS: Record<string, string> = {
   VALIDE:     'text-spruce-light bg-spruce/20 border border-spruce/30',
   EN_ATTENTE: 'text-brass-light bg-brass/10 border border-brass/20',
   EN_COURS:   'text-spruce-light bg-spruce/20 border border-spruce/30',
-  SOLDE:      'text-paper/55 bg-white/5 border border-white/10',
+  SOLDE:      'text-paper/55 bg-paper/5 border border-paper/10',
   PAYE:       'text-spruce-light bg-spruce/20 border border-spruce/30',
   EN_RETARD:  'text-clay bg-clay/10 border border-clay/20',
   LIVREE:     'text-spruce-light bg-spruce/20 border border-spruce/30',
   ECHEC:      'text-clay bg-clay/10 border border-clay/20',
-  ANNULEE:    'text-paper/45 bg-white/5 border border-white/8',
+  ANNULEE:    'text-paper/45 bg-paper/5 border border-paper/8',
 }
 const STATUT_LABELS: Record<string, string> = {
   VALIDE: 'Validé', EN_ATTENTE: 'En attente', EN_COURS: 'En cours',
@@ -54,7 +54,7 @@ type ResultData = { client: CFAClient; commandes: CommandeWithDetails[] }
 
 /* ── Badge statut ── */
 function StatutBadge({ statut }: { statut: string }) {
-  const cls = STATUT_COLORS[statut] ?? 'text-paper/55 bg-white/5 border border-white/8'
+  const cls = STATUT_COLORS[statut] ?? 'text-paper/55 bg-paper/5 border border-paper/8'
   return (
     <span className={`font-mono text-[10px] uppercase tracking-[0.15em] px-2 py-1 rounded-full ${cls}`}>
       {STATUT_LABELS[statut] ?? statut}
@@ -86,7 +86,7 @@ function PayModal({ target, telephone, onClose }: {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
       <div className="absolute inset-0 bg-void/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-surface border border-white/8 rounded-2xl p-6 w-full max-w-sm">
+      <div className="relative bg-surface border border-paper/8 rounded-2xl p-6 w-full max-w-sm">
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 mb-1">Paiement</div>
         <div className="font-display text-xl text-paper mb-1">{target.label}</div>
         <div className="font-mono text-sm text-brass-light mb-5">{formatFcfa(target.montant)}</div>
@@ -141,12 +141,12 @@ function LivraisonTimeline({ livraison }: { livraison: CFALivraison | null }) {
           const done = i <= currentIdx && !isEchec
           return (
             <div key={step.key} className="flex items-center gap-2 flex-shrink-0">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center border ${done ? 'bg-spruce-light border-spruce-light text-paper' : 'bg-void border-white/10 text-paper/65'}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center border ${done ? 'bg-spruce-light border-spruce-light text-paper' : 'bg-void border-paper/10 text-paper/65'}`}>
                 <step.Icon className="w-3.5 h-3.5" />
               </div>
               <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${done ? 'text-spruce-light' : 'text-paper/65'}`}>{step.label}</span>
               {i < LIVRAISON_STEPS.length - 1 && (
-                <div className={`w-6 h-px flex-shrink-0 ${done && i < currentIdx ? 'bg-spruce-light' : 'bg-white/8'}`} />
+                <div className={`w-6 h-px flex-shrink-0 ${done && i < currentIdx ? 'bg-spruce-light' : 'bg-paper/8'}`} />
               )}
             </div>
           )
@@ -200,7 +200,7 @@ function CommandeCard({ commande, telephone }: {
   const canPay = commande.statut === 'EN_COURS'
 
   return (
-    <div className="bg-surface border border-white/6 rounded-2xl overflow-hidden">
+    <div className="bg-surface border border-paper/6 rounded-2xl overflow-hidden">
       {payTarget && (
         <PayModal
           target={payTarget}
@@ -210,7 +210,7 @@ function CommandeCard({ commande, telephone }: {
       )}
 
       {/* Header */}
-      <div className="flex items-start justify-between px-5 md:px-6 pt-5 pb-4 border-b border-dashed border-white/5">
+      <div className="flex items-start justify-between px-5 md:px-6 pt-5 pb-4 border-b border-dashed border-paper/5">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">Commande</div>
           <div className="font-mono text-sm font-medium text-paper mt-0.5">{commande.reference}</div>
@@ -229,7 +229,7 @@ function CommandeCard({ commande, telephone }: {
         )}
 
         {/* Montants */}
-        <div className="grid grid-cols-3 gap-px bg-white/5 border border-white/6 rounded-xl overflow-hidden">
+        <div className="grid grid-cols-3 gap-px bg-paper/5 border border-paper/6 rounded-xl overflow-hidden">
           {[
             { lbl: 'Total',  val: formatFcfa(commande.prix_vente) },
             { lbl: 'Versé',  val: formatFcfa(commande.apport_paye) },
@@ -261,7 +261,7 @@ function CommandeCard({ commande, telephone }: {
             <span>Progression</span>
             <span>{payees} / {total} mensualités</span>
           </div>
-          <div className="h-1.5 bg-void rounded-full overflow-hidden">
+          <div className="h-1.5 bg-paper/10 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-spruce to-spruce-light rounded-full transition-all" style={{ width: `${pct}%` }} />
           </div>
           {commande.montant_mensualite > 0 && (
@@ -309,7 +309,7 @@ function CommandeCard({ commande, telephone }: {
         )}
 
         {/* Livraison */}
-        <div className="pt-4 border-t border-dashed border-white/5">
+        <div className="pt-4 border-t border-dashed border-paper/5">
           <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45 mb-3">Livraison</div>
           <LivraisonTimeline livraison={commande.livraison} />
         </div>
@@ -367,7 +367,7 @@ export default function Suivi() {
           </button>
 
           {/* Carte client */}
-          <div className="bg-surface border border-white/6 rounded-2xl p-5 md:p-6 mb-6">
+          <div className="bg-surface border border-paper/6 rounded-2xl p-5 md:p-6 mb-6">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">Dossier client</div>
@@ -379,7 +379,7 @@ export default function Suivi() {
                 <button
                   onClick={() => setShowSensitive(v => !v)}
                   title={showSensitive ? 'Masquer les données sensibles' : 'Afficher les données sensibles'}
-                  className="p-1.5 rounded-lg text-paper/40 hover:text-paper/80 hover:bg-white/8 transition-colors">
+                  className="p-1.5 rounded-lg text-paper/40 hover:text-paper/80 hover:bg-paper/8 transition-colors">
                   {showSensitive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
                 <StatutBadge statut={client.statut} />
@@ -392,7 +392,7 @@ export default function Suivi() {
               {client.region && <div><div className="text-[9px] uppercase tracking-[0.12em] text-paper/45">Région</div><div className="text-paper/60 mt-0.5">{client.region}</div></div>}
             </div>
             {client.statut === 'EN_ATTENTE' && (
-              <div className="mt-4 pt-4 border-t border-dashed border-white/5 font-mono text-[10px] text-brass/80 tracking-[0.08em]">
+              <div className="mt-4 pt-4 border-t border-dashed border-paper/5 font-mono text-[10px] text-brass/80 tracking-[0.08em]">
                 Dossier en cours de validation — vous recevrez un SMS sous 24 à 48h.
               </div>
             )}
@@ -439,13 +439,13 @@ export default function Suivi() {
             Entrez le numéro de téléphone enregistré lors de votre inscription.
           </p>
         </div>
-        <div className="relative bg-surface border border-white/6 rounded-2xl glow-green p-6 md:p-8">
+        <div className="relative bg-surface border border-paper/6 rounded-2xl glow-green p-6 md:p-8">
           <form onSubmit={handleSearch} className="space-y-6">
             <div>
               <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 block mb-3">Numéro de téléphone</label>
               <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                 placeholder="77 XXX XX XX"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-xl text-paper pb-2 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-mono text-xl text-paper pb-2 transition-colors placeholder:text-paper/60" />
             </div>
             {stage === 'error' && errMsg && (
               <div className="flex items-start gap-3 bg-clay/10 border border-clay/25 rounded-xl p-4">

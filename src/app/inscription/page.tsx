@@ -196,7 +196,7 @@ export default function Inscription() {
       <div className="min-h-screen flex items-center justify-center px-6 py-20">
         <div className="relative max-w-sm w-full">
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-60 h-40 bg-brass/10 blur-[80px] rounded-full pointer-events-none" />
-          <div className="relative bg-surface border border-white/6 rounded-2xl p-8">
+          <div className="relative bg-surface border border-paper/6 rounded-2xl p-8">
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45 mb-1">Étape 2 / 2</div>
             <div className="font-display text-2xl text-paper mb-1">
               Payer <span className="italic text-brass-light">l&apos;apport</span>
@@ -206,7 +206,7 @@ export default function Inscription() {
             </p>
 
             {produitChoisi && (
-              <div className="bg-void border border-white/6 rounded-xl p-4 mb-6 space-y-2">
+              <div className="bg-surface-2 border border-paper/10 rounded-xl p-4 mb-6 space-y-2">
                 <div className="font-body text-sm font-medium text-paper">{produitChoisi.nom}</div>
                 <div className="grid grid-cols-2 gap-3 font-mono text-xs">
                   <div>
@@ -246,7 +246,7 @@ export default function Inscription() {
               </button>
             </div>
 
-            <div className="mt-5 pt-4 border-t border-dashed border-white/6">
+            <div className="mt-5 pt-4 border-t border-dashed border-paper/6">
               <div className="font-mono text-[10px] text-paper/65 tracking-[0.08em]">Réf. dossier : {refCode}</div>
             </div>
           </div>
@@ -259,7 +259,7 @@ export default function Inscription() {
   if (stage === 'success') {
     return (
       <div className="min-h-screen flex items-center justify-center px-6 py-20">
-        <div className="relative max-w-md w-full bg-surface border border-white/6 rounded-2xl glow-green p-8 md:p-12 text-center overflow-hidden">
+        <div className="relative max-w-md w-full bg-surface border border-paper/6 rounded-2xl glow-green p-8 md:p-12 text-center overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-spruce-light/30 blur-[50px] rounded-full" />
           <div className="relative">
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45 mb-8">
@@ -275,7 +275,7 @@ export default function Inscription() {
               Votre dossier est en cours de traitement. Vous recevrez un SMS de confirmation dans les{' '}
               <strong className="text-paper/70">24 à 48 heures</strong>.
             </p>
-            <div className="bg-void border border-white/6 rounded-xl p-4 mb-10 inline-block">
+            <div className="bg-surface-2 border border-paper/10 rounded-xl p-4 mb-10 inline-block">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 mb-1.5">Référence dossier</div>
               <div className="font-mono text-base md:text-lg font-medium text-brass-light">{refCode}</div>
             </div>
@@ -285,7 +285,7 @@ export default function Inscription() {
                 Suivre mon dossier
               </Link>
               <Link href="/"
-                className="font-body text-sm font-medium border border-white/10 text-paper/60 px-6 py-3 rounded-full hover:border-brass/30 hover:text-brass-light transition-colors">
+                className="font-body text-sm font-medium border border-paper/10 text-paper/60 px-6 py-3 rounded-full hover:border-brass/30 hover:text-brass-light transition-colors">
                 Retour à l&apos;accueil
               </Link>
             </div>
@@ -319,9 +319,9 @@ export default function Inscription() {
           </p>
         </div>
 
-        <div className="relative bg-surface border border-white/6 rounded-2xl overflow-hidden">
+        <div className="relative bg-surface border border-paper/6 rounded-2xl overflow-hidden">
 
-          <div className="px-6 md:px-8 pt-8 pb-5 border-b border-white/5">
+          <div className="px-6 md:px-8 pt-8 pb-5 border-b border-paper/5">
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45">Bordereau d&apos;inscription</div>
@@ -342,26 +342,26 @@ export default function Inscription() {
             <SectionBar>Section I — Identité civile</SectionBar>
             <Field n="01" label="Prénom">
               <input required value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="ex : Aminata"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="02" label="Nom de famille">
               <input required value={nom} onChange={e => setNom(e.target.value)} placeholder="ex : Diallo"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="03" label="Téléphone">
               <input required type="tel" value={telephone} onChange={e => setTelephone(e.target.value)} placeholder="77 XXX XX XX"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-mono text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="04" label="N° Matricule">
               <input required value={matricule} onChange={e => setMatricule(e.target.value)} placeholder="ex : 300501163/E"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-mono text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-mono text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
 
             {/* ── Section II ── */}
             <SectionBar>Section II — Situation professionnelle</SectionBar>
             <Field n="05" label="Corps / Fonction">
               <select required value={corps} onChange={e => setCorps(e.target.value)}
-                className="w-full bg-surface border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors">
+                className="w-full bg-surface border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors">
                 <option value="" className="bg-surface">— Sélectionner —</option>
                 {CORPS_LIST.map(c => <option key={c.value} value={c.value} className="bg-surface">{c.label}</option>)}
               </select>
@@ -380,27 +380,27 @@ export default function Inscription() {
             )}
             <Field n="07" label="Académie (IA)">
               <input value={ia} onChange={e => setIa(e.target.value)} placeholder="ex : Kolda"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="08" label="IEF">
               <input value={ief} onChange={e => setIef(e.target.value)} placeholder="ex : Médina-Yoro-Foulah"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
             <Field n="09" label="Région">
               <select value={region} onChange={e => setRegion(e.target.value)}
-                className="w-full bg-surface border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors">
+                className="w-full bg-surface border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors">
                 <option value="" className="bg-surface">— Sélectionner —</option>
                 {REGIONS_SN.map(r => <option key={r} value={r} className="bg-surface">{r}</option>)}
               </select>
             </Field>
             <Field n="10" label="École / Poste">
               <input value={ecole} onChange={e => setEcole(e.target.value)} placeholder="ex : Lycée Ely Manel Fall"
-                className="w-full bg-transparent border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/60" />
             </Field>
 
             {/* ── Section III ── */}
             <SectionBar>Section III — Pièces justificatives</SectionBar>
-            <div className="font-mono text-[10px] text-paper/45 tracking-[0.1em] pt-2 pb-1 border-b border-dashed border-white/5">
+            <div className="font-mono text-[10px] text-paper/45 tracking-[0.1em] pt-2 pb-1 border-b border-dashed border-paper/5">
               Formats acceptés : JPEG, PNG, PDF — 10 Mo max par fichier
             </div>
             <FileField n="11" label="CNI · Recto" file={cniRecto} onPick={() => rectoRef.current?.click()} onClear={() => setCniRecto(null)} />
@@ -416,7 +416,7 @@ export default function Inscription() {
                 <SectionBar>Section IV — Produit souhaité (optionnel)</SectionBar>
                 <Field n="14" label="Produit">
                   <select value={produitId} onChange={e => setProduitId(e.target.value)}
-                    className="w-full bg-surface border-b border-white/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors">
+                    className="w-full bg-surface border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors">
                     <option value="" className="bg-surface">— Choisir plus tard —</option>
                     {produits.map(p => (
                       <option key={p.id} value={p.id} className="bg-surface">
@@ -436,7 +436,7 @@ export default function Inscription() {
                         <span className="font-mono text-sm text-paper/70 w-16 text-right">{nbMensualites} mois</span>
                       </div>
                     </Field>
-                    <div className="grid grid-cols-2 gap-px bg-white/5 border border-white/6 rounded-xl overflow-hidden mx-0 my-3">
+                    <div className="grid grid-cols-2 gap-px bg-paper/5 border border-paper/6 rounded-xl overflow-hidden mx-0 my-3">
                       <div className="bg-surface-2 px-4 py-3">
                         <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/45">Apport à verser</div>
                         <div className="font-mono text-sm font-medium text-brass-light mt-0.5">{formatFcfa(apport)}</div>
@@ -452,7 +452,7 @@ export default function Inscription() {
             )}
 
             {/* ── Soumission ── */}
-            <div className="mt-8 pt-6 border-t border-dashed border-white/8">
+            <div className="mt-8 pt-6 border-t border-dashed border-paper/8">
               <p className="font-mono text-[10px] text-paper/65 tracking-[0.1em] leading-relaxed mb-6">
                 Je certifie sur l&apos;honneur l&apos;exactitude des informations fournies et
                 m&apos;engage à respecter les conditions de remboursement du CFA CUSEMS Authentique.
@@ -497,7 +497,7 @@ function SectionBar({ children }: { children: React.ReactNode }) {
 }
 function Field({ n, label, children }: { n: string; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-4 py-3.5 border-b border-dashed border-white/5 last:border-0">
+    <div className="flex items-center gap-4 py-3.5 border-b border-dashed border-paper/5 last:border-0">
       <span className="font-mono text-[10px] text-paper/65 w-5 flex-shrink-0 select-none">{n}</span>
       <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-paper/60 w-28 flex-shrink-0 leading-tight">{label}</span>
       <div className="flex-1 min-w-0">{children}</div>
@@ -508,7 +508,7 @@ function FileField({ n, label, file, onPick, onClear }: {
   n: string; label: string; file: File | null; onPick: () => void; onClear: () => void
 }) {
   return (
-    <div className="flex items-center gap-4 py-3.5 border-b border-dashed border-white/5">
+    <div className="flex items-center gap-4 py-3.5 border-b border-dashed border-paper/5">
       <span className="font-mono text-[10px] text-paper/65 w-5 flex-shrink-0 select-none">{n}</span>
       <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-paper/60 w-28 flex-shrink-0 leading-tight">{label}</span>
       <div className="flex-1 min-w-0">
@@ -519,7 +519,7 @@ function FileField({ n, label, file, onPick, onClear }: {
           </div>
         ) : (
           <button type="button" onClick={onPick}
-            className="flex items-center gap-1.5 border border-dashed border-white/10 rounded-lg px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-paper/55 hover:border-brass/40 hover:text-brass-light transition-colors">
+            className="flex items-center gap-1.5 border border-dashed border-paper/10 rounded-lg px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-paper/55 hover:border-brass/40 hover:text-brass-light transition-colors">
             <Upload className="w-3 h-3" /> Joindre
           </button>
         )}
