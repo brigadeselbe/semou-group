@@ -1,0 +1,48 @@
+<svg width="200" height="215" viewBox="0 0 200 215" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <path id="sg-arc" d="M24,86 Q100,16 176,86" />
+  </defs>
+
+  <!-- Drop shadow -->
+  <rect x="11" y="13" width="184" height="196" rx="26" fill="#000" opacity="0.22" />
+
+  <!-- Main badge -->
+  <rect x="7"  y="7"  width="186" height="198" rx="26" fill="#0D3B2E" />
+  <rect x="7"  y="7"  width="186" height="198" rx="26" stroke="white" stroke-width="5.5" />
+
+  <!-- Inner secondary border -->
+  <rect x="14" y="14" width="172" height="184" rx="20" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+
+  <!-- Top-right corner tag -->
+  <path d="M165,7 L193,7 L193,35 Z" fill="#C9A227" />
+  <path d="M165,7 L193,7 L193,35" stroke="white" stroke-width="3" stroke-linejoin="round" />
+  <!-- Mini bolt in tag -->
+  <path d="M181,11 L177,20 L181,20 L176,30 L186,19 L182,19 L187,11 Z" fill="#0D3B2E" />
+
+  <!-- SEMOU GROUP curved -->
+  <text font-size="14" font-weight="800" fill="white" font-family="Arial, Helvetica, sans-serif" letter-spacing="4" text-anchor="middle">
+    <textPath href="#sg-arc" startOffset="50%">SEMOU GROUP</textPath>
+  </text>
+
+  <!-- Vertical accent lines -->
+  <line x1="38" y1="100" x2="38" y2="162" stroke="#C9A227" stroke-width="2" stroke-opacity="0.45" />
+  <line x1="162" y1="100" x2="162" y2="162" stroke="#C9A227" stroke-width="2" stroke-opacity="0.45" />
+
+  <!-- Left lightning bolt -->
+  <path d="M43,97 L36,113 L42,113 L34,129 L48,114 L42,114 L49,97 Z" fill="#C9A227" />
+
+  <!-- Right lightning bolt -->
+  <path d="M151,97 L144,114 L151,114 L145,129 L158,113 L152,113 L159,97 Z" fill="#C9A227" />
+
+  <!-- SG monogram -->
+  <text x="100" y="160" font-size="96" font-weight="900" fill="#C9A227" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" stroke="#0A2E22" stroke-width="6" paint-order="stroke">SG</text>
+
+  <!-- Bottom banner -->
+  <rect x="13" y="173" width="174" height="28" rx="9" fill="#061E18" stroke="white" stroke-width="3.5" />
+
+  <!-- Tagline line 1 -->
+  <text x="100" y="185" font-size="9" font-weight="900" fill="#C9A227" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" letter-spacing="2">ÉQUIPEZ-VOUS À</text>
+
+  <!-- Tagline line 2 -->
+  <text x="100" y="197" font-size="9" font-weight="900" fill="#C9A227" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" letter-spacing="1.5">À VOTRE RYTHME ——</text>
+</svg>
