@@ -8,7 +8,7 @@ export default function LogoSG({ size = 48, className = '' }: { size?: number; c
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Semou Group"
+      aria-label="SEMOU GROUP"
     >
       <defs>
         <path id="sg-arc" d="M24,86 Q100,16 176,86" />

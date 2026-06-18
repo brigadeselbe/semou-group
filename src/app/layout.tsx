@@ -29,9 +29,9 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: "Semou Group — Paiement échelonné pour fonctionnaires",
+  title: "SEMOU GROUP — Paiement échelonné pour fonctionnaires",
   description:
-    "La plateforme Semou Group × CUSEMS permet aux fonctionnaires sénégalais de commander et payer en plusieurs fois, garanti par le salaire.",
+    "La plateforme SEMOU GROUP × CUSEMS permet aux fonctionnaires sénégalais de commander et payer en plusieurs fois, garanti par le salaire.",
 };
 
 export default function RootLayout({

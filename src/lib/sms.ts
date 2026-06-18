@@ -50,31 +50,31 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://semou-group.vercel.a
 
 export const smsTemplates = {
   inscriptionConfirmee: (prenom: string, ref: string) =>
-    `Bonjour ${prenom}, votre dossier ${ref} a bien été enregistré. Validation sous 24 à 48h. Suivez votre dossier sur ${APP_URL}/suivi. Semou Group × CFA CUSEMS Authentique`,
+    `Bonjour ${prenom}, votre dossier ${ref} a bien été enregistré. Validation sous 24 à 48h. Suivez votre dossier sur ${APP_URL}/suivi. SEMOU GROUP × CFA CUSEMS Authentique`,
 
   dossierValide: (prenom: string) =>
-    `Bonjour ${prenom}, BONNE NOUVELLE ! Votre dossier est validé. Connectez-vous sur ${APP_URL}/suivi pour commander et payer votre apport. Semou Group`,
+    `Bonjour ${prenom}, BONNE NOUVELLE ! Votre dossier est validé. Connectez-vous sur ${APP_URL}/suivi pour commander et payer votre apport. SEMOU GROUP`,
 
   dossierRejete: (prenom: string) =>
-    `Bonjour ${prenom}, votre dossier n'a pas pu être validé. Contactez-nous pour plus d'informations. Semou Group × CFA CUSEMS Authentique`,
+    `Bonjour ${prenom}, votre dossier n'a pas pu être validé. Contactez-nous pour plus d'informations. SEMOU GROUP × CFA CUSEMS Authentique`,
 
   rappelJ7: (prenom: string, n: number, montant: number, date: string) =>
-    `Bonjour ${prenom}, rappel : votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA est dû dans 7 jours (${date}). Payez sur ${APP_URL}/suivi. Semou Group`,
+    `Bonjour ${prenom}, rappel : votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA est dû dans 7 jours (${date}). Payez sur ${APP_URL}/suivi. SEMOU GROUP`,
 
   rappelJ3: (prenom: string, n: number, montant: number, date: string) =>
-    `Bonjour ${prenom}, rappel : votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA est dû dans 3 jours (${date}). Payez vite sur ${APP_URL}/suivi. Semou Group`,
+    `Bonjour ${prenom}, rappel : votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA est dû dans 3 jours (${date}). Payez vite sur ${APP_URL}/suivi. SEMOU GROUP`,
 
   rappelJourJ: (prenom: string, n: number, montant: number) =>
-    `Bonjour ${prenom}, AUJOURD'HUI est la date de votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA. Payez maintenant sur ${APP_URL}/suivi. Semou Group`,
+    `Bonjour ${prenom}, AUJOURD'HUI est la date de votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA. Payez maintenant sur ${APP_URL}/suivi. SEMOU GROUP`,
 
   rappelRetard: (prenom: string, n: number, montant: number) =>
-    `Bonjour ${prenom}, votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA est EN RETARD. Régularisez sur ${APP_URL}/suivi. Semou Group`,
+    `Bonjour ${prenom}, votre versement #${n} de ${montant.toLocaleString('fr-SN')} F CFA est EN RETARD. Régularisez sur ${APP_URL}/suivi. SEMOU GROUP`,
 
   otpCode: (code: string) =>
-    `Votre code de verification Semou Group : ${code}. Valable 10 minutes. Ne le partagez pas.`,
+    `Votre code de verification SEMOU GROUP : ${code}. Valable 10 minutes. Ne le partagez pas.`,
 
   paiementConfirme: (prenom: string, montant: number, reste: number) =>
     reste > 0
-      ? `Bonjour ${prenom}, paiement de ${montant.toLocaleString('fr-SN')} F confirmé ! Reste dû : ${reste.toLocaleString('fr-SN')} F. Merci. Semou Group`
-      : `Bonjour ${prenom}, votre commande est entièrement soldée ! Félicitations. Merci de votre confiance. Semou Group × CFA CUSEMS Authentique`,
+      ? `Bonjour ${prenom}, paiement de ${montant.toLocaleString('fr-SN')} F confirmé ! Reste dû : ${reste.toLocaleString('fr-SN')} F. Merci. SEMOU GROUP`
+      : `Bonjour ${prenom}, votre commande est entièrement soldée ! Félicitations. Merci de votre confiance. SEMOU GROUP × CFA CUSEMS Authentique`,
 }

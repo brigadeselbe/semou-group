@@ -32,7 +32,7 @@ async function getOrangeToken(): Promise<string> {
 export async function POST(req: NextRequest) {
   if (!process.env.ORANGE_CLIENT_ID || !process.env.ORANGE_CLIENT_SECRET || !process.env.ORANGE_MERCHANT_KEY) {
     return NextResponse.json(
-      { error: 'Le paiement Orange Money n\'est pas encore activé sur cette plateforme. Contactez le bureau Semou Group.' },
+      { error: 'Le paiement Orange Money n\'est pas encore activé sur cette plateforme. Contactez le bureau SEMOU GROUP.' },
       { status: 503 },
     )
   }

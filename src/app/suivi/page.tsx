@@ -416,7 +416,7 @@ export default function Suivi() {
           )}
 
           <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60 text-center mt-12">
-            © 2026 Semou Group × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
+            © 2026 SEMOU GROUP × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
           </p>
         </div>
       </div>

@@ -325,7 +325,7 @@ export default function Inscription() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45">Bordereau d&apos;inscription</div>
-                <div className="font-display text-lg mt-0.5 text-paper">Semou Group <span className="text-brass-light">× CFA CUSEMS Authentique</span></div>
+                <div className="font-display text-lg mt-0.5 text-paper">SEMOU GROUP <span className="text-brass-light">× CFA CUSEMS Authentique</span></div>
               </div>
               <div className="text-right">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">Date</div>
@@ -480,7 +480,7 @@ export default function Inscription() {
         </div>
 
         <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60 text-center mt-10">
-          © 2026 Semou Group × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
+          © 2026 SEMOU GROUP × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
         </p>
       </div>
     </div>

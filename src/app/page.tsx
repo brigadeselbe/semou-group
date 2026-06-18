@@ -61,12 +61,13 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <LogoSG size={38} />
-            <span className="font-display text-lg tracking-tight text-paper">Semou <span className="text-brass-light">Group</span></span>
+            <span className="font-display text-lg tracking-tight text-paper">SEMOU <span className="text-brass-light">GROUP</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-8 font-body text-sm text-paper/70">
-            <Link href="/produits" className="hover:text-paper transition-colors">Catalogue</Link>
-            <a href="#parcours"  className="hover:text-paper transition-colors">Le parcours</a>
-            <a href="#syndicat"  className="hover:text-paper transition-colors">CUSEMS</a>
+            <Link href="/produits"   className="hover:text-paper transition-colors">Catalogue</Link>
+            <a href="#parcours"      className="hover:text-paper transition-colors">Le parcours</a>
+            <a href="#syndicat"      className="hover:text-paper transition-colors">CUSEMS</a>
+            <Link href="/mon-compte" className="hover:text-paper transition-colors">Mon compte</Link>
           </nav>
           <Link href="/inscription"
             className="font-body text-sm font-medium bg-spruce-light text-paper px-5 py-2.5 rounded-full hover:bg-spruce transition-colors flex items-center gap-1.5 ring-1 ring-paper/10">
@@ -80,9 +81,9 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-[1.25fr_1fr] gap-16 items-start">
             <div>
-              <div className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-brass/80 mb-8 border border-brass/20 rounded-full px-4 py-1.5 bg-brass/5">
+              <div className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-brass/80 mb-8 border border-brass/20 rounded-full px-4 py-1.5 bg-brass/5">
                 <span className="w-1.5 h-1.5 rounded-full bg-brass animate-glow-pulse" />
-                Bordereau CFA · CUSEMS Authentique
+                BORDEREAU CFA · CUSEMS Authentique
               </div>
               <h1 className="font-display text-[13vw] leading-[0.92] md:text-7xl lg:text-8xl tracking-tight text-paper">
                 Commandez<br />
@@ -90,7 +91,7 @@ export default async function Home() {
                 Payez à votre<br />rythme.
               </h1>
               <p className="mt-8 max-w-md font-body text-base md:text-lg text-paper/70 leading-relaxed">
-                Semou Group, en partenariat avec le CUSEMS, permet à tout fonctionnaire détenteur
+                SEMOU GROUP, en partenariat avec le CUSEMS, permet à tout fonctionnaire détenteur
                 d&apos;un matricule officiel d&apos;acheter des équipements et de régler en plusieurs
                 mensualités sur salaire.
               </p>
@@ -99,9 +100,9 @@ export default async function Home() {
                   className="group font-body font-medium bg-spruce-light text-paper px-7 py-4 rounded-full hover:bg-spruce transition-all flex items-center gap-2 glow-green">
                   Demander mon dossier <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link href="/suivi"
+                <Link href="/mon-compte"
                   className="font-body font-medium border border-paper/10 px-7 py-4 rounded-full hover:border-brass/40 hover:text-brass-light transition-colors text-paper/70">
-                  Suivre ma commande
+                  Mon espace
                 </Link>
               </div>
               <div className="mt-14 grid grid-cols-3 gap-px bg-paper/5 rounded-2xl overflow-hidden max-w-lg border border-paper/5">
@@ -316,7 +317,7 @@ export default async function Home() {
                 Un engagement<br /><span className="italic text-brass-light">envers le syndicat.</span>
               </h2>
               <p className="font-body text-paper/45 text-base md:text-lg leading-relaxed mb-10">
-                Semou Group est le partenaire officiel du Centre de Facilitation d&apos;Achats du CUSEMS.
+                SEMOU GROUP est le partenaire officiel du Centre de Facilitation d&apos;Achats du CUSEMS.
                 Chaque commande honorée renforce directement la solidarité entre fonctionnaires sénégalais.
               </p>
               <div className="flex flex-wrap gap-10">
@@ -356,7 +357,7 @@ export default async function Home() {
       {/* ── Footer ── */}
       <footer className="border-t border-paper/5 px-6 md:px-10 py-10 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-paper/45">
-          <span>© 2026 Semou Group × CFA CUSEMS Authentique</span>
+          <span>© 2026 SEMOU GROUP × CFA CUSEMS Authentique</span>
           <span>Récépissé N. 0413/MINT/DGAT/DLP — 21 Novembre 2017</span>
         </div>
       </footer>

@@ -9,7 +9,7 @@ export default function StampMark({ className = "" }: { className?: string }) {
     >
       <div className="text-center leading-none">
         <div className="font-display text-[10px] md:text-xs tracking-[0.25em] uppercase mb-1">
-          Semou Group
+          SEMOU GROUP
         </div>
         <div className="font-display italic text-xl md:text-2xl">Validé</div>
         <div className="font-mono text-[9px] md:text-[10px] tracking-widest mt-1">

@@ -170,6 +170,10 @@ export default function Admin() {
   const [livStats, setLivStats] = useState<LivStats | null>(null)
   const [stockBas, setStockBas] = useState<{ id: string; nom: string; stock: number; stock_seuil: number }[]>([])
 
+  /* Rapport mensuel */
+  const [rapportMois,      setRapportMois]      = useState(() => new Date().toISOString().slice(0, 7))
+  const [generatingRapport, setGeneratingRapport] = useState(false)
+
   /* Import Excel clients */
   type ImportRow = Record<string, string>
   type ImportResult = { upserted: number; errors: { ligne: string; tel?: string; erreur: string }[] }
@@ -428,6 +432,145 @@ export default function Admin() {
     }
   }
 
+  /* ── Rapport mensuel ── */
+  async function exportRapportMensuel(mois: string) {
+    setGeneratingRapport(true)
+
+    /* S'assurer que les commandes sont chargées */
+    let cmds = commandes
+    if (!cmdLoaded) {
+      const { data } = await adminRpc('admin_get_commandes_full')
+      cmds = (data as CommandeAdmin[] | null) ?? []
+      setCommandes(cmds)
+      setCmdLoaded(true)
+    }
+
+    const XLSX     = (await import('xlsx')).default
+    const fcfa2    = (n: number) => n.toLocaleString('fr-FR') + ' F CFA'
+    const fmtDate2 = (s?: string | null) => s ? new Date(s).toLocaleDateString('fr-FR') : '—'
+    const [y, m]   = mois.split('-')
+    const labelMois = new Date(Number(y), Number(m) - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+
+    /* ── Données filtrées ── */
+    const newClients   = clients.filter(c => (c as CFAClient & { created_at?: string }).created_at?.startsWith(mois))
+    const moisCmds     = cmds.filter(c => c.created_at?.startsWith(mois))
+    const allVers      = cmds.flatMap(c => c.versements.map(v => ({ ...v, cmd: c })))
+    const versEncaisses = allVers.filter(v => v.date_paiement?.startsWith(mois))
+    const versRetard    = allVers.filter(v => v.statut === 'EN_RETARD')
+
+    const totalCollecte = cmds.reduce((s, c) => s + c.apport_paye, 0)
+    const totalRestant  = cmds.reduce((s, c) => s + c.reste_a_payer, 0)
+    const montantEnCaisses = versEncaisses.reduce((s, v) => s + (v.montant_paye || v.montant_prevu), 0)
+    const montantRetard    = versRetard.reduce((s, v) => s + v.montant_prevu, 0)
+
+    /* ── Sheet 1 : Résumé ── */
+    const sep = { Indicateur: '────────────────', Valeur: '' }
+    const resumeRows = [
+      { Indicateur: 'Rapport SEMOU GROUP',         Valeur: labelMois },
+      { Indicateur: 'Généré le',                   Valeur: new Date().toLocaleDateString('fr-FR') },
+      sep,
+      { Indicateur: 'CLIENTS',                     Valeur: '' },
+      { Indicateur: 'Nouveaux inscrits ce mois',   Valeur: newClients.length },
+      { Indicateur: 'Validés (total)',              Valeur: clients.filter(c => c.statut === 'VALIDE').length },
+      { Indicateur: 'En attente (total)',           Valeur: clients.filter(c => c.statut === 'EN_ATTENTE').length },
+      sep,
+      { Indicateur: 'COMMANDES DU MOIS',           Valeur: '' },
+      { Indicateur: 'Nouvelles commandes',          Valeur: moisCmds.length },
+      { Indicateur: 'Montant commandé',             Valeur: fcfa2(moisCmds.reduce((s, c) => s + c.prix_vente, 0)) },
+      { Indicateur: 'Apport collecté (ces cmd)',    Valeur: fcfa2(moisCmds.reduce((s, c) => s + c.apport_paye, 0)) },
+      sep,
+      { Indicateur: 'VERSEMENTS DU MOIS',          Valeur: '' },
+      { Indicateur: 'Versements encaissés',         Valeur: versEncaisses.length },
+      { Indicateur: 'Montant encaissé',             Valeur: fcfa2(montantEnCaisses) },
+      sep,
+      { Indicateur: 'SITUATION GLOBALE',            Valeur: '' },
+      { Indicateur: 'Total collecté (toutes cmd)',  Valeur: fcfa2(totalCollecte) },
+      { Indicateur: 'Restant à collecter',          Valeur: fcfa2(totalRestant) },
+      { Indicateur: 'Versements en retard',         Valeur: versRetard.length },
+      { Indicateur: 'Montant en retard',            Valeur: fcfa2(montantRetard) },
+    ]
+    const wsResume = XLSX.utils.json_to_sheet(resumeRows)
+    wsResume['!cols'] = [{ wch: 30 }, { wch: 24 }]
+
+    /* ── Sheet 2 : Nouveaux clients ── */
+    const wsClients = XLSX.utils.json_to_sheet(newClients.map(c => ({
+      Prénom: c.prenom, Nom: c.nom, Téléphone: c.telephone,
+      Matricule: c.matricule ?? '', Corps: c.corps ?? '', Région: c.region ?? '',
+      'IA / Académie': c.ia ?? '', IEF: c.ief ?? '', École: c.ecole ?? '',
+      Statut: c.statut,
+      'Date inscription': fmtDate2((c as CFAClient & { created_at?: string }).created_at),
+    })))
+    wsClients['!cols'] = [
+      { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 16 }, { wch: 14 },
+      { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 22 }, { wch: 12 }, { wch: 14 },
+    ]
+
+    /* ── Sheet 3 : Commandes du mois ── */
+    const wsCommandes = XLSX.utils.json_to_sheet(moisCmds.map(c => ({
+      Référence: c.reference,
+      Client: `${c.client?.prenom ?? ''} ${c.client?.nom ?? ''}`.trim(),
+      Téléphone: c.client?.telephone ?? '',
+      Produit: c.produit?.nom ?? '',
+      'Prix vente (F)': c.prix_vente,
+      'Apport payé (F)': c.apport_paye,
+      'Reste dû (F)': c.reste_a_payer,
+      Mensualités: c.nb_mensualites,
+      Statut: c.statut,
+      'Date commande': fmtDate2(c.created_at),
+    })))
+    wsCommandes['!cols'] = [
+      { wch: 18 }, { wch: 22 }, { wch: 14 }, { wch: 20 }, { wch: 14 },
+      { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+    ]
+
+    /* ── Sheet 4 : Versements encaissés ── */
+    const wsVers = XLSX.utils.json_to_sheet(versEncaisses.map(v => ({
+      Référence: v.cmd.reference,
+      Client: `${v.cmd.client?.prenom ?? ''} ${v.cmd.client?.nom ?? ''}`.trim(),
+      Téléphone: v.cmd.client?.telephone ?? '',
+      Produit: v.cmd.produit?.nom ?? '',
+      'N° versement': v.numero_versement,
+      'Prévu (F)': v.montant_prevu,
+      'Payé (F)': v.montant_paye || v.montant_prevu,
+      'Date paiement': fmtDate2(v.date_paiement),
+      Moyen: v.moyen_paiement ?? '',
+    })))
+    wsVers['!cols'] = [
+      { wch: 18 }, { wch: 22 }, { wch: 14 }, { wch: 20 },
+      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 12 },
+    ]
+
+    /* ── Sheet 5 : Retards ── */
+    const wsRetard = XLSX.utils.json_to_sheet(versRetard.map(v => {
+      const echeance = v.date_echeance ? new Date(v.date_echeance) : null
+      const joursRetard = echeance ? Math.floor((Date.now() - echeance.getTime()) / 86400000) : '?'
+      return {
+        Référence: v.cmd.reference,
+        Client: `${v.cmd.client?.prenom ?? ''} ${v.cmd.client?.nom ?? ''}`.trim(),
+        Téléphone: v.cmd.client?.telephone ?? '',
+        Produit: v.cmd.produit?.nom ?? '',
+        'N° versement': v.numero_versement,
+        'Montant dû (F)': v.montant_prevu,
+        'Date échéance': fmtDate2(v.date_echeance),
+        'Jours de retard': joursRetard,
+      }
+    }).sort((a, b) => Number(b['Jours de retard']) - Number(a['Jours de retard'])))
+    wsRetard['!cols'] = [
+      { wch: 18 }, { wch: 22 }, { wch: 14 }, { wch: 20 },
+      { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+    ]
+
+    /* ── Assemblage ── */
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, wsResume,    'Résumé')
+    XLSX.utils.book_append_sheet(wb, wsClients,   'Nouveaux clients')
+    XLSX.utils.book_append_sheet(wb, wsCommandes, 'Commandes')
+    XLSX.utils.book_append_sheet(wb, wsVers,      'Versements encaissés')
+    XLSX.utils.book_append_sheet(wb, wsRetard,    'Retards')
+    XLSX.writeFile(wb, `rapport-semou-${mois}.xlsx`)
+    setGeneratingRapport(false)
+  }
+
   /* ── Exports Excel ── */
   async function exportClients() {
     const XLSX = (await import('xlsx')).default
@@ -466,7 +609,7 @@ export default function Admin() {
     })
     const sep = { Indicateur: '────────────────', Valeur: '' }
     const synthRows = [
-      { Indicateur: 'Export Semou Group',   Valeur: today },
+      { Indicateur: 'Export SEMOU GROUP',   Valeur: today },
       { Indicateur: 'Total dossiers',       Valeur: filteredClients.length },
       sep,
       { Indicateur: 'PAR STATUT',           Valeur: '' },
@@ -549,7 +692,7 @@ export default function Admin() {
     /* Feuille 2 : synthèse financière */
     const sep = { Indicateur: '────────────────', Valeur: '' }
     const synthRows = [
-      { Indicateur: 'Export Semou Group',        Valeur: new Date().toLocaleDateString('fr-FR') },
+      { Indicateur: 'Export SEMOU GROUP',        Valeur: new Date().toLocaleDateString('fr-FR') },
       { Indicateur: 'Total commandes',           Valeur: cmds.length },
       sep,
       { Indicateur: 'BILAN FINANCIER',           Valeur: '' },
@@ -966,6 +1109,37 @@ export default function Admin() {
             ) : (
               <p className="font-mono text-[10px] text-paper/45">Aucune donnée.</p>
             )}
+          </div>
+
+          {/* Rapport mensuel */}
+          <div className="bg-surface border border-paper/6 rounded-2xl p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Download className="w-4 h-4 text-brass" />
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70">Rapport mensuel</div>
+            </div>
+            <p className="font-body text-xs text-paper/55 mb-4 leading-relaxed">
+              Excel 5 feuilles : Résumé · Nouveaux clients · Commandes · Versements encaissés · Retards
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <select value={rapportMois} onChange={e => setRapportMois(e.target.value)}
+                className="bg-surface-2 border border-paper/12 rounded-xl px-3 py-2 font-mono text-xs text-paper focus:border-brass/40 outline-none transition-colors">
+                {Array.from({ length: 24 }, (_, i) => {
+                  const d = new Date()
+                  d.setDate(1)
+                  d.setMonth(d.getMonth() - i)
+                  const val = d.toISOString().slice(0, 7)
+                  const lbl = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+                  return <option key={val} value={val}>{lbl}</option>
+                })}
+              </select>
+              <button onClick={() => exportRapportMensuel(rapportMois)} disabled={generatingRapport}
+                className="flex items-center gap-2 bg-void text-brass border border-brass/25 font-mono text-xs px-5 py-2 rounded-xl hover:bg-brass/10 transition-colors disabled:opacity-50">
+                {generatingRapport
+                  ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Génération…</>
+                  : <><Download className="w-3.5 h-3.5" /> Générer le rapport</>
+                }
+              </button>
+            </div>
           </div>
 
           {/* Recherche fonctionnaire */}
@@ -2024,7 +2198,7 @@ export default function Admin() {
       )}
 
       <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/12 text-center mt-10">
-        Semou Group × CFA CUSEMS Authentique · Tableau de bord administrateur · Usage interne
+        SEMOU GROUP × CFA CUSEMS Authentique · Tableau de bord administrateur · Usage interne
       </p>
     </div>
   )

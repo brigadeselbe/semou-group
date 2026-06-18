@@ -64,7 +64,7 @@ export default async function RecuPage({ params, searchParams }: {
           <div className="bg-spruce/20 print:bg-gray-50 px-8 py-6 border-b border-paper/6 print:border-gray-200">
             <div className="flex items-start justify-between">
               <div>
-                <div className="font-display text-2xl text-paper print:text-gray-900">Semou Group</div>
+                <div className="font-display text-2xl text-paper print:text-gray-900">SEMOU GROUP</div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 print:text-gray-500 mt-1">
                   CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
                 </div>
@@ -138,7 +138,7 @@ export default async function RecuPage({ params, searchParams }: {
             {/* Pied de page */}
             <div className="border-t border-paper/6 print:border-gray-200 pt-4 text-center">
               <p className="font-mono text-[9px] text-paper/35 print:text-gray-400 leading-relaxed">
-                Ce reçu est généré automatiquement par la plateforme Semou Group.<br />
+                Ce reçu est généré automatiquement par la plateforme SEMOU GROUP.<br />
                 Conservez-le comme preuve de votre paiement.<br />
                 Contact : semou-group.vercel.app
               </p>
