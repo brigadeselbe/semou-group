@@ -3,10 +3,26 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import LogoSG from '@/components/LogoSG'
 import { supabase } from '@/lib/supabase'
+import type { Metadata } from 'next'
 import type { CFAProduit, CFAProduitMedia } from '@/lib/supabase'
 import ProduitDetail from './ProduitDetail'
 
 export const revalidate = 60
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const { data: p } = await supabase.from('cfa_produits').select('nom, prix_vente, description').eq('id', id).single()
+  if (!p) return {}
+  const fcfa = (n: number) => n.toLocaleString('fr-SN') + ' F'
+  return {
+    title:       `${p.nom} — ${fcfa(p.prix_vente)}`,
+    description: p.description ?? `Commandez le ${p.nom} en plusieurs fois. Prix : ${fcfa(p.prix_vente)}. Réservé aux fonctionnaires sénégalais.`,
+    openGraph: {
+      title:       `${p.nom} | SEMOU GROUP`,
+      description: `Payez le ${p.nom} en mensualités. ${fcfa(p.prix_vente)} — fonctionnaires sénégalais uniquement.`,
+    },
+  }
+}
 
 export default async function ProduitDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
