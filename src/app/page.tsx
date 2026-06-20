@@ -77,50 +77,65 @@ export default async function Home() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="relative pt-32 md:pt-44 pb-20 md:pb-32 px-6 md:px-10 z-10">
+      <section className="relative pt-28 md:pt-44 pb-16 md:pb-32 px-6 md:px-10 z-10">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-[1.25fr_1fr] gap-16 items-start">
             <div>
-              <div className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-brass/80 mb-8 border border-brass/20 rounded-full px-4 py-1.5 bg-brass/5">
-                <span className="w-1.5 h-1.5 rounded-full bg-brass animate-glow-pulse" />
-                BORDEREAU CFA · CUSEMS Authentique
+              {/* Badge — compact sur mobile */}
+              <div className="inline-flex items-center gap-2 font-mono text-[10px] md:text-xs tracking-[0.15em] md:tracking-[0.2em] text-brass/80 mb-6 md:mb-8 border border-brass/20 rounded-full px-3 md:px-4 py-1.5 bg-brass/5 whitespace-nowrap">
+                <span className="w-1.5 h-1.5 rounded-full bg-brass animate-glow-pulse flex-shrink-0" />
+                <span className="hidden sm:inline">BORDEREAU CFA · </span>CUSEMS Authentique
               </div>
-              <h1 className="font-display text-[13vw] leading-[0.92] md:text-7xl lg:text-8xl tracking-tight text-paper">
+
+              {/* H1 — plus compact sur mobile */}
+              <h1 className="font-display text-[11vw] leading-[0.92] sm:text-[9vw] md:text-7xl lg:text-8xl tracking-tight text-paper">
                 Commandez<br />
                 <span className="italic text-brass-light">aujourd&apos;hui.</span><br />
-                Payez à votre<br />rythme.
+                <span className="md:hidden">Payez à votre rythme.</span>
+                <span className="hidden md:inline">Payez à votre<br />rythme.</span>
               </h1>
-              <p className="mt-8 max-w-md font-body text-base md:text-lg text-paper/70 leading-relaxed">
-                SEMOU GROUP, en partenariat avec le CUSEMS, permet à tout fonctionnaire détenteur
-                d&apos;un matricule officiel d&apos;acheter des équipements et de régler en plusieurs
-                mensualités sur salaire.
+
+              {/* Description — raccourcie sur mobile */}
+              <p className="mt-6 md:mt-8 max-w-md font-body text-sm md:text-lg text-paper/70 leading-relaxed">
+                <span className="md:hidden">
+                  Équipements payables en mensualités sur salaire — réservé aux fonctionnaires sénégalais.
+                </span>
+                <span className="hidden md:inline">
+                  SEMOU GROUP, en partenariat avec le CUSEMS, permet à tout fonctionnaire détenteur
+                  d&apos;un matricule officiel d&apos;acheter des équipements et de régler en plusieurs
+                  mensualités sur salaire.
+                </span>
               </p>
-              <div className="mt-10 flex flex-wrap items-center gap-4">
+
+              {/* Boutons — full-width sur mobile */}
+              <div className="mt-8 md:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <Link href="/inscription"
-                  className="group font-body font-medium bg-spruce-light text-paper px-7 py-4 rounded-full hover:bg-spruce transition-all flex items-center gap-2 glow-green">
+                  className="group font-body font-medium bg-spruce-light text-paper px-7 py-4 rounded-full hover:bg-spruce transition-all flex items-center justify-center gap-2 glow-green">
                   Demander mon dossier <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link href="/mon-compte"
-                  className="font-body font-medium border border-paper/10 px-7 py-4 rounded-full hover:border-brass/40 hover:text-brass-light transition-colors text-paper/70">
+                  className="font-body font-medium border border-paper/10 px-7 py-4 rounded-full hover:border-brass/40 hover:text-brass-light transition-colors text-paper/70 flex items-center justify-center">
                   Mon espace
                 </Link>
               </div>
-              <div className="mt-14 grid grid-cols-3 gap-px bg-paper/5 rounded-2xl overflow-hidden max-w-lg border border-paper/5">
+
+              {/* Stats — padding réduit sur mobile */}
+              <div className="mt-10 md:mt-14 grid grid-cols-3 gap-px bg-paper/5 rounded-2xl overflow-hidden max-w-lg border border-paper/5">
                 {[
-                  { val: "30%", lbl: "Acompte initial" },
+                  { val: "30%", lbl: "Acompte" },
                   { val: "≤ 6", lbl: "Mensualités" },
-                  { val: "10 j", lbl: "Délai de livraison" },
+                  { val: "10 j", lbl: "Livraison" },
                 ].map(s => (
-                  <div key={s.lbl} className="bg-surface px-4 py-5 hover:bg-surface-2 transition-colors">
-                    <div className="font-display text-2xl md:text-3xl text-brass-light">{s.val}</div>
-                    <div className="font-mono text-[10px] md:text-xs uppercase tracking-wider text-paper/60 mt-1">{s.lbl}</div>
+                  <div key={s.lbl} className="bg-surface px-3 md:px-4 py-4 md:py-5 hover:bg-surface-2 transition-colors">
+                    <div className="font-display text-xl md:text-3xl text-brass-light">{s.val}</div>
+                    <div className="font-mono text-[9px] md:text-xs uppercase tracking-wider text-paper/60 mt-1">{s.lbl}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Bordereau card */}
-            <div className="relative md:pt-8">
+            {/* Bordereau card — masqué sur mobile */}
+            <div className="relative md:pt-8 hidden md:block">
               <div className="relative bg-surface border border-paper/6 rounded-sm glow-green p-6 md:p-8 perforated">
                 <div className="flex items-center justify-between border-b border-dashed border-paper/8 pb-4 mb-4">
                   <div>
@@ -276,7 +291,7 @@ export default async function Home() {
               ))}
             </ul>
           </div>
-          <div className="relative h-[380px] md:h-[440px]">
+          <div className="relative h-[380px] md:h-[440px] hidden md:block">
             {[
               { rot: "-6deg", top: "0",    bg: "bg-surface",   z: 10 },
               { rot: "3deg",  top: "40px", bg: "bg-surface-2", z: 5 },

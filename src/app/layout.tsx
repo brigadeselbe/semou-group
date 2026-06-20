@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import MobileNav from "@/components/MobileNav";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -77,9 +78,10 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body
-        className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable} font-body bg-[#FAF8F3] text-paper antialiased`}
+        className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable} font-body bg-[#FAF8F3] text-paper antialiased pb-16 md:pb-0`}
       >
         {children}
+        <MobileNav />
       </body>
     </html>
   );
