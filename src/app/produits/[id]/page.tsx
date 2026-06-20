@@ -52,7 +52,7 @@ export default async function ProduitDetailPage({ params }: { params: Promise<{ 
             <ArrowLeft className="w-3.5 h-3.5" /> Catalogue
           </Link>
           <Link href="/inscription"
-            className="font-body text-sm font-medium bg-spruce-light text-paper px-4 py-2 rounded-full hover:bg-spruce transition-colors flex items-center gap-1.5 ring-1 ring-paper/10">
+            className="hidden md:flex font-body text-sm font-medium bg-spruce-light text-paper px-4 py-2 rounded-full hover:bg-spruce transition-colors items-center gap-1.5 ring-1 ring-paper/10">
             S&apos;inscrire <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>

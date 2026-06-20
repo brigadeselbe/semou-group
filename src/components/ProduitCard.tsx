@@ -10,18 +10,18 @@ function fcfa(n: number) { return n.toLocaleString('fr-SN') + ' F' }
 function MediaThumb({ m, onClick }: { m: CFAProduitMedia; onClick: () => void }) {
   if (m.type === 'VIDEO') {
     return (
-      <button onClick={onClick} className="relative w-full h-44 bg-void overflow-hidden group/vid">
+      <button onClick={onClick} className="relative w-full h-36 sm:h-44 bg-void overflow-hidden group/vid">
         <video src={m.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
         <div className="absolute inset-0 flex items-center justify-center bg-void/40 group-hover/vid:bg-void/20 transition-colors">
-          <div className="w-12 h-12 rounded-full bg-paper/10 border border-paper/20 flex items-center justify-center backdrop-blur-sm">
-            <Play className="w-5 h-5 text-paper fill-paper ml-0.5" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-paper/10 border border-paper/20 flex items-center justify-center backdrop-blur-sm">
+            <Play className="w-4 h-4 sm:w-5 sm:h-5 text-paper fill-paper ml-0.5" />
           </div>
         </div>
       </button>
     )
   }
   return (
-    <button onClick={onClick} className="w-full h-44 overflow-hidden bg-void">
+    <button onClick={onClick} className="w-full h-36 sm:h-44 overflow-hidden bg-void">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={m.url} alt="" className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-500" />
     </button>
@@ -139,7 +139,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
             )}
           </div>
         ) : p.photo_url ? (
-          <div className="w-full h-44 overflow-hidden bg-void">
+          <div className="w-full h-36 sm:h-44 overflow-hidden bg-void">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.photo_url} alt={p.nom}
               className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
@@ -147,8 +147,8 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
         ) : null}
 
         {/* Badges */}
-        <div className="flex items-center gap-2 px-5 pt-5 pb-3">
-          <span className={`font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
+        <div className="flex items-center gap-1.5 px-3 sm:px-5 pt-3 sm:pt-5 pb-2 sm:pb-3">
+          <span className={`font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border ${
             p.etat === 'NEUF' ? 'text-spruce-light bg-spruce/15 border-spruce/25'
             : p.etat === 'OCCASION' ? 'text-paper/65 bg-paper/4 border-paper/8'
             : 'text-brass bg-brass/10 border-brass/20'
@@ -156,54 +156,60 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
             {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'OCCASION' ? 'Occasion' : 'Bon état'}
           </span>
           {p.en_vedette && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-brass-light bg-brass/10 border-brass/20">
+            <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-brass-light bg-brass/10 border-brass/20">
               ★ Vedette
             </span>
           )}
           {!stockOk && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-paper/55 bg-paper/4 border-paper/8 ml-auto">
+            <span className="font-mono text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border text-paper/55 bg-paper/4 border-paper/8 ml-auto">
               Épuisé
             </span>
           )}
         </div>
 
         {/* Nom */}
-        <div className="px-5 pb-4">
+        <div className="px-3 sm:px-5 pb-3 sm:pb-4">
           <Link href={`/produits/${p.id}`} className="hover:text-brass-light transition-colors">
-            <h3 className="font-display text-xl md:text-2xl leading-tight text-paper">{p.nom}</h3>
+            <h3 className="font-display text-base sm:text-xl md:text-2xl leading-tight text-paper line-clamp-2">{p.nom}</h3>
           </Link>
           {p.description && (
-            <p className="font-body text-sm text-paper/65 mt-1 leading-snug line-clamp-2">{p.description}</p>
+            <p className="hidden sm:block font-body text-sm text-paper/65 mt-1 leading-snug line-clamp-2">{p.description}</p>
           )}
         </div>
 
         {/* Chiffres */}
         <div className="grid grid-cols-2 gap-px bg-paper/5 border-t border-b border-paper/5 mx-0">
-          <div className="bg-surface-2 px-5 py-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Prix total</div>
-            <div className="font-display text-2xl text-brass-light mt-0.5">{fcfa(p.prix_vente)}</div>
+          <div className="bg-surface-2 px-3 sm:px-5 py-2.5 sm:py-3.5">
+            <div className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.1em] text-paper/45">Prix</div>
+            <div className="font-display text-base sm:text-2xl text-brass-light mt-0.5">{fcfa(p.prix_vente)}</div>
           </div>
-          <div className="bg-surface-2 px-5 py-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Apport initial</div>
-            <div className="font-mono text-sm font-medium text-paper/70 mt-1">{fcfa(p.apport_minimum)}</div>
+          <div className="bg-surface-2 px-3 sm:px-5 py-2.5 sm:py-3.5">
+            <div className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.1em] text-paper/45">Apport</div>
+            <div className="font-mono text-xs sm:text-sm font-medium text-paper/70 mt-1">{fcfa(p.apport_minimum)}</div>
           </div>
-          <div className="bg-surface-2 px-5 py-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Mensualités</div>
-            <div className="font-mono text-sm font-medium text-paper/70 mt-1">Jusqu&apos;à {p.nb_mensualites_max}×</div>
+          <div className="bg-surface-2 px-3 sm:px-5 py-2.5 sm:py-3.5">
+            <div className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.1em] text-paper/45">Mensualités</div>
+            <div className="font-mono text-xs sm:text-sm font-medium text-paper/70 mt-1">≤ {p.nb_mensualites_max} mois</div>
           </div>
-          <div className="bg-surface-2 px-5 py-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Soit dès</div>
-            <div className="font-mono text-sm font-medium text-paper/70 mt-1">{fcfa(menMin)} / mois</div>
+          <div className="bg-surface-2 px-3 sm:px-5 py-2.5 sm:py-3.5">
+            <div className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.1em] text-paper/45">Dès</div>
+            <div className="font-mono text-xs sm:text-sm font-medium text-paper/70 mt-1">{fcfa(menMin)}/mois</div>
           </div>
         </div>
 
         {/* CTA */}
-        <div className="px-5 py-4 mt-auto">
+        <div className="px-3 sm:px-5 py-3 sm:py-4 mt-auto space-y-2">
           {stockOk ? (
-            <Link href={`/inscription?produit=${p.id}`}
-              className="flex items-center justify-center gap-2 w-full font-body text-sm font-medium bg-spruce-light text-paper px-4 py-3 rounded-full hover:bg-spruce transition-colors group-hover:glow-green">
-              Commander <ChevronRight className="w-4 h-4" />
-            </Link>
+            <>
+              <Link href={`/inscription?produit=${p.id}`}
+                className="flex items-center justify-center gap-2 w-full font-body text-xs sm:text-sm font-medium bg-spruce-light text-paper px-4 py-2.5 sm:py-3 rounded-full hover:bg-spruce transition-colors group-hover:glow-green">
+                Commander <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </Link>
+              <Link href={`/produits/${p.id}`}
+                className="flex items-center justify-center w-full font-mono text-[10px] text-paper/40 hover:text-brass-light transition-colors py-1">
+                Voir la fiche →
+              </Link>
+            </>
           ) : waitState === 'done' ? (
             <div className="flex items-center justify-center gap-2 w-full font-body text-sm text-spruce-light px-4 py-3 rounded-full border border-spruce/25 bg-spruce/8">
               <CheckCircle2 className="w-4 h-4" /> Vous serez notifié par SMS !

@@ -50,14 +50,13 @@ export default function ProduitsClient({
   return (
     <>
       {/* Barre filtres + recherche */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-10">
-        {/* Tabs */}
-        <div className="flex gap-1.5 flex-wrap">
+      <div className="flex flex-col gap-3 mb-8 md:mb-10">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
           {TABS.map(t => (
             <button
               key={t.key}
               onClick={() => setFilter(t.key)}
-              className={`font-mono text-[11px] uppercase tracking-[0.15em] px-3.5 py-1.5 rounded-full border transition-colors ${
+              className={`flex-shrink-0 font-mono text-[11px] uppercase tracking-[0.15em] px-3.5 py-1.5 rounded-full border transition-colors ${
                 filter === t.key
                   ? 'bg-brass text-void border-brass'
                   : 'text-paper/55 border-paper/10 hover:border-paper/25 hover:text-paper/80'
@@ -68,14 +67,14 @@ export default function ProduitsClient({
         </div>
 
         {/* Recherche */}
-        <div className="relative sm:ml-auto">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-paper/40" />
           <input
             type="text"
-            placeholder="Rechercher…"
+            placeholder="Rechercher un produit…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full sm:w-52 pl-8 pr-4 py-1.5 bg-surface border border-paper/10 rounded-full font-body text-sm text-paper placeholder:text-paper/35 focus:outline-none focus:border-brass/40 transition-colors"
+            className="w-full sm:w-64 pl-8 pr-4 py-2 bg-surface border border-paper/10 rounded-full font-body text-sm text-paper placeholder:text-paper/35 focus:outline-none focus:border-brass/40 transition-colors"
           />
         </div>
       </div>
@@ -92,7 +91,7 @@ export default function ProduitsClient({
           <p className="font-body text-paper/50 text-sm">Aucun produit pour cette sélection.</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
           {sorted.map(p => (
             <ProduitCard key={p.id} p={p} medias={mediasByProduit[p.id] ?? []} />
           ))}

@@ -44,7 +44,7 @@ export default async function ProduitsPage() {
             <Link href="/suivi"      className="hover:text-paper transition-colors">Suivi commande</Link>
           </nav>
           <Link href="/inscription"
-            className="font-body text-sm font-medium bg-spruce-light text-paper px-4 py-2 rounded-full hover:bg-spruce transition-colors flex items-center gap-1.5 ring-1 ring-paper/10">
+            className="hidden md:flex font-body text-sm font-medium bg-spruce-light text-paper px-4 py-2 rounded-full hover:bg-spruce transition-colors items-center gap-1.5 ring-1 ring-paper/10">
             S&apos;inscrire <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
