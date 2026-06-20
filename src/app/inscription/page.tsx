@@ -80,8 +80,16 @@ export default function Inscription() {
   const [payError,  setPayError]  = useState('')
 
   useEffect(() => {
+    const preselect = new URLSearchParams(window.location.search).get('produit')
     supabase.from('cfa_produits').select('*').eq('actif', true).order('prix_vente')
-      .then(({ data }) => { if (data) setProduits(data as CFAProduit[]) })
+      .then(({ data }) => {
+        if (data) {
+          setProduits(data as CFAProduit[])
+          if (preselect && data.find((p: CFAProduit) => p.id === preselect)) {
+            setProduitId(preselect)
+          }
+        }
+      })
   }, [])
 
   const produitChoisi = produits.find(p => p.id === produitId) ?? null

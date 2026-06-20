@@ -36,7 +36,7 @@ export default async function ProduitsPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <LogoSG size={34} />
-            <span className="font-display text-base tracking-tight text-paper">Semou <span className="text-brass-light">Group</span></span>
+            <span className="font-display text-base tracking-tight text-paper">SEMOU <span className="text-brass-light">GROUP</span></span>
           </Link>
           <nav className="hidden md:flex items-center gap-7 font-body text-sm text-paper/65">
             <Link href="/#parcours"  className="hover:text-paper transition-colors">Parcours</Link>

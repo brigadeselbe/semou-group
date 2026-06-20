@@ -169,9 +169,11 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
 
         {/* Nom */}
         <div className="px-5 pb-4">
-          <h3 className="font-display text-xl md:text-2xl leading-tight text-paper">{p.nom}</h3>
+          <Link href={`/produits/${p.id}`} className="hover:text-brass-light transition-colors">
+            <h3 className="font-display text-xl md:text-2xl leading-tight text-paper">{p.nom}</h3>
+          </Link>
           {p.description && (
-            <p className="font-body text-sm text-paper/65 mt-1 leading-snug">{p.description}</p>
+            <p className="font-body text-sm text-paper/65 mt-1 leading-snug line-clamp-2">{p.description}</p>
           )}
         </div>
 
@@ -198,7 +200,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
         {/* CTA */}
         <div className="px-5 py-4 mt-auto">
           {stockOk ? (
-            <Link href="/inscription"
+            <Link href={`/inscription?produit=${p.id}`}
               className="flex items-center justify-center gap-2 w-full font-body text-sm font-medium bg-spruce-light text-paper px-4 py-3 rounded-full hover:bg-spruce transition-colors group-hover:glow-green">
               Commander <ChevronRight className="w-4 h-4" />
             </Link>
