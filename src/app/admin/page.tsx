@@ -9,6 +9,7 @@ import {
   Users, FileText, ExternalLink, ShoppingBag,
   TrendingUp, AlertCircle, Package, Plus, Edit2, Trash2, ToggleLeft,
   ToggleRight, Star, MapPin, Download, Truck, Upload, X, Settings, Film,
+  MessageSquare, Bell, Send,
 } from 'lucide-react'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
@@ -28,7 +29,7 @@ type DashStats = {
 }
 type ClientFilter   = 'TOUS' | 'EN_ATTENTE' | 'VALIDE' | 'REJETE'
 type CommandeFilter = 'TOUS' | 'EN_COURS' | 'SOLDE' | 'ANNULE'
-type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits' | 'livraisons' | 'contenu'
+type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits' | 'livraisons' | 'relances' | 'contenu'
 
 /* ── Constantes ── */
 const SESSION_KEY = 'sg_admin_session'
@@ -191,6 +192,14 @@ export default function Admin() {
   /* Livraison */
   const [livEdits,  setLivEdits]  = useState<Record<string, LivEdit>>({})
   const [savingLiv, setSavingLiv] = useState<string | null>(null)
+
+  /* Relances */
+  type RelanceLog = { id: string; client_id: string; telephone: string; prenom: string; nom: string; message: string; created_at: string }
+  const [relanceLogs,       setRelanceLogs]       = useState<RelanceLog[]>([])
+  const [relanceLogsLoaded, setRelanceLogsLoaded] = useState(false)
+  const [sendingRelance,    setSendingRelance]    = useState<string | null>(null)
+  const [sentRelances,      setSentRelances]      = useState<Record<string, string>>({})
+  const [bulkSending,       setBulkSending]       = useState(false)
 
   /* Contenu */
   type Param = { cle: string; valeur: string; description: string }
@@ -848,6 +857,66 @@ export default function Admin() {
     if (!error) setProduits(prev => prev.map(x => x.id === p.id ? { ...x, actif: !p.actif } : x))
   }
 
+  async function loadRelancesLog() {
+    const res = await fetch('/api/admin/rpc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rpc: 'admin_get_relances_log', params: {} }),
+    })
+    const { data } = await res.json()
+    if (Array.isArray(data)) setRelanceLogs(data as RelanceLog[])
+    setRelanceLogsLoaded(true)
+  }
+
+  async function sendRelance(cmd: CommandeAdmin) {
+    if (!cmd.client) return
+    setSendingRelance(cmd.id)
+    const retardVers = cmd.versements.filter(v => v.statut === 'EN_RETARD')
+    const montantTotal = retardVers.reduce((s, v) => s + v.montant_prevu, 0)
+    try {
+      const res = await fetch('/api/sms/relance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          commande_id:   cmd.id,
+          client_id:     cmd.client_id,
+          telephone:     cmd.client.telephone,
+          prenom:        cmd.client.prenom,
+          nb_retard:     retardVers.length,
+          montant_total: montantTotal,
+        }),
+      })
+      if (res.ok) {
+        setSentRelances(prev => ({ ...prev, [cmd.id]: new Date().toISOString() }))
+        setRelanceLogs(prev => [{
+          id: Math.random().toString(),
+          client_id:  cmd.client_id,
+          telephone:  cmd.client?.telephone ?? '',
+          prenom:     cmd.client?.prenom ?? '',
+          nom:        cmd.client?.nom ?? '',
+          message:    '',
+          created_at: new Date().toISOString(),
+        }, ...prev])
+      }
+    } finally {
+      setSendingRelance(null)
+    }
+  }
+
+  async function sendAllRelances() {
+    const retardCmds = commandes.filter(c =>
+      c.statut === 'EN_COURS' &&
+      c.versements.some(v => v.statut === 'EN_RETARD') &&
+      !sentRelances[c.id]
+    )
+    setBulkSending(true)
+    for (const cmd of retardCmds) {
+      await sendRelance(cmd)
+      await new Promise(r => setTimeout(r, 300))
+    }
+    setBulkSending(false)
+  }
+
   async function loadParams() {
     const { data } = await supabase.from('cfa_parametres').select('cle,valeur,description').order('cle')
     if (data) {
@@ -868,9 +937,10 @@ export default function Admin() {
 
   function switchTab(t: Tab) {
     setTab(t)
-    if ((t === 'commandes' || t === 'livraisons') && !cmdLoaded) loadCommandes()
-    if (t === 'produits'  && !prodLoaded) loadProduits()
-    if (t === 'contenu'   && !paramsLoaded) loadParams()
+    if ((t === 'commandes' || t === 'livraisons' || t === 'relances') && !cmdLoaded) loadCommandes()
+    if (t === 'produits'  && !prodLoaded)       loadProduits()
+    if (t === 'contenu'   && !paramsLoaded)     loadParams()
+    if (t === 'relances'  && !relanceLogsLoaded) loadRelancesLog()
   }
 
   const filteredClients = clients.filter(c => {
@@ -965,6 +1035,7 @@ export default function Admin() {
     { key: 'commandes',   label: 'Commandes',       icon: ShoppingBag },
     { key: 'livraisons',  label: 'Livraisons',      icon: Truck },
     { key: 'produits',    label: 'Produits',        icon: Package },
+    { key: 'relances',    label: 'Relances SMS',    icon: Bell },
     { key: 'contenu',     label: 'Contenu',         icon: Settings },
   ]
 
@@ -2223,6 +2294,151 @@ export default function Admin() {
           }
         </>
       )}
+
+      {/* ═══════ RELANCES SMS ═══════ */}
+      {tab === 'relances' && (() => {
+        const retardCmds = commandes.filter(c =>
+          c.statut === 'EN_COURS' &&
+          c.versements.some(v => v.statut === 'EN_RETARD')
+        )
+        const totalRetard = retardCmds.reduce((s, c) =>
+          s + c.versements.filter(v => v.statut === 'EN_RETARD').reduce((a, v) => a + v.montant_prevu, 0), 0
+        )
+        const nonRelances = retardCmds.filter(c => !sentRelances[c.id])
+        return (
+          <div className="space-y-5">
+            {cmdLoading
+              ? <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 text-brass animate-spin" /></div>
+              : (
+                <>
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="bg-surface border border-paper/6 rounded-xl p-4">
+                      <div className={`font-display text-3xl leading-tight ${retardCmds.length > 0 ? 'text-clay' : 'text-spruce-light'}`}>
+                        {retardCmds.length}
+                      </div>
+                      <div className="font-mono text-xs uppercase tracking-[0.1em] text-paper/60 mt-0.5 font-medium">Client{retardCmds.length > 1 ? 's' : ''} en retard</div>
+                    </div>
+                    <div className="bg-surface border border-paper/6 rounded-xl p-4">
+                      <div className="font-display text-2xl leading-tight text-clay">{fcfa(totalRetard)}</div>
+                      <div className="font-mono text-xs uppercase tracking-[0.1em] text-paper/60 mt-0.5 font-medium">Total dû en retard</div>
+                    </div>
+                    <div className="bg-surface border border-paper/6 rounded-xl p-4 md:col-span-1 col-span-2">
+                      <div className="font-display text-3xl leading-tight text-spruce-light">{relanceLogs.length}</div>
+                      <div className="font-mono text-xs uppercase tracking-[0.1em] text-paper/60 mt-0.5 font-medium">Relances envoyées (total)</div>
+                    </div>
+                  </div>
+
+                  {/* Bouton tout relancer */}
+                  {nonRelances.length > 0 && (
+                    <button
+                      onClick={sendAllRelances}
+                      disabled={bulkSending}
+                      className="flex items-center gap-2 bg-clay/15 border border-clay/30 text-clay font-body font-medium text-sm px-6 py-3 rounded-full hover:bg-clay/25 transition-colors disabled:opacity-50">
+                      {bulkSending
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /> Envoi en cours…</>
+                        : <><Send className="w-4 h-4" /> Relancer tous ({nonRelances.length} clients)</>}
+                    </button>
+                  )}
+
+                  {retardCmds.length === 0 ? (
+                    <div className="py-16 text-center">
+                      <CheckCircle2 className="w-10 h-10 text-spruce-light mx-auto mb-3" />
+                      <p className="font-body text-paper/70 text-base">Aucun versement en retard. Tous les clients sont à jour !</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {retardCmds.map(cmd => {
+                        const retardVers = cmd.versements.filter(v => v.statut === 'EN_RETARD')
+                        const montantTotal = retardVers.reduce((s, v) => s + v.montant_prevu, 0)
+                        const sent = !!sentRelances[cmd.id]
+                        const lastLog = relanceLogs.find(l => l.client_id === cmd.client_id)
+                        const dejaRelanceAujourd = lastLog && new Date(lastLog.created_at).toDateString() === new Date().toDateString()
+                        return (
+                          <div key={cmd.id} className={`bg-surface border rounded-2xl p-5 transition-colors ${sent ? 'border-spruce/30' : 'border-clay/20'}`}>
+                            <div className="flex items-start justify-between gap-3 flex-wrap">
+                              <div className="min-w-0 flex-1">
+                                {/* Client */}
+                                <div className="font-body font-semibold text-base text-paper">
+                                  {cmd.client?.prenom} {cmd.client?.nom}
+                                </div>
+                                <div className="font-mono text-sm text-paper/70 mt-0.5">
+                                  {cmd.client?.telephone?.replace(/^221/, '0')} · {cmd.produit?.nom ?? '—'}
+                                </div>
+                                {/* Versements en retard */}
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {retardVers.map((v, i) => (
+                                    <span key={v.id} className="inline-flex items-center gap-1 font-mono text-xs bg-clay/10 border border-clay/20 text-clay px-2 py-0.5 rounded-full">
+                                      <XCircle className="w-3 h-3" />
+                                      V{v.numero_versement ?? i + 1} · {fcfa(v.montant_prevu)}
+                                      {v.date_echeance && <span className="text-clay/70"> · échu le {new Date(v.date_echeance).toLocaleDateString('fr-SN', { day: '2-digit', month: '2-digit' })}</span>}
+                                    </span>
+                                  ))}
+                                </div>
+                                {/* Dernière relance */}
+                                {lastLog && (
+                                  <div className="font-mono text-xs text-paper/55 mt-1.5 flex items-center gap-1">
+                                    <MessageSquare className="w-3 h-3" />
+                                    Dernière relance : {new Date(lastLog.created_at).toLocaleDateString('fr-SN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    {dejaRelanceAujourd && <span className="text-brass ml-1">(aujourd&apos;hui)</span>}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Total + bouton */}
+                              <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                                <div className="text-right">
+                                  <div className="font-display text-xl text-clay">{fcfa(montantTotal)}</div>
+                                  <div className="font-mono text-xs text-paper/55">{retardVers.length} versement{retardVers.length > 1 ? 's' : ''}</div>
+                                </div>
+                                {sent ? (
+                                  <div className="flex items-center gap-1.5 font-mono text-xs text-spruce-light bg-spruce/10 border border-spruce/25 px-3 py-1.5 rounded-full">
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> SMS envoyé
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => sendRelance(cmd)}
+                                    disabled={sendingRelance === cmd.id}
+                                    className="flex items-center gap-1.5 font-mono text-xs bg-clay/15 border border-clay/30 text-clay px-4 py-1.5 rounded-full hover:bg-clay/25 transition-colors disabled:opacity-50">
+                                    {sendingRelance === cmd.id
+                                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Envoi…</>
+                                      : <><Send className="w-3.5 h-3.5" /> Envoyer SMS</>}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Historique récent */}
+                  {relanceLogs.length > 0 && (
+                    <div className="mt-6">
+                      <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/55 mb-3 font-medium">Historique des relances</div>
+                      <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                        {relanceLogs.map(log => (
+                          <div key={log.id} className="flex items-center justify-between gap-3 bg-surface border border-paper/6 rounded-xl px-4 py-2.5 text-sm">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <MessageSquare className="w-3.5 h-3.5 text-paper/50 flex-shrink-0" />
+                              <span className="font-body text-paper/80 truncate">{log.prenom} {log.nom}</span>
+                              <span className="font-mono text-xs text-paper/50 flex-shrink-0">{log.telephone?.replace(/^221/, '0')}</span>
+                            </div>
+                            <span className="font-mono text-xs text-paper/50 flex-shrink-0">
+                              {new Date(log.created_at).toLocaleDateString('fr-SN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
+            }
+          </div>
+        )
+      })()}
 
       {/* ═══════ CONTENU ═══════ */}
       {tab === 'contenu' && (

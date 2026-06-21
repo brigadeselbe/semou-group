@@ -73,6 +73,9 @@ export const smsTemplates = {
   otpCode: (code: string) =>
     `Votre code de verification SEMOU GROUP : ${code}. Valable 10 minutes. Ne le partagez pas.`,
 
+  relanceMultiple: (prenom: string, nbRetard: number, montantTotal: number, appUrl: string) =>
+    `Bonjour ${prenom}, vous avez ${nbRetard} versement${nbRetard > 1 ? 's' : ''} EN RETARD pour un total de ${montantTotal.toLocaleString('fr-SN')} F CFA. Régularisez sur ${appUrl}/suivi. SEMOU GROUP × CFA CUSEMS`,
+
   paiementConfirme: (prenom: string, montant: number, reste: number) =>
     reste > 0
       ? `Bonjour ${prenom}, paiement de ${montant.toLocaleString('fr-SN')} F confirmé ! Reste dû : ${reste.toLocaleString('fr-SN')} F. Merci. SEMOU GROUP`
