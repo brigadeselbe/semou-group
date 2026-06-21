@@ -45,7 +45,7 @@ const STATUT_LABELS: Record<string, string> = {
 }
 function StatutBadge({ statut }: { statut: string }) {
   return (
-    <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded-full border ${STATUT_COLORS[statut] ?? 'text-paper/55 bg-paper/5 border-paper/8'}`}>
+    <span className={`font-mono text-xs uppercase tracking-[0.12em] px-2 py-0.5 rounded-full border ${STATUT_COLORS[statut] ?? 'text-paper/55 bg-paper/5 border-paper/8'}`}>
       {STATUT_LABELS[statut] ?? statut}
     </span>
   )
@@ -73,7 +73,7 @@ function PayModal({ target, telephone, onClose }: { target: PayTarget; telephone
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
       <div className="absolute inset-0 bg-void/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-surface border border-paper/8 rounded-2xl p-6 w-full max-w-sm">
-        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 mb-1">Paiement sécurisé</div>
+        <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/55 mb-1">Paiement sécurisé</div>
         <div className="font-display text-xl text-paper mb-0.5">{target.label}</div>
         <div className="font-mono text-lg text-brass-light mb-6">{fcfa(target.montant)}</div>
         {error && (
@@ -125,7 +125,7 @@ function VersementsTimeline({ versements, canPay, onPay }: {
               }`}>
                 {isPaid  ? <CheckCircle2 className="w-3.5 h-3.5 text-paper" />
                 : isLate ? <XCircle      className="w-3.5 h-3.5 text-clay" />
-                :          <span className="font-mono text-[9px] text-paper/45">{i + 1}</span>}
+                :          <span className="font-mono text-xs text-paper/45">{i + 1}</span>}
               </div>
               {!isLast && (
                 <div className={`w-px flex-1 mt-0.5 mb-0.5 min-h-[28px] ${isPaid ? 'bg-spruce-light/40' : 'bg-paper/10'}`} />
@@ -141,21 +141,21 @@ function VersementsTimeline({ versements, canPay, onPay }: {
                   }`}>
                     {fcfa(v.montant_prevu)}
                   </div>
-                  <div className="font-mono text-[10px] text-paper/35 mt-0.5">{fmtDate(v.date_echeance)}</div>
+                  <div className="font-mono text-xs text-paper/65 mt-0.5">{fmtDate(v.date_echeance)}</div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <StatutBadge statut={v.statut} />
                   {isPaid && v.id && (
                     <a href={`/recu/${v.id}`} target="_blank" rel="noreferrer"
                       title="Télécharger le reçu"
-                      className="flex items-center gap-1 font-mono text-[10px] text-paper/35 hover:text-brass-light transition-colors border border-paper/10 rounded-full px-2 py-0.5 hover:border-brass/30">
+                      className="flex items-center gap-1 font-mono text-xs text-paper/65 hover:text-brass-light transition-colors border border-paper/10 rounded-full px-2 py-0.5 hover:border-brass/30">
                       <FileText className="w-2.5 h-2.5" /> Reçu
                     </a>
                   )}
                   {canPay && (isDue || isLate) && (
                     <button
                       onClick={() => onPay({ type: 'VERSEMENT', id: v.id, montant: v.montant_prevu, label: `Versement ${i + 1}` })}
-                      className="font-mono text-[10px] uppercase tracking-[0.1em] text-brass-light border border-brass/25 hover:bg-brass/10 px-2.5 py-0.5 rounded-full transition-colors">
+                      className="font-mono text-xs uppercase tracking-[0.1em] text-brass-light border border-brass/25 hover:bg-brass/10 px-2.5 py-0.5 rounded-full transition-colors">
                       Payer →
                     </button>
                   )}
@@ -182,7 +182,7 @@ function LivraisonTracker({ livraison }: { livraison: CFALivraison | null }) {
     return (
       <div className="flex items-center gap-3 bg-paper/3 border border-paper/6 rounded-xl px-4 py-3">
         <Package className="w-4 h-4 text-paper/30 flex-shrink-0" />
-        <span className="font-mono text-[10px] text-paper/40 uppercase tracking-[0.1em]">
+        <span className="font-mono text-xs text-paper/70 uppercase tracking-[0.1em]">
           Livraison planifiée après validation du dossier
         </span>
       </div>
@@ -211,10 +211,10 @@ function LivraisonTracker({ livraison }: { livraison: CFALivraison | null }) {
                 : cur ? 'bg-surface border-brass animate-pulse'
                 : 'bg-surface border-paper/15'
               }`}>
-                <Icon className={`w-3.5 h-3.5 ${done ? 'text-paper' : cur ? 'text-brass' : 'text-paper/25'}`} />
+                <Icon className={`w-3.5 h-3.5 ${done ? 'text-paper' : cur ? 'text-brass' : 'text-paper/55'}`} />
               </div>
-              <span className={`font-mono text-[8px] uppercase tracking-[0.1em] leading-tight ${
-                done ? 'text-spruce-light' : cur ? 'text-brass/80' : 'text-paper/25'
+              <span className={`font-mono text-xs uppercase tracking-[0.1em] leading-tight ${
+                done ? 'text-spruce-light' : cur ? 'text-brass/80' : 'text-paper/55'
               }`}>{step.label}</span>
             </div>
           )
@@ -224,7 +224,7 @@ function LivraisonTracker({ livraison }: { livraison: CFALivraison | null }) {
       {isEchec && (
         <div className="flex items-center gap-2 bg-clay/8 border border-clay/20 rounded-xl px-3 py-2">
           <XCircle className="w-3.5 h-3.5 text-clay flex-shrink-0" />
-          <span className="font-mono text-[10px] text-clay">Livraison {livraison.statut === 'ECHEC' ? 'échouée' : 'annulée'} — contactez-nous</span>
+          <span className="font-mono text-xs text-clay">Livraison {livraison.statut === 'ECHEC' ? 'échouée' : 'annulée'} — contactez-nous</span>
         </div>
       )}
 
@@ -257,7 +257,7 @@ function LivraisonTracker({ livraison }: { livraison: CFALivraison | null }) {
 function InfoCell({ label, value, icon, highlight }: { label: string; value: string; icon?: React.ReactNode; highlight?: boolean }) {
   return (
     <div>
-      <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-paper/35 mb-0.5 flex items-center gap-1">
+      <div className="font-mono text-xs uppercase tracking-[0.12em] text-paper/65 mb-0.5 flex items-center gap-1">
         {icon}{label}
       </div>
       <div className={`font-mono text-xs ${highlight ? 'text-brass-light' : 'text-paper/60'}`}>{value}</div>
@@ -285,7 +285,7 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-start justify-between mb-3">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/35 mb-0.5">Référence</div>
+            <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/65 mb-0.5">Référence</div>
             <div className="font-mono text-sm font-medium text-paper">{commande.reference}</div>
           </div>
           <StatutBadge statut={commande.statut} />
@@ -304,7 +304,7 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
             { lbl: 'Reste',  val: fcfa(commande.reste_a_payer), hi: false },
           ].map(({ lbl, val, hi }) => (
             <div key={lbl} className="bg-surface-2 px-3 py-2.5">
-              <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-paper/35">{lbl}</div>
+              <div className="font-mono text-xs uppercase tracking-[0.1em] text-paper/65">{lbl}</div>
               <div className={`font-mono text-xs font-medium mt-0.5 ${hi ? 'text-spruce-light' : 'text-paper/65'}`}>{val}</div>
             </div>
           ))}
@@ -313,7 +313,7 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
         {/* Progression */}
         {total > 0 && (
           <div>
-            <div className="flex justify-between font-mono text-[9px] text-paper/40 mb-1.5">
+            <div className="flex justify-between font-mono text-xs text-paper/70 mb-1.5">
               <span>{payees}/{total} mensualités payées</span>
               <span>{pct}%</span>
             </div>
@@ -330,7 +330,7 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
         {retards > 0 && (
           <div className="flex items-center gap-2 mt-3 bg-clay/8 border border-clay/20 rounded-xl px-3 py-2">
             <XCircle className="w-3.5 h-3.5 text-clay flex-shrink-0" />
-            <span className="font-mono text-[10px] text-clay">
+            <span className="font-mono text-xs text-clay">
               {retards} versement{retards > 1 ? 's' : ''} en retard — contactez-nous rapidement
             </span>
           </div>
@@ -351,10 +351,10 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
         <div className="border-t border-paper/5 px-5 pt-4 pb-2">
           <button onClick={() => setOpenVers(v => !v)}
             className="flex items-center justify-between w-full mb-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/40">
+            <span className="font-mono text-xs uppercase tracking-[0.15em] text-paper/70">
               Échéancier · {commande.versements.length} versements
             </span>
-            <span className="font-mono text-[10px] text-paper/30">{openVers ? '▲' : '▼'}</span>
+            <span className="font-mono text-xs text-paper/30">{openVers ? '▲' : '▼'}</span>
           </button>
           {openVers && (
             <VersementsTimeline
@@ -370,10 +370,10 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
       <div className="border-t border-paper/5 px-5 pt-4 pb-5">
         <button onClick={() => setOpenLiv(v => !v)}
           className="flex items-center justify-between w-full mb-3">
-          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/40">
+          <span className="font-mono text-xs uppercase tracking-[0.15em] text-paper/70">
             Livraison
           </span>
-          <span className="font-mono text-[10px] text-paper/30">{openLiv ? '▲' : '▼'}</span>
+          <span className="font-mono text-xs text-paper/30">{openLiv ? '▲' : '▼'}</span>
         </button>
         {openLiv && <LivraisonTracker livraison={commande.livraison} />}
       </div>
@@ -438,25 +438,25 @@ export default function Suivi() {
             <div className="flex items-center gap-3">
               <UserCircle2 className="w-5 h-5 text-brass-light flex-shrink-0" />
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-brass/70">Mon espace personnel</div>
+                <div className="font-mono text-xs uppercase tracking-[0.15em] text-brass/70">Mon espace personnel</div>
                 <div className="font-body text-sm text-paper/70 mt-0.5">Accès permanent à votre dossier sans re-saisir</div>
               </div>
             </div>
-            <span className="font-mono text-[10px] text-brass/60 group-hover:text-brass-light transition-colors flex-shrink-0">→</span>
+            <span className="font-mono text-xs text-brass/60 group-hover:text-brass-light transition-colors flex-shrink-0">→</span>
           </Link>
 
           {/* Carte client */}
           <div className="bg-surface border border-paper/6 rounded-2xl p-5 mb-4">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/35 mb-0.5">Dossier</div>
+                <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/65 mb-0.5">Dossier</div>
                 <div className="font-display text-xl text-paper">
                   {showSensitive ? `${client.prenom} ${client.nom}` : `${client.prenom} ${maskStr(client.nom ?? '')}`}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowSensitive(v => !v)}
-                  className="p-1.5 rounded-lg text-paper/35 hover:text-paper/70 hover:bg-paper/8 transition-colors">
+                  className="p-1.5 rounded-lg text-paper/65 hover:text-paper/70 hover:bg-paper/8 transition-colors">
                   {showSensitive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
                 <StatutBadge statut={client.statut} />
@@ -475,7 +475,7 @@ export default function Suivi() {
             </div>
 
             {client.statut === 'EN_ATTENTE' && (
-              <div className="mt-3 pt-3 border-t border-dashed border-paper/6 font-mono text-[10px] text-brass/70 tracking-[0.06em] leading-relaxed">
+              <div className="mt-3 pt-3 border-t border-dashed border-paper/6 font-mono text-xs text-brass/70 tracking-[0.06em] leading-relaxed">
                 Dossier en cours de validation — SMS de confirmation sous 24 à 48h.
               </div>
             )}
@@ -492,7 +492,7 @@ export default function Suivi() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/35">
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/65">
                 {commandes.length} commande{commandes.length > 1 ? 's' : ''}
               </div>
               {commandes.map(cmd => (
@@ -501,7 +501,7 @@ export default function Suivi() {
             </div>
           )}
 
-          <p className="font-mono text-[10px] text-paper/20 text-center mt-12">
+          <p className="font-mono text-xs text-paper/20 text-center mt-12">
             SEMOU GROUP × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
           </p>
         </div>
@@ -534,12 +534,12 @@ export default function Suivi() {
         <div className="relative bg-surface border border-paper/6 rounded-2xl glow-green p-6 md:p-8">
           <form onSubmit={handleSearch} className="space-y-6">
             <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/50 block mb-3">
+              <label className="font-mono text-xs uppercase tracking-[0.2em] text-paper/50 block mb-3">
                 Numéro de téléphone
               </label>
               <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                 placeholder="77 XXX XX XX" autoFocus
-                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-mono text-xl text-paper pb-2 transition-colors placeholder:text-paper/35" />
+                className="w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-mono text-xl text-paper pb-2 transition-colors placeholder:text-paper/65" />
             </div>
 
             {stage === 'error' && errMsg && (
@@ -570,7 +570,7 @@ export default function Suivi() {
         </div>
 
         <Link href="/mon-compte"
-          className="flex items-center justify-center gap-2 mt-4 font-mono text-[10px] uppercase tracking-[0.15em] text-paper/30 hover:text-brass-light transition-colors">
+          className="flex items-center justify-center gap-2 mt-4 font-mono text-xs uppercase tracking-[0.15em] text-paper/30 hover:text-brass-light transition-colors">
           <UserCircle2 className="w-3.5 h-3.5" /> Accéder à mon espace personnel →
         </Link>
       </div>

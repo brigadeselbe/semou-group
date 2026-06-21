@@ -141,8 +141,8 @@ export default async function Home() {
                   { val: "10 j", lbl: "Livraison" },
                 ].map(s => (
                   <div key={s.lbl} className="bg-surface px-3 md:px-4 py-4 md:py-5 hover:bg-surface-2 transition-colors">
-                    <div className="font-display text-xl md:text-3xl text-brass-light">{s.val}</div>
-                    <div className="font-mono text-[9px] md:text-xs uppercase tracking-wider text-paper/60 mt-1">{s.lbl}</div>
+                    <div className="font-display text-2xl md:text-3xl text-brass">{s.val}</div>
+                    <div className="font-mono text-xs md:text-sm uppercase tracking-wide text-paper/75 mt-1 font-medium">{s.lbl}</div>
                   </div>
                 ))}
               </div>
@@ -257,7 +257,7 @@ export default async function Home() {
                 Un seul critère : <span className="italic text-brass-light">votre matricule.</span>
               </h2>
             </div>
-            <p className="font-body text-paper/45 text-base md:text-lg leading-relaxed">
+            <p className="font-body text-paper/75 text-base md:text-lg leading-relaxed">
               La plateforme s&apos;adresse à toute personne détenant un matricule officiel
               d&apos;agent de l&apos;État sénégalais — quel que soit le ministère ou le corps.
             </p>
@@ -310,7 +310,7 @@ export default async function Home() {
             <h2 className="font-display text-2xl sm:text-3xl md:text-5xl mt-3 mb-6 leading-[1.05] text-paper">
               Wave, <span className="italic text-brass-light">Orange Money.</span>
             </h2>
-            <p className="font-body text-paper/45 text-base md:text-lg leading-relaxed mb-8">
+            <p className="font-body text-paper/75 text-base md:text-lg leading-relaxed mb-8">
               Chaque versement déclenche une mise à jour instantanée de votre dossier.
               Vous recevez un SMS de rappel 7 jours, 3 jours et le jour de l&apos;échéance.
             </p>
@@ -369,7 +369,7 @@ export default async function Home() {
               <h2 className="font-display text-2xl sm:text-3xl md:text-6xl mt-3 mb-6 leading-[1.05] text-paper">
                 Un engagement<br /><span className="italic text-brass-light">envers le syndicat.</span>
               </h2>
-              <p className="font-body text-paper/45 text-base md:text-lg leading-relaxed mb-10">
+              <p className="font-body text-paper/75 text-base md:text-lg leading-relaxed mb-10">
                 SEMOU GROUP est le partenaire officiel du Centre de Facilitation d&apos;Achats du CUSEMS.
                 Chaque commande honorée renforce directement la solidarité entre fonctionnaires sénégalais.
               </p>

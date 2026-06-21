@@ -63,7 +63,7 @@ function DropZone({ label, file, onFile, onClear }: {
           <CheckCircle2 className="w-4 h-4 text-spruce-light flex-shrink-0" />
           <span className="font-mono text-xs text-spruce-light truncate max-w-[200px]">{file.name}</span>
         </div>
-        <button type="button" onClick={onClear} className="text-paper/40 hover:text-clay transition-colors ml-2 flex-shrink-0">
+        <button type="button" onClick={onClear} className="text-paper/70 hover:text-clay transition-colors ml-2 flex-shrink-0">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -80,9 +80,9 @@ function DropZone({ label, file, onFile, onClear }: {
         drag ? 'border-brass/60 bg-brass/5' : 'border-paper/12 hover:border-paper/25 hover:bg-paper/2'
       }`}
     >
-      <Upload className="w-5 h-5 text-paper/35 mx-auto mb-2" />
-      <div className="font-mono text-xs text-paper/45">{label}</div>
-      <div className="font-mono text-[10px] text-paper/25 mt-1">JPEG · PNG · PDF — 10 Mo max</div>
+      <Upload className="w-5 h-5 text-paper/65 mx-auto mb-2" />
+      <div className="font-mono text-xs text-paper/75">{label}</div>
+      <div className="font-mono text-xs text-paper/55 mt-1">JPEG · PNG · PDF — 10 Mo max</div>
       <input ref={ref} type="file" accept="image/*,.pdf" className="hidden"
         onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f) }} />
     </div>
@@ -110,7 +110,7 @@ function ProduitCard({ p, selected, onSelect }: { p: CFAProduit; selected: boole
           </div>
           <div className="flex items-center gap-3 mt-1.5">
             <span className="font-display text-base text-brass-light">{fcfa(p.prix_vente)}</span>
-            <span className="font-mono text-[10px] text-paper/40">apport min {fcfa(p.apport_minimum)}</span>
+            <span className="font-mono text-xs text-paper/70">apport min {fcfa(p.apport_minimum)}</span>
           </div>
         </div>
       </div>
@@ -129,15 +129,15 @@ function StepBar({ step }: { step: 1 | 2 | 3 }) {
         const cur  = n === step
         return (
           <div key={label} className="flex items-center gap-0 flex-1">
-            <div className={`flex items-center gap-2 flex-shrink-0 ${cur ? 'text-paper' : done ? 'text-brass-light' : 'text-paper/30'}`}>
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center font-mono text-[10px] border transition-all ${
+            <div className={`flex items-center gap-2 flex-shrink-0 ${cur ? 'text-paper' : done ? 'text-brass-light' : 'text-paper/60'}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center font-mono text-xs border transition-all ${
                 done ? 'bg-brass text-void border-brass'
                 : cur ? 'bg-surface-2 border-brass text-brass-light'
-                : 'bg-surface-2 border-paper/15 text-paper/35'
+                : 'bg-surface-2 border-paper/15 text-paper/65'
               }`}>
                 {done ? <Check className="w-3 h-3" /> : n}
               </div>
-              <span className={`font-mono text-[10px] uppercase tracking-[0.15em] hidden sm:block ${cur ? 'text-paper/80' : done ? 'text-brass/70' : 'text-paper/30'}`}>
+              <span className={`font-mono text-xs uppercase tracking-[0.15em] hidden sm:block ${cur ? 'text-paper/80' : done ? 'text-brass/70' : 'text-paper/60'}`}>
                 {label}
               </span>
             </div>
@@ -326,7 +326,7 @@ export default function Inscription() {
         <div className="relative max-w-sm w-full">
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-60 h-40 bg-brass/10 blur-[80px] rounded-full pointer-events-none" />
           <div className="relative bg-surface border border-paper/6 rounded-2xl p-8">
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45 mb-1">Étape finale</div>
+            <div className="font-mono text-xs uppercase tracking-[0.25em] text-paper/75 mb-1">Étape finale</div>
             <div className="font-display text-2xl text-paper mb-1">
               Payer <span className="italic text-brass-light">l&apos;apport</span>
             </div>
@@ -338,11 +338,11 @@ export default function Inscription() {
                 <div className="font-body text-sm font-medium text-paper">{produitChoisi.nom}</div>
                 <div className="grid grid-cols-2 gap-3 font-mono text-xs">
                   <div>
-                    <div className="text-paper/45 text-[10px] uppercase tracking-[0.12em]">Apport</div>
+                    <div className="text-paper/75 text-[10px] uppercase tracking-[0.12em]">Apport</div>
                     <div className="text-brass-light mt-0.5">{fcfa(apport)}</div>
                   </div>
                   <div>
-                    <div className="text-paper/45 text-[10px] uppercase tracking-[0.12em]">Mensualité</div>
+                    <div className="text-paper/75 text-[10px] uppercase tracking-[0.12em]">Mensualité</div>
                     <div className="text-paper/60 mt-0.5">{fcfa(mensualite)} × {nbMensualites}</div>
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export default function Inscription() {
               </button>
             </div>
             <div className="mt-5 pt-4 border-t border-dashed border-paper/6">
-              <div className="font-mono text-[10px] text-paper/65 tracking-[0.08em]">Réf. dossier : {refCode}</div>
+              <div className="font-mono text-xs text-paper/65 tracking-[0.08em]">Réf. dossier : {refCode}</div>
             </div>
           </div>
         </div>
@@ -385,19 +385,19 @@ export default function Inscription() {
         <div className="relative max-w-md w-full bg-surface border border-paper/6 rounded-2xl glow-green p-8 md:p-12 text-center overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-spruce-light/30 blur-[50px] rounded-full" />
           <div className="relative">
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45 mb-8">Bordereau · Dossier enregistré</div>
+            <div className="font-mono text-xs uppercase tracking-[0.25em] text-paper/75 mb-8">Bordereau · Dossier enregistré</div>
             <div className="w-14 h-14 rounded-full bg-spruce-light/20 border border-spruce-light/30 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-6 h-6 text-spruce-light" />
             </div>
             <h1 className="font-display text-4xl md:text-5xl leading-[1.05] mb-4 text-paper">
               Dossier <span className="italic text-brass-light">reçu.</span>
             </h1>
-            <p className="font-body text-paper/45 text-sm leading-relaxed mb-8 max-w-xs mx-auto">
+            <p className="font-body text-paper/75 text-sm leading-relaxed mb-8 max-w-xs mx-auto">
               Votre dossier est en cours de traitement. Vous recevrez un SMS de confirmation dans les{' '}
               <strong className="text-paper/70">24 à 48 heures</strong>.
             </p>
             <div className="bg-surface-2 border border-paper/10 rounded-xl p-4 mb-10 inline-block">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55 mb-1.5">Référence dossier</div>
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/55 mb-1.5">Référence dossier</div>
               <div className="font-mono text-base md:text-lg font-medium text-brass-light">{refCode}</div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -523,7 +523,7 @@ export default function Inscription() {
           <div className="space-y-5">
             {produits.length === 0 ? (
               <div className="text-center py-10">
-                <Loader2 className="w-5 h-5 text-paper/40 animate-spin mx-auto" />
+                <Loader2 className="w-5 h-5 text-paper/70 animate-spin mx-auto" />
               </div>
             ) : (
               <div className="space-y-3">
@@ -541,7 +541,7 @@ export default function Inscription() {
             {/* Calculateur inline */}
             {produitChoisi && (
               <div className="bg-surface border border-brass/20 rounded-2xl p-5 space-y-4">
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass/60">Plan de paiement</div>
+                <div className="font-mono text-xs uppercase tracking-[0.2em] text-brass/60">Plan de paiement</div>
                 <div>
                   <div className="font-mono text-xs text-paper/55 mb-2.5">Nombre de mensualités</div>
                   <div className="flex gap-2 flex-wrap">
@@ -562,7 +562,7 @@ export default function Inscription() {
                     { lbl: 'Durée',       val: `${nbMensualites} mois`, hi: false },
                   ].map(({ lbl, val, hi }) => (
                     <div key={lbl} className="bg-surface-2 rounded-xl px-3 py-3">
-                      <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-paper/35 mb-1">{lbl}</div>
+                      <div className="font-mono text-xs uppercase tracking-[0.1em] text-paper/65 mb-1">{lbl}</div>
                       <div className={`font-mono text-sm font-medium ${hi ? 'text-brass-light' : 'text-paper/70'}`}>{val}</div>
                     </div>
                   ))}
@@ -570,7 +570,7 @@ export default function Inscription() {
               </div>
             )}
 
-            <p className="font-mono text-[10px] text-paper/35 text-center">
+            <p className="font-mono text-xs text-paper/65 text-center">
               La commande est optionnelle — vous pouvez choisir un produit plus tard.
             </p>
 
@@ -594,17 +594,17 @@ export default function Inscription() {
               <SectionHeader>Pièces justificatives obligatoires</SectionHeader>
               <div className="px-6 py-5 space-y-4">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45 mb-2">CNI · Recto</div>
+                  <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/75 mb-2">CNI · Recto</div>
                   <DropZone label="Glissez ou cliquez pour ajouter le recto de votre pièce d'identité"
                     file={cniRecto} onFile={setCniRecto} onClear={() => setCniRecto(null)} />
                 </div>
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45 mb-2">CNI · Verso</div>
+                  <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/75 mb-2">CNI · Verso</div>
                   <DropZone label="Glissez ou cliquez pour ajouter le verso de votre pièce d'identité"
                     file={cniVerso} onFile={setCniVerso} onClear={() => setCniVerso(null)} />
                 </div>
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45 mb-2">Bulletin de salaire</div>
+                  <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/75 mb-2">Bulletin de salaire</div>
                   <DropZone label="Glissez ou cliquez pour ajouter votre dernier bulletin de salaire"
                     file={bulletin} onFile={setBulletin} onClear={() => setBulletin(null)} />
                 </div>
@@ -613,7 +613,7 @@ export default function Inscription() {
 
             {/* Récap */}
             <div className="bg-surface border border-paper/6 rounded-2xl p-5 space-y-2">
-              <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/40 mb-3">Récapitulatif</div>
+              <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/70 mb-3">Récapitulatif</div>
               <RecapLine label="Nom" value={`${prenom.trim()} ${nom.trim()}`} />
               <RecapLine label="Téléphone" value={telephone} />
               <RecapLine label="Matricule" value={matricule} />
@@ -627,7 +627,7 @@ export default function Inscription() {
               )}
             </div>
 
-            <p className="font-mono text-[10px] text-paper/50 leading-relaxed">
+            <p className="font-mono text-xs text-paper/75 leading-relaxed">
               Je certifie l&apos;exactitude des informations et m&apos;engage à respecter les conditions du CFA CUSEMS Authentique.
             </p>
 
@@ -652,7 +652,7 @@ export default function Inscription() {
           </form>
         )}
 
-        <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-paper/25 text-center mt-10">
+        <p className="font-mono text-xs uppercase tracking-[0.1em] text-paper/55 text-center mt-10">
           © 2026 SEMOU GROUP × CFA CUSEMS Authentique · Récépissé N. 0413/MINT/DGAT/DLP
         </p>
       </div>
@@ -661,20 +661,20 @@ export default function Inscription() {
 }
 
 /* ── Sous-composants ── */
-const INPUT  = 'w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/35'
+const INPUT  = 'w-full bg-transparent border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors placeholder:text-paper/65'
 const SELECT = 'w-full bg-surface border-b border-paper/10 focus:border-brass outline-none font-body text-sm text-paper pb-0.5 transition-colors'
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-void/30 border-b border-paper/6 px-6 py-3">
-      <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/45">{children}</span>
+      <span className="font-mono text-xs uppercase tracking-[0.25em] text-paper/75">{children}</span>
     </div>
   )
 }
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-4 py-3.5">
-      <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-paper/45 w-28 flex-shrink-0 leading-tight">{label}</span>
+      <span className="font-mono text-xs uppercase tracking-[0.1em] text-paper/75 w-28 flex-shrink-0 leading-tight">{label}</span>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   )
@@ -690,7 +690,7 @@ function ErrBanner({ msg }: { msg: string }) {
 function RecapLine({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-paper/40">{label}</span>
+      <span className="font-mono text-xs uppercase tracking-[0.1em] text-paper/70">{label}</span>
       <span className="font-mono text-xs text-paper/70 text-right">{value}</span>
     </div>
   )

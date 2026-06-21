@@ -25,10 +25,10 @@ const BADGE: Record<string, string> = {
   VALIDE:     'text-spruce-light bg-spruce/15 border-spruce/25',
   EN_ATTENTE: 'text-brass-light bg-brass/10  border-brass/20',
   EN_COURS:   'text-spruce-light bg-spruce/15 border-spruce/25',
-  SOLDE:      'text-paper/50   bg-paper/5   border-paper/10',
+  SOLDE:      'text-paper/75   bg-paper/5   border-paper/10',
   EN_RETARD:  'text-clay       bg-clay/10   border-clay/20',
   PAYE:       'text-spruce-light bg-spruce/15 border-spruce/25',
-  ANNULE:     'text-paper/40   bg-paper/4   border-paper/8',
+  ANNULE:     'text-paper/70   bg-paper/4   border-paper/8',
 }
 const LABEL: Record<string, string> = {
   VALIDE: 'Validé', EN_ATTENTE: 'En attente', EN_COURS: 'En cours',
@@ -37,7 +37,7 @@ const LABEL: Record<string, string> = {
 
 function Badge({ s }: { s: string }) {
   return (
-    <span className={`font-mono text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border ${BADGE[s] ?? 'text-paper/50 bg-paper/5 border-paper/8'}`}>
+    <span className={`font-mono text-xs uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border ${BADGE[s] ?? 'text-paper/75 bg-paper/5 border-paper/8'}`}>
       {LABEL[s] ?? s}
     </span>
   )
@@ -97,7 +97,7 @@ export default function MonCompte() {
           <input
             type="tel" required placeholder="7X XXX XX XX"
             value={phone} onChange={e => setPhone(e.target.value)}
-            className="w-full bg-surface border border-paper/8 rounded-xl px-4 py-3 font-mono text-sm text-paper placeholder:text-paper/40 focus:border-brass/40 outline-none transition-colors"
+            className="w-full bg-surface border border-paper/8 rounded-xl px-4 py-3 font-mono text-sm text-paper placeholder:text-paper/70 focus:border-brass/40 outline-none transition-colors"
           />
           {errMsg && (
             <div className="flex items-center gap-2 text-clay font-mono text-xs">
@@ -114,10 +114,10 @@ export default function MonCompte() {
           </button>
         </form>
         <div className="flex items-center justify-center gap-4 mt-6">
-          <Link href="/suivi" className="font-mono text-[10px] text-paper/35 hover:text-paper/60 transition-colors">
+          <Link href="/suivi" className="font-mono text-xs text-paper/65 hover:text-paper/60 transition-colors">
             Suivi rapide →
           </Link>
-          <Link href="/inscription" className="font-mono text-[10px] text-paper/35 hover:text-paper/60 transition-colors">
+          <Link href="/inscription" className="font-mono text-xs text-paper/65 hover:text-paper/60 transition-colors">
             Créer un dossier →
           </Link>
         </div>
@@ -137,11 +137,11 @@ export default function MonCompte() {
             <Link href="/"><LogoSG size={36} /></Link>
             <div>
               <div className="font-display text-lg text-paper leading-tight">Bonjour, {client.prenom}</div>
-              <div className="font-mono text-[10px] text-paper/40 uppercase tracking-[0.15em]">Mon espace</div>
+              <div className="font-mono text-xs text-paper/70 uppercase tracking-[0.15em]">Mon espace</div>
             </div>
           </div>
           <button onClick={handleLogout}
-            className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-paper/40 hover:text-clay border border-paper/8 rounded-full px-3 py-1.5 transition-colors">
+            className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.1em] text-paper/70 hover:text-clay border border-paper/8 rounded-full px-3 py-1.5 transition-colors">
             <LogOut className="w-3 h-3" /> Déconnexion
           </button>
         </div>
@@ -150,10 +150,10 @@ export default function MonCompte() {
         <div className="bg-surface border border-paper/6 rounded-2xl p-5 md:p-6 mb-4">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/40 mb-1">Dossier</div>
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70 mb-1">Dossier</div>
               <div className="font-display text-xl text-paper">{client.prenom} {client.nom}</div>
               {client.matricule && (
-                <div className="font-mono text-xs text-paper/45 mt-0.5">{client.matricule}</div>
+                <div className="font-mono text-xs text-paper/75 mt-0.5">{client.matricule}</div>
               )}
             </div>
             <Badge s={client.statut} />
@@ -170,7 +170,7 @@ export default function MonCompte() {
               ['Grade',     client.grade],
             ] as [string, string | null][]).filter(([, v]) => v).map(([lbl, val]) => (
               <div key={lbl}>
-                <div className="text-[9px] uppercase tracking-[0.15em] text-paper/35 mb-0.5">{lbl}</div>
+                <div className="text-[9px] uppercase tracking-[0.15em] text-paper/65 mb-0.5">{lbl}</div>
                 <div className="text-paper/60">{val}</div>
               </div>
             ))}
@@ -182,8 +182,8 @@ export default function MonCompte() {
               { lbl: 'Bulletin de salaire', ok: client.bulletin_valide },
               { lbl: 'Pièce d\'identité',   ok: client.cni_valide },
             ].map(({ lbl, ok }) => (
-              <div key={lbl} className={`flex items-center gap-2 rounded-xl px-3 py-2 font-mono text-[10px] border ${
-                ok ? 'bg-spruce/10 border-spruce/20 text-spruce-light' : 'bg-paper/4 border-paper/8 text-paper/45'
+              <div key={lbl} className={`flex items-center gap-2 rounded-xl px-3 py-2 font-mono text-xs border ${
+                ok ? 'bg-spruce/10 border-spruce/20 text-spruce-light' : 'bg-paper/4 border-paper/8 text-paper/75'
               }`}>
                 {ok
                   ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
@@ -195,20 +195,20 @@ export default function MonCompte() {
           </div>
 
           {client.statut === 'EN_ATTENTE' && (
-            <p className="mt-3 font-mono text-[10px] text-brass/70 tracking-[0.06em] leading-relaxed">
+            <p className="mt-3 font-mono text-xs text-brass/70 tracking-[0.06em] leading-relaxed">
               Votre dossier est en cours de validation. Vous recevrez un SMS sous 24 à 48h.
             </p>
           )}
         </div>
 
         {/* Commandes */}
-        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/40 mb-3">
+        <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70 mb-3">
           {commandes.length} commande{commandes.length > 1 ? 's' : ''}
         </div>
 
         {commandes.length === 0 ? (
           <div className="bg-surface border border-paper/6 rounded-2xl p-10 text-center">
-            <div className="font-body text-sm text-paper/50 mb-3">Aucune commande enregistrée.</div>
+            <div className="font-body text-sm text-paper/75 mb-3">Aucune commande enregistrée.</div>
             <Link href="/produits" className="font-mono text-xs text-brass-light hover:underline">
               Voir le catalogue →
             </Link>
@@ -242,7 +242,7 @@ export default function MonCompte() {
                       { lbl: 'Reste dû',   val: fcfa(cmd.reste_a_payer), hi: false },
                     ].map(({ lbl, val, hi }) => (
                       <div key={lbl} className="bg-surface-2 rounded-xl px-3 py-2">
-                        <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-paper/35 mb-0.5">{lbl}</div>
+                        <div className="font-mono text-xs uppercase tracking-[0.1em] text-paper/65 mb-0.5">{lbl}</div>
                         <div className={`font-mono text-xs font-medium ${hi ? 'text-spruce-light' : 'text-paper/65'}`}>{val}</div>
                       </div>
                     ))}
@@ -251,7 +251,7 @@ export default function MonCompte() {
                   {/* Barre progression */}
                   {total > 0 && (
                     <div className="mb-3">
-                      <div className="flex justify-between font-mono text-[10px] text-paper/40 mb-1">
+                      <div className="flex justify-between font-mono text-xs text-paper/70 mb-1">
                         <span>{payees} / {total} versements payés</span>
                         <span>{pct}%</span>
                       </div>
@@ -268,7 +268,7 @@ export default function MonCompte() {
                   {retards.length > 0 && (
                     <div className="flex items-center gap-2 bg-clay/8 border border-clay/20 rounded-xl px-3 py-2 mb-3">
                       <XCircle className="w-3.5 h-3.5 text-clay flex-shrink-0" />
-                      <span className="font-mono text-[10px] text-clay">
+                      <span className="font-mono text-xs text-clay">
                         {retards.length} versement{retards.length > 1 ? 's' : ''} en retard — contactez-nous au plus vite
                       </span>
                     </div>
@@ -279,10 +279,10 @@ export default function MonCompte() {
                     <div className="border-t border-paper/6 pt-3 space-y-2">
                       {cmd.versements.map(v => (
                         <div key={v.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 font-mono text-[10px] text-paper/50">
-                            <span className="w-4 text-paper/35">{v.numero_versement}.</span>
+                          <div className="flex items-center gap-2 font-mono text-xs text-paper/75">
+                            <span className="w-4 text-paper/65">{v.numero_versement}.</span>
                             <span>{fmtDate(v.date_echeance)}</span>
-                            <span className="text-paper/35">{fcfa(v.montant_prevu)}</span>
+                            <span className="text-paper/65">{fcfa(v.montant_prevu)}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge s={v.statut} />
@@ -291,7 +291,7 @@ export default function MonCompte() {
                                 href={`/recu/${v.id}?tel=${encodeURIComponent(client.telephone)}`}
                                 target="_blank" rel="noreferrer"
                                 title="Télécharger le reçu"
-                                className="text-paper/30 hover:text-brass transition-colors">
+                                className="text-paper/60 hover:text-brass transition-colors">
                                 <FileText className="w-3.5 h-3.5" />
                               </a>
                             )}
@@ -304,7 +304,7 @@ export default function MonCompte() {
                   {/* Lien paiement */}
                   {cmd.statut === 'EN_COURS' && cmd.reste_a_payer > 0 && (
                     <Link href="/suivi"
-                      className="mt-4 flex items-center gap-1.5 font-mono text-[10px] text-brass/60 hover:text-brass-light transition-colors border-t border-paper/6 pt-3">
+                      className="mt-4 flex items-center gap-1.5 font-mono text-xs text-brass/60 hover:text-brass-light transition-colors border-t border-paper/6 pt-3">
                       <ExternalLink className="w-3 h-3" /> Payer en ligne via le suivi
                     </Link>
                   )}
@@ -314,7 +314,7 @@ export default function MonCompte() {
           </div>
         )}
 
-        <p className="font-mono text-[10px] text-paper/15 text-center mt-12">
+        <p className="font-mono text-xs text-paper/70 text-center mt-12">
           SEMOU GROUP × CFA CUSEMS Authentique
         </p>
       </div>

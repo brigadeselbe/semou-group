@@ -148,20 +148,20 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
 
         {/* Badges */}
         <div className="flex items-center gap-1.5 px-3 sm:px-5 pt-3 sm:pt-5 pb-2 sm:pb-3">
-          <span className={`font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border ${
+          <span className={`font-mono text-[11px] sm:text-xs uppercase tracking-[0.08em] px-2.5 py-0.5 rounded-full border font-medium ${
             p.etat === 'NEUF' ? 'text-spruce-light bg-spruce/15 border-spruce/25'
-            : p.etat === 'OCCASION' ? 'text-paper/65 bg-paper/4 border-paper/8'
+            : p.etat === 'OCCASION' ? 'text-paper/80 bg-paper/4 border-paper/8'
             : 'text-brass bg-brass/10 border-brass/20'
           }`}>
             {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'OCCASION' ? 'Occasion' : 'Bon état'}
           </span>
           {p.en_vedette && (
-            <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-brass-light bg-brass/10 border-brass/20">
+            <span className="hidden sm:inline font-mono text-[11px] sm:text-xs uppercase tracking-[0.08em] px-2.5 py-1 rounded-full border text-brass font-medium bg-brass/10 border-brass/20">
               ★ Vedette
             </span>
           )}
           {!stockOk && (
-            <span className="font-mono text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full border text-paper/55 bg-paper/4 border-paper/8 ml-auto">
+            <span className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.08em] px-2.5 py-0.5 rounded-full border text-paper/75 bg-paper/4 border-paper/8 ml-auto font-medium">
               Épuisé
             </span>
           )}
@@ -179,21 +179,21 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
 
         {/* Chiffres */}
         <div className="grid grid-cols-2 gap-px bg-paper/5 border-t border-b border-paper/5 mx-0">
-          <div className="bg-surface-2 px-3 sm:px-5 py-2.5 sm:py-3.5">
-            <div className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.1em] text-paper/45">Prix</div>
-            <div className="font-display text-base sm:text-2xl text-brass-light mt-0.5">{fcfa(p.prix_vente)}</div>
+          <div className="bg-surface-2 px-3 sm:px-5 py-3 sm:py-4">
+            <div className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.08em] text-paper/70 font-medium">Prix</div>
+            <div className="font-display text-lg sm:text-2xl text-brass mt-0.5">{fcfa(p.prix_vente)}</div>
           </div>
-          <div className="bg-surface-2 px-3 sm:px-5 py-2.5 sm:py-3.5">
-            <div className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.1em] text-paper/45">Apport</div>
-            <div className="font-mono text-xs sm:text-sm font-medium text-paper/70 mt-1">{fcfa(p.apport_minimum)}</div>
+          <div className="bg-surface-2 px-3 sm:px-5 py-3 sm:py-4">
+            <div className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.08em] text-paper/70 font-medium">Apport</div>
+            <div className="font-mono text-sm sm:text-base font-semibold text-paper/85 mt-0.5">{fcfa(p.apport_minimum)}</div>
           </div>
-          <div className="bg-surface-2 px-3 sm:px-5 py-2.5 sm:py-3.5">
-            <div className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.1em] text-paper/45">Mensualités</div>
-            <div className="font-mono text-xs sm:text-sm font-medium text-paper/70 mt-1">≤ {p.nb_mensualites_max} mois</div>
+          <div className="bg-surface-2 px-3 sm:px-5 py-3 sm:py-4">
+            <div className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.08em] text-paper/70 font-medium">Mensualités</div>
+            <div className="font-mono text-sm sm:text-base font-semibold text-paper/85 mt-0.5">≤ {p.nb_mensualites_max} mois</div>
           </div>
-          <div className="bg-surface-2 px-3 sm:px-5 py-2.5 sm:py-3.5">
-            <div className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.1em] text-paper/45">Dès</div>
-            <div className="font-mono text-xs sm:text-sm font-medium text-paper/70 mt-1">{fcfa(menMin)}/mois</div>
+          <div className="bg-surface-2 px-3 sm:px-5 py-3 sm:py-4">
+            <div className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.08em] text-paper/70 font-medium">Dès</div>
+            <div className="font-mono text-sm sm:text-base font-semibold text-paper/85 mt-0.5">{fcfa(menMin)}/mois</div>
           </div>
         </div>
 
@@ -206,7 +206,7 @@ export default function ProduitCard({ p, medias = [] }: { p: CFAProduit; medias?
                 Commander <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Link>
               <Link href={`/produits/${p.id}`}
-                className="flex items-center justify-center w-full font-mono text-[10px] text-paper/40 hover:text-brass-light transition-colors py-1">
+                className="flex items-center justify-center w-full font-mono text-xs text-paper/60 hover:text-brass transition-colors py-1.5">
                 Voir la fiche →
               </Link>
             </>

@@ -68,19 +68,19 @@ export default function ProduitsClient({
 
         {/* Recherche */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-paper/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-paper/70" />
           <input
             type="text"
             placeholder="Rechercher un produit…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full sm:w-64 pl-8 pr-4 py-2 bg-surface border border-paper/10 rounded-full font-body text-sm text-paper placeholder:text-paper/35 focus:outline-none focus:border-brass/40 transition-colors"
+            className="w-full sm:w-64 pl-8 pr-4 py-2 bg-surface border border-paper/10 rounded-full font-body text-sm text-paper placeholder:text-paper/65 focus:outline-none focus:border-brass/40 transition-colors"
           />
         </div>
       </div>
 
       {/* Compteur */}
-      <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/40 mb-6 flex items-center gap-2">
+      <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70 mb-6 flex items-center gap-2">
         <SlidersHorizontal className="w-3 h-3" />
         {sorted.length} produit{sorted.length !== 1 ? 's' : ''}
       </div>

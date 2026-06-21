@@ -18,7 +18,7 @@ function Gallery({ medias, photo_url }: { medias: CFAProduitMedia[]; photo_url: 
   if (medias.length === 0 && !photo_url) {
     return (
       <div className="w-full aspect-[4/3] bg-surface border border-paper/8 rounded-2xl flex items-center justify-center">
-        <span className="font-mono text-xs text-paper/30">Pas de photo</span>
+        <span className="font-mono text-xs text-paper/60">Pas de photo</span>
       </div>
     )
   }
@@ -61,7 +61,7 @@ function Gallery({ medias, photo_url }: { medias: CFAProduitMedia[]; photo_url: 
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-void/55 backdrop-blur-sm border border-paper/15 flex items-center justify-center hover:bg-void/80 transition-colors">
                 <ChevronRight className="w-5 h-5 text-paper" />
               </button>
-              <div className="absolute bottom-3 right-3 font-mono text-[10px] text-paper/70 bg-void/50 backdrop-blur-sm px-2.5 py-0.5 rounded-full">
+              <div className="absolute bottom-3 right-3 font-mono text-xs text-paper/70 bg-void/50 backdrop-blur-sm px-2.5 py-0.5 rounded-full">
                 {idx + 1} / {medias.length}
               </div>
             </>
@@ -155,7 +155,7 @@ function Calculateur({ p }: { p: CFAProduit }) {
 
   return (
     <div className="bg-surface border border-paper/8 rounded-2xl p-5 space-y-5">
-      <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/40">Simuler mon paiement</div>
+      <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/70">Simuler mon paiement</div>
 
       {/* Apport */}
       <div>
@@ -163,7 +163,7 @@ function Calculateur({ p }: { p: CFAProduit }) {
           <span className="font-mono text-xs text-paper/55">Apport initial</span>
           <span className="font-display text-xl text-brass-light">
             {fcfa(apport)}{' '}
-            <span className="font-mono text-[10px] text-paper/40">({pctApport}%)</span>
+            <span className="font-mono text-xs text-paper/70">({pctApport}%)</span>
           </span>
         </div>
         <input
@@ -175,7 +175,7 @@ function Calculateur({ p }: { p: CFAProduit }) {
           onChange={e => setApport(Number(e.target.value))}
           className="w-full accent-brass cursor-pointer"
         />
-        <div className="flex justify-between font-mono text-[9px] text-paper/30 mt-1">
+        <div className="flex justify-between font-mono text-xs text-paper/60 mt-1">
           <span>{fcfa(p.apport_minimum)} min</span>
           <span>{fcfa(maxApport)} max</span>
         </div>
@@ -202,19 +202,19 @@ function Calculateur({ p }: { p: CFAProduit }) {
       <div className="bg-surface-2 border border-paper/8 rounded-xl p-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/35 mb-1">Mensualité</div>
+            <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/65 mb-1">Mensualité</div>
             <div className="font-display text-2xl text-paper">
-              {fcfa(mensualite)}<span className="font-mono text-[10px] text-paper/40"> /mois</span>
+              {fcfa(mensualite)}<span className="font-mono text-xs text-paper/70"> /mois</span>
             </div>
           </div>
           <div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/35 mb-1">Durée</div>
+            <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/65 mb-1">Durée</div>
             <div className="font-display text-2xl text-paper">
-              {nbMois}<span className="font-mono text-[10px] text-paper/40"> mois</span>
+              {nbMois}<span className="font-mono text-xs text-paper/70"> mois</span>
             </div>
           </div>
         </div>
-        <div className="mt-3 pt-3 border-t border-paper/8 flex justify-between font-mono text-xs text-paper/45">
+        <div className="mt-3 pt-3 border-t border-paper/8 flex justify-between font-mono text-xs text-paper/70">
           <span>Reste après apport</span>
           <span className="text-paper/65">{fcfa(reste)}</span>
         </div>
@@ -246,7 +246,7 @@ export default function ProduitDetail({ produit: p, medias }: { produit: CFAProd
     <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 py-10 pb-24">
       {/* Back */}
       <Link href="/produits"
-        className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/45 hover:text-brass-light transition-colors mb-8">
+        className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-paper/70 hover:text-brass-light transition-colors mb-8">
         <ArrowLeft className="w-3.5 h-3.5" /> Retour au catalogue
       </Link>
 
@@ -259,7 +259,7 @@ export default function ProduitDetail({ produit: p, medias }: { produit: CFAProd
         <div className="space-y-5">
           {/* Badges */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
+            <span className={`font-mono text-xs uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
               p.etat === 'NEUF'     ? 'text-spruce-light bg-spruce/15 border-spruce/25'
               : p.etat === 'OCCASION' ? 'text-paper/65 bg-paper/4 border-paper/8'
               : 'text-brass bg-brass/10 border-brass/20'
@@ -267,12 +267,12 @@ export default function ProduitDetail({ produit: p, medias }: { produit: CFAProd
               {p.etat === 'NEUF' ? 'Neuf' : p.etat === 'OCCASION' ? 'Occasion' : 'Bon état'}
             </span>
             {p.en_vedette && (
-              <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-brass-light bg-brass/10 border-brass/20">
+              <span className="font-mono text-xs uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-brass-light bg-brass/10 border-brass/20">
                 ★ En vedette
               </span>
             )}
             {!stockOk && (
-              <span className="font-mono text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-paper/55 bg-paper/4 border-paper/8">
+              <span className="font-mono text-xs uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border text-paper/55 bg-paper/4 border-paper/8">
                 Épuisé
               </span>
             )}
@@ -289,11 +289,11 @@ export default function ProduitDetail({ produit: p, medias }: { produit: CFAProd
           {/* Prix rapide */}
           <div className="grid grid-cols-2 gap-px bg-paper/5 rounded-2xl overflow-hidden border border-paper/5">
             <div className="bg-surface px-4 py-4">
-              <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/40 mb-1">Prix total</div>
+              <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/70 mb-1">Prix total</div>
               <div className="font-display text-2xl text-brass-light">{fcfa(p.prix_vente)}</div>
             </div>
             <div className="bg-surface px-4 py-4">
-              <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/40 mb-1">Apport minimum</div>
+              <div className="font-mono text-xs uppercase tracking-[0.15em] text-paper/70 mb-1">Apport minimum</div>
               <div className="font-mono text-base font-medium text-paper/70 mt-0.5">{fcfa(p.apport_minimum)}</div>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function ProduitDetail({ produit: p, medias }: { produit: CFAProd
                 required type="tel"
                 value={waitPhone} onChange={e => setWaitPhone(e.target.value)}
                 placeholder="77 XXX XX XX" autoFocus
-                className="flex-1 min-w-0 bg-surface border border-paper/12 rounded-xl px-4 py-3 font-mono text-sm text-paper placeholder:text-paper/40 focus:outline-none focus:border-brass/40"
+                className="flex-1 min-w-0 bg-surface border border-paper/12 rounded-xl px-4 py-3 font-mono text-sm text-paper placeholder:text-paper/70 focus:outline-none focus:border-brass/40"
               />
               <button type="submit" disabled={waitLoading}
                 className="flex-shrink-0 bg-brass/15 border border-brass/25 text-brass-light px-4 py-3 rounded-xl font-mono text-sm hover:bg-brass/25 transition-colors disabled:opacity-50">
@@ -331,7 +331,7 @@ export default function ProduitDetail({ produit: p, medias }: { produit: CFAProd
             </button>
           )}
 
-          <p className="font-mono text-[10px] text-paper/25 text-center leading-relaxed">
+          <p className="font-mono text-xs text-paper/25 text-center leading-relaxed">
             Réservé aux fonctionnaires sénégalais titulaires d&apos;un matricule officiel.
             <br />Dossier validé sous 24 à 48h.
           </p>

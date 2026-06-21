@@ -61,11 +61,13 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+  font-size: 16px;
 }
 
 body {
   overflow-x: hidden;
   background-color: #FAF8F3;
+  line-height: 1.65;
 }
 
 /* ── Scrollbar light ── */
