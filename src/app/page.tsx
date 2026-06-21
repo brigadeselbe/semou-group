@@ -30,11 +30,12 @@ const STEPS = [
 ];
 
 export default async function Home() {
-  const [{ data: produits }, { count: nbClients }, { data: regionsRaw }, { data: allMedias }] = await Promise.all([
+  const [{ data: produits }, { count: nbClients }, { data: regionsRaw }, { data: allMedias }, { data: parametres }] = await Promise.all([
     supabase.from("cfa_produits").select("*").eq("actif", true).order("prix_vente"),
     supabase.from("cfa_clients").select("*", { count: "exact", head: true }),
     supabase.from("cfa_clients").select("region").not("region", "is", null),
     supabase.from("cfa_produit_medias").select("*").order("ordre"),
+    supabase.from("cfa_parametres").select("cle,valeur"),
   ]);
 
   // Grouper les médias par produit_id
@@ -47,8 +48,21 @@ export default async function Home() {
   const nbRegions = new Set((regionsRaw ?? []).map((r: { region: string }) => r.region)).size;
   const nbDossiers = nbClients ?? 0;
 
+  const param = (cle: string) => (parametres ?? []).find((p: { cle: string; valeur: string }) => p.cle === cle)?.valeur ?? ''
+  const videoUrl     = param('video_url')
+  const videoTitre   = param('video_titre') || 'Notre présentation'
+  const annonceActive = param('annonce_active') === 'true'
+  const annonceTexte  = param('annonce_texte')
+
   return (
     <div className="relative overflow-x-hidden">
+
+      {/* ── Bannière annonce ── */}
+      {annonceActive && annonceTexte && (
+        <div className="relative z-50 bg-brass text-void font-mono text-[11px] tracking-[0.15em] text-center py-2 px-4">
+          {annonceTexte}
+        </div>
+      )}
 
       {/* ── Ambient glow ── */}
       <div className="pointer-events-none fixed inset-0 z-0">
@@ -82,7 +96,7 @@ export default async function Home() {
           <div className="grid md:grid-cols-[1.25fr_1fr] gap-16 items-start">
             <div>
               {/* Badge — compact sur mobile */}
-              <div className="inline-flex items-center gap-2 font-mono text-[10px] md:text-xs tracking-[0.15em] md:tracking-[0.2em] text-brass/80 mb-6 md:mb-8 border border-brass/20 rounded-full px-3 md:px-4 py-1.5 bg-brass/5 whitespace-nowrap">
+              <div className="inline-flex items-center gap-2 font-mono text-[10px] md:text-xs tracking-[0.15em] md:tracking-[0.2em] text-brass-dark mb-6 md:mb-8 border border-brass/30 rounded-full px-3 md:px-4 py-1.5 bg-brass/8 whitespace-nowrap">
                 <span className="w-1.5 h-1.5 rounded-full bg-brass animate-glow-pulse flex-shrink-0" />
                 <span className="hidden sm:inline">BORDEREAU CFA · </span>CUSEMS Authentique
               </div>
@@ -171,6 +185,30 @@ export default async function Home() {
       </section>
 
       <Ticker />
+
+      {/* ── Bande annonce ── */}
+      {videoUrl && (
+        <section id="video" className="px-6 md:px-10 py-16 md:py-24 relative z-10">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <span className="font-mono text-xs uppercase tracking-[0.25em] text-brass">Présentation</span>
+              <h2 className="font-display text-2xl sm:text-3xl md:text-5xl mt-3 text-paper leading-tight">
+                {videoTitre}
+              </h2>
+            </div>
+            <div className="relative rounded-2xl overflow-hidden border border-paper/8 shadow-2xl"
+              style={{ aspectRatio: '16/9' }}>
+              <iframe
+                src={videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/')}
+                title={videoTitre}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Catalogue produits ── */}
       {produits && produits.length > 0 && (

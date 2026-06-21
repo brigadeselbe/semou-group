@@ -17,7 +17,7 @@
   --color-spruce-glow:  rgba(13,59,46,0.45);
 
   --color-brass:       #C9A227;
-  --color-brass-light: #E0BE54;
+  --color-brass-light: #B8920E;
   --color-brass-dark:  #9C7C18;
   --color-brass-glow:  rgba(201,162,39,0.25);
 
@@ -119,6 +119,7 @@ body {
 /* Sections sombres — restaure la palette claire pour le texte et les bordures */
 .bg-void,
 .bg-spruce,
+.bg-spruce-light,
 .bg-spruce-dark {
   --color-paper: #F7F3EC;
   --color-surface: #111110;

@@ -8,7 +8,7 @@ import {
   Lock, LogOut, Search, CheckCircle2, XCircle, Loader2, ChevronDown,
   Users, FileText, ExternalLink, ShoppingBag,
   TrendingUp, AlertCircle, Package, Plus, Edit2, Trash2, ToggleLeft,
-  ToggleRight, Star, MapPin, Download, Truck, Upload, X,
+  ToggleRight, Star, MapPin, Download, Truck, Upload, X, Settings, Film,
 } from 'lucide-react'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
@@ -28,7 +28,7 @@ type DashStats = {
 }
 type ClientFilter   = 'TOUS' | 'EN_ATTENTE' | 'VALIDE' | 'REJETE'
 type CommandeFilter = 'TOUS' | 'EN_COURS' | 'SOLDE' | 'ANNULE'
-type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits' | 'livraisons'
+type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits' | 'livraisons' | 'contenu'
 
 /* ── Constantes ── */
 const SESSION_KEY = 'sg_admin_session'
@@ -191,6 +191,13 @@ export default function Admin() {
   /* Livraison */
   const [livEdits,  setLivEdits]  = useState<Record<string, LivEdit>>({})
   const [savingLiv, setSavingLiv] = useState<string | null>(null)
+
+  /* Contenu */
+  type Param = { cle: string; valeur: string; description: string }
+  const [params,       setParams]       = useState<Param[]>([])
+  const [paramsLoaded, setParamsLoaded] = useState(false)
+  const [savingParam,  setSavingParam]  = useState<string | null>(null)
+  const [paramDraft,   setParamDraft]   = useState<Record<string, string>>({})
 
   /* Nouvelle commande */
   const [newCmdClient,  setNewCmdClient]  = useState<CFAClient | null>(null)
@@ -841,10 +848,29 @@ export default function Admin() {
     if (!error) setProduits(prev => prev.map(x => x.id === p.id ? { ...x, actif: !p.actif } : x))
   }
 
+  async function loadParams() {
+    const { data } = await supabase.from('cfa_parametres').select('cle,valeur,description').order('cle')
+    if (data) {
+      setParams(data as Param[])
+      const draft: Record<string, string> = {}
+      ;(data as Param[]).forEach(p => { draft[p.cle] = p.valeur })
+      setParamDraft(draft)
+      setParamsLoaded(true)
+    }
+  }
+
+  async function saveParam(cle: string) {
+    setSavingParam(cle)
+    await supabase.from('cfa_parametres').update({ valeur: paramDraft[cle] ?? '', updated_at: new Date().toISOString() }).eq('cle', cle)
+    setParams(prev => prev.map(p => p.cle === cle ? { ...p, valeur: paramDraft[cle] ?? '' } : p))
+    setSavingParam(null)
+  }
+
   function switchTab(t: Tab) {
     setTab(t)
     if ((t === 'commandes' || t === 'livraisons') && !cmdLoaded) loadCommandes()
     if (t === 'produits'  && !prodLoaded) loadProduits()
+    if (t === 'contenu'   && !paramsLoaded) loadParams()
   }
 
   const filteredClients = clients.filter(c => {
@@ -939,6 +965,7 @@ export default function Admin() {
     { key: 'commandes',   label: 'Commandes',       icon: ShoppingBag },
     { key: 'livraisons',  label: 'Livraisons',      icon: Truck },
     { key: 'produits',    label: 'Produits',        icon: Package },
+    { key: 'contenu',     label: 'Contenu',         icon: Settings },
   ]
 
   return (
@@ -2195,6 +2222,140 @@ export default function Admin() {
             )
           }
         </>
+      )}
+
+      {/* ═══════ CONTENU ═══════ */}
+      {tab === 'contenu' && (
+        <div className="space-y-6 max-w-2xl">
+          {!paramsLoaded
+            ? <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 text-brass animate-spin" /></div>
+            : (
+              <>
+                {/* Bande annonce */}
+                <div className="bg-surface border border-paper/6 rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-8 h-8 rounded-full bg-brass/10 border border-brass/20 flex items-center justify-center flex-shrink-0">
+                      <Film className="w-4 h-4 text-brass" />
+                    </div>
+                    <div>
+                      <div className="font-display text-base text-paper">Bande annonce</div>
+                      <div className="font-mono text-[10px] text-paper/45">Vidéo affichée sur la page d'accueil</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">
+                        URL YouTube <span className="text-paper/35">(ex: https://youtu.be/xxxxx ou https://youtube.com/watch?v=xxxxx)</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={paramDraft['video_url'] ?? ''}
+                          onChange={e => setParamDraft(d => ({ ...d, video_url: e.target.value }))}
+                          placeholder="https://youtu.be/…"
+                          className="flex-1 bg-surface-2 border border-paper/12 rounded-xl px-3 py-2.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors"
+                        />
+                        <button onClick={() => saveParam('video_url')} disabled={savingParam === 'video_url'}
+                          className="flex-shrink-0 flex items-center gap-1.5 bg-spruce-light text-paper font-mono text-[10px] uppercase tracking-[0.1em] px-4 py-2.5 rounded-xl hover:bg-spruce transition-colors disabled:opacity-50">
+                          {savingParam === 'video_url' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Sauver
+                        </button>
+                      </div>
+                      {(paramDraft['video_url'] ?? '') === '' && (
+                        <p className="font-mono text-[10px] text-paper/35 mt-1.5">Laisser vide pour masquer la section vidéo.</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">Titre de la section</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={paramDraft['video_titre'] ?? ''}
+                          onChange={e => setParamDraft(d => ({ ...d, video_titre: e.target.value }))}
+                          placeholder="Notre présentation"
+                          className="flex-1 bg-surface-2 border border-paper/12 rounded-xl px-3 py-2.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors"
+                        />
+                        <button onClick={() => saveParam('video_titre')} disabled={savingParam === 'video_titre'}
+                          className="flex-shrink-0 flex items-center gap-1.5 bg-spruce-light text-paper font-mono text-[10px] uppercase tracking-[0.1em] px-4 py-2.5 rounded-xl hover:bg-spruce transition-colors disabled:opacity-50">
+                          {savingParam === 'video_titre' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Sauver
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bannière d'annonce */}
+                <div className="bg-surface border border-paper/6 rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-8 h-8 rounded-full bg-brass/10 border border-brass/20 flex items-center justify-center flex-shrink-0">
+                      <AlertCircle className="w-4 h-4 text-brass" />
+                    </div>
+                    <div>
+                      <div className="font-display text-base text-paper">Bannière d&apos;annonce</div>
+                      <div className="font-mono text-[10px] text-paper/45">Bande dorée en haut de la page d'accueil</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-2">Afficher la bannière</label>
+                      <div className="flex gap-2">
+                        {['true', 'false'].map(v => (
+                          <button key={v} onClick={() => setParamDraft(d => ({ ...d, annonce_active: v }))}
+                            className={`flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] px-4 py-2 rounded-full border transition-colors ${
+                              (paramDraft['annonce_active'] ?? 'false') === v
+                                ? 'bg-brass/15 border-brass/40 text-brass'
+                                : 'border-paper/12 text-paper/50 hover:border-paper/25'
+                            }`}>
+                            {v === 'true' ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
+                            {v === 'true' ? 'Activée' : 'Désactivée'}
+                          </button>
+                        ))}
+                        <button onClick={() => saveParam('annonce_active')} disabled={savingParam === 'annonce_active'}
+                          className="ml-auto flex items-center gap-1.5 bg-spruce-light text-paper font-mono text-[10px] uppercase tracking-[0.1em] px-4 py-2 rounded-full hover:bg-spruce transition-colors disabled:opacity-50">
+                          {savingParam === 'annonce_active' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Sauver
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">Texte de la bannière</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={paramDraft['annonce_texte'] ?? ''}
+                          onChange={e => setParamDraft(d => ({ ...d, annonce_texte: e.target.value }))}
+                          placeholder="Ex: Nouveau produit disponible ! Commandez dès maintenant."
+                          className="flex-1 bg-surface-2 border border-paper/12 rounded-xl px-3 py-2.5 font-mono text-xs text-paper placeholder:text-paper/35 focus:border-brass/40 outline-none transition-colors"
+                        />
+                        <button onClick={() => saveParam('annonce_texte')} disabled={savingParam === 'annonce_texte'}
+                          className="flex-shrink-0 flex items-center gap-1.5 bg-spruce-light text-paper font-mono text-[10px] uppercase tracking-[0.1em] px-4 py-2.5 rounded-xl hover:bg-spruce transition-colors disabled:opacity-50">
+                          {savingParam === 'annonce_texte' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Sauver
+                        </button>
+                      </div>
+                    </div>
+
+                    {(paramDraft['annonce_active'] ?? 'false') === 'true' && (paramDraft['annonce_texte'] ?? '') && (
+                      <div className="rounded-xl overflow-hidden border border-brass/25">
+                        <div className="bg-brass text-void font-mono text-[11px] tracking-[0.15em] text-center py-2 px-4">
+                          {paramDraft['annonce_texte']}
+                        </div>
+                        <div className="font-mono text-[9px] text-paper/40 text-center py-1.5 bg-surface-2">
+                          Aperçu de la bannière
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )
+          }
+        </div>
       )}
 
       <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/12 text-center mt-10">
