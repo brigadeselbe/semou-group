@@ -17,6 +17,8 @@ const ALLOWED_RPCS = new Set([
   'admin_import_clients',
   'admin_log_relance_sms',
   'admin_get_relances_log',
+  'admin_get_bailleur_stats',
+  'admin_get_parametres',
 ])
 
 export async function POST(req: NextRequest) {
