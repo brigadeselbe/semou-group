@@ -9,7 +9,7 @@ import {
   Users, FileText, ExternalLink, ShoppingBag,
   TrendingUp, AlertCircle, Package, Plus, Edit2, Trash2, ToggleLeft,
   ToggleRight, Star, MapPin, Download, Truck, Upload, X, Settings, Film,
-  MessageSquare, Bell, Send,
+  MessageSquare, Bell, Send, Wallet,
 } from 'lucide-react'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
@@ -29,7 +29,7 @@ type DashStats = {
 }
 type ClientFilter   = 'TOUS' | 'EN_ATTENTE' | 'VALIDE' | 'REJETE'
 type CommandeFilter = 'TOUS' | 'EN_COURS' | 'SOLDE' | 'ANNULE'
-type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits' | 'livraisons' | 'relances' | 'contenu'
+type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits' | 'livraisons' | 'relances' | 'bailleur' | 'contenu'
 
 /* ── Constantes ── */
 const SESSION_KEY = 'sg_admin_session'
@@ -200,6 +200,14 @@ export default function Admin() {
   const [sendingRelance,    setSendingRelance]    = useState<string | null>(null)
   const [sentRelances,      setSentRelances]      = useState<Record<string, string>>({})
   const [bulkSending,       setBulkSending]       = useState(false)
+
+  /* Bailleur */
+  type BailleurInject = { id: string; label: string; montant: number; date_inject: string; notes: string }
+  type BailleurCmd    = { id: string; reference: string; notes: string; montant_bailleur: number; apport_paye: number; prix_vente: number; reste_a_payer: number; statut: string; source: string; created_at: string; client: { prenom: string; nom: string; telephone: string } }
+  type BailleurStats  = { total_injecte: number; capital_deploye: number; total_prix_vente: number; total_apports: number; versements_collectes: number; reste_a_percevoir: number; nb_commandes_actives: number; nb_commandes_retard: number; nb_commandes_soldees: number; injections: BailleurInject[]; commandes: BailleurCmd[] }
+  const [bailleurStats,  setBailleurStats]  = useState<BailleurStats | null>(null)
+  const [bailleurLoaded, setBailleurLoaded] = useState(false)
+  const [bailleurFilter, setBailleurFilter] = useState<'TOUS' | 'EN_COURS' | 'EN_RETARD' | 'SOLDE'>('TOUS')
 
   /* Contenu */
   type Param = { cle: string; valeur: string; description: string }
@@ -928,6 +936,12 @@ export default function Admin() {
     }
   }
 
+  async function loadBailleur() {
+    const { data } = await adminRpc('admin_get_bailleur_stats')
+    if (data) setBailleurStats(data as BailleurStats)
+    setBailleurLoaded(true)
+  }
+
   async function saveParam(cle: string) {
     setSavingParam(cle)
     await supabase.from('cfa_parametres').update({ valeur: paramDraft[cle] ?? '', updated_at: new Date().toISOString() }).eq('cle', cle)
@@ -941,6 +955,7 @@ export default function Admin() {
     if (t === 'produits'  && !prodLoaded)       loadProduits()
     if (t === 'contenu'   && !paramsLoaded)     loadParams()
     if (t === 'relances'  && !relanceLogsLoaded) loadRelancesLog()
+    if (t === 'bailleur'  && !bailleurLoaded)    loadBailleur()
   }
 
   const filteredClients = clients.filter(c => {
@@ -1036,7 +1051,8 @@ export default function Admin() {
     { key: 'livraisons',  label: 'Livraisons',      icon: Truck },
     { key: 'produits',    label: 'Produits',        icon: Package },
     { key: 'relances',    label: 'Relances SMS',    icon: Bell },
-    { key: 'contenu',     label: 'Contenu',         icon: Settings },
+    { key: 'bailleur',   label: 'Bailleur',         icon: Wallet },
+    { key: 'contenu',    label: 'Contenu',          icon: Settings },
   ]
 
   return (
@@ -2439,6 +2455,146 @@ export default function Admin() {
           </div>
         )
       })()}
+
+      {/* ═══════ BAILLEUR ═══════ */}
+      {tab === 'bailleur' && (
+        <div className="space-y-6">
+          {!bailleurLoaded || !bailleurStats
+            ? <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 text-brass animate-spin" /></div>
+            : (() => {
+                const bs = bailleurStats
+                const beneficeAttendu  = bs.total_prix_vente - bs.capital_deploye - bs.total_apports
+                const txRecouv         = bs.capital_deploye > 0 ? Math.round((bs.versements_collectes / bs.capital_deploye) * 100) : 0
+                const filtCmds = bailleurFilter === 'TOUS'
+                  ? bs.commandes
+                  : bs.commandes.filter(c => c.statut === bailleurFilter)
+                return (
+                  <>
+                    {/* KPIs */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="bg-surface border border-brass/20 rounded-xl p-4">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-brass mb-1">Capital injecté</div>
+                        <div className="font-display text-2xl text-brass">{fcfa(bs.total_injecte)}</div>
+                        <div className="font-mono text-[10px] text-paper/45 mt-0.5">{bs.injections.length} injection{bs.injections.length > 1 ? 's' : ''}</div>
+                      </div>
+                      <div className="bg-surface border border-paper/6 rounded-xl p-4">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 mb-1">Capital déployé</div>
+                        <div className="font-display text-2xl text-paper">{fcfa(bs.capital_deploye)}</div>
+                        <div className="font-mono text-[10px] text-paper/45 mt-0.5">En commandes actives</div>
+                      </div>
+                      <div className="bg-surface border border-spruce/20 rounded-xl p-4">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-spruce-light mb-1">Versements collectés</div>
+                        <div className="font-display text-2xl text-spruce-light">{fcfa(bs.versements_collectes)}</div>
+                        <div className="font-mono text-[10px] text-paper/45 mt-0.5">Taux recouvrement : {txRecouv}%</div>
+                      </div>
+                      <div className="bg-surface border border-paper/6 rounded-xl p-4">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 mb-1">Reste à percevoir</div>
+                        <div className="font-display text-2xl text-clay">{fcfa(bs.reste_a_percevoir)}</div>
+                        <div className="font-mono text-[10px] text-paper/45 mt-0.5">Sur commandes en cours</div>
+                      </div>
+                    </div>
+
+                    {/* Ligne 2 KPIs */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="bg-surface border border-paper/6 rounded-xl p-4">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 mb-1">Prix vente total</div>
+                        <div className="font-display text-xl text-paper">{fcfa(bs.total_prix_vente)}</div>
+                      </div>
+                      <div className="bg-surface border border-paper/6 rounded-xl p-4">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 mb-1">Apports clients</div>
+                        <div className="font-display text-xl text-paper">{fcfa(bs.total_apports)}</div>
+                      </div>
+                      <div className={`bg-surface border rounded-xl p-4 ${beneficeAttendu >= 0 ? 'border-spruce/20' : 'border-clay/20'}`}>
+                        <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 mb-1">Bénéfice attendu</div>
+                        <div className={`font-display text-xl ${beneficeAttendu >= 0 ? 'text-spruce-light' : 'text-clay'}`}>{fcfa(beneficeAttendu)}</div>
+                        <div className="font-mono text-[10px] text-paper/40 mt-0.5">Prix vente − bailleur − apports</div>
+                      </div>
+                      <div className="bg-surface border border-paper/6 rounded-xl p-4">
+                        <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 mb-2">Commandes</div>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex justify-between font-mono text-xs"><span className="text-brass">En cours</span><span className="text-paper">{bs.nb_commandes_actives}</span></div>
+                          <div className="flex justify-between font-mono text-xs"><span className="text-clay">En retard</span><span className="text-paper">{bs.nb_commandes_retard}</span></div>
+                          <div className="flex justify-between font-mono text-xs"><span className="text-spruce-light">Soldées</span><span className="text-paper">{bs.nb_commandes_soldees}</span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Injections */}
+                    <div className="bg-surface border border-paper/6 rounded-2xl p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Wallet className="w-4 h-4 text-brass" />
+                        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/70">Historique des injections</span>
+                      </div>
+                      <div className="space-y-2">
+                        {bs.injections.map(inj => (
+                          <div key={inj.id} className="flex items-center justify-between py-2.5 border-b border-paper/6 last:border-0">
+                            <div>
+                              <div className="font-body text-sm text-paper">{inj.label ?? '—'}</div>
+                              {inj.notes && <div className="font-mono text-xs text-paper/45">{inj.notes}</div>}
+                            </div>
+                            <div className="text-right">
+                              <div className="font-display text-lg text-brass">{fcfa(inj.montant)}</div>
+                              <div className="font-mono text-[10px] text-paper/45">{inj.date_inject ? new Date(inj.date_inject).toLocaleDateString('fr-SN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</div>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="flex items-center justify-between pt-2 font-display text-lg">
+                          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55">Total injecté</span>
+                          <span className="text-brass">{fcfa(bs.total_injecte)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Commandes bailleur */}
+                    <div className="bg-surface border border-paper/6 rounded-2xl p-5">
+                      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/70">
+                          Commandes avec apport bailleur ({bs.commandes.length})
+                        </span>
+                        <div className="flex gap-1.5">
+                          {(['TOUS', 'EN_COURS', 'EN_RETARD', 'SOLDE'] as const).map(f => (
+                            <button key={f} onClick={() => setBailleurFilter(f)}
+                              className={`font-mono text-[9px] uppercase tracking-[0.1em] px-3 py-1 rounded-full border transition-colors ${bailleurFilter === f ? 'bg-brass text-void border-brass' : 'text-paper/55 border-paper/12 hover:border-paper/25'}`}>
+                              {f === 'TOUS' ? 'Tous' : f === 'EN_COURS' ? 'En cours' : f === 'EN_RETARD' ? 'Retard' : 'Soldé'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                        {filtCmds.length === 0
+                          ? <p className="font-mono text-xs text-paper/40 text-center py-8">Aucune commande</p>
+                          : filtCmds.map(cmd => (
+                              <div key={cmd.id} className="flex items-center justify-between py-2.5 border-b border-paper/6 last:border-0 gap-3 flex-wrap">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-body text-sm text-paper">{cmd.client.prenom} {cmd.client.nom}</span>
+                                    <Badge statut={cmd.statut} s={CMD_STYLE} l={CMD_LBL} />
+                                  </div>
+                                  <div className="font-mono text-xs text-paper/50 mt-0.5">{cmd.reference} · {cmd.notes?.replace(' (Mai 2026)', '').replace(' (import Mai 2026)', '') ?? '—'}</div>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <div className="font-display text-base text-brass">{fcfa(cmd.montant_bailleur)}</div>
+                                  <div className="font-mono text-[10px] text-paper/45">
+                                    {cmd.reste_a_payer > 0 ? <span className="text-clay">Reste {fcfa(cmd.reste_a_payer)}</span> : <span className="text-spruce-light">Soldé</span>}
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                        }
+                      </div>
+                      {filtCmds.length > 0 && (
+                        <div className="flex justify-between items-center pt-3 border-t border-paper/6 mt-2">
+                          <span className="font-mono text-[10px] text-paper/45">Total bailleur sur sélection</span>
+                          <span className="font-display text-base text-brass">{fcfa(filtCmds.reduce((s, c) => s + c.montant_bailleur, 0))}</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )
+              })()
+          }
+        </div>
+      )}
 
       {/* ═══════ CONTENU ═══════ */}
       {tab === 'contenu' && (
