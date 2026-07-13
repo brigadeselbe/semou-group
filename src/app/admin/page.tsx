@@ -100,6 +100,21 @@ function SignedDocLink({ path, label }: { path: string; label: string }) {
 
 type LivStats = { en_attente: number; planifiee: number; en_route: number; livree: number }
 
+/* ── Téléchargement Excel côté navigateur (compatible Turbopack/prod) ── */
+function downloadXlsx(wb: import('xlsx').WorkBook, filename: string) {
+  // import dynamique déjà résolu par l'appelant, on accède via le global XLSX
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const XLSX = require('xlsx')
+  const buf  = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = filename
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 /* ── Proxy /api/admin/rpc — le mot de passe reste côté serveur ── */
 async function adminRpc(rpc: string, params: Record<string, unknown> = {}) {
   const res = await fetch('/api/admin/rpc', {
@@ -591,7 +606,7 @@ export default function Admin() {
     XLSX.utils.book_append_sheet(wb, wsCommandes, 'Commandes')
     XLSX.utils.book_append_sheet(wb, wsVers,      'Versements encaissés')
     XLSX.utils.book_append_sheet(wb, wsRetard,    'Retards')
-    XLSX.writeFile(wb, `rapport-semou-${mois}.xlsx`)
+    downloadXlsx(wb, `rapport-semou-${mois}.xlsx`)
     setGeneratingRapport(false)
   }
 
@@ -651,7 +666,7 @@ export default function Admin() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws,      'Clients')
     XLSX.utils.book_append_sheet(wb, wsSynth, 'Synthèse')
-    XLSX.writeFile(wb, `clients_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    downloadXlsx(wb, `clients_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   async function exportCommandes() {
@@ -741,7 +756,7 @@ export default function Admin() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws,      'Commandes')
     XLSX.utils.book_append_sheet(wb, wsSynth, 'Synthèse')
-    XLSX.writeFile(wb, `commandes_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    downloadXlsx(wb, `commandes_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   /* Produit form */
