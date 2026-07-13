@@ -1,5 +1,6 @@
 'use client'
 
+import * as XLSX from 'xlsx'
 import { useState, useEffect, useCallback } from 'react'
 import LogoSG from '@/components/LogoSG'
 import { supabase } from '@/lib/supabase'
@@ -101,7 +102,7 @@ function SignedDocLink({ path, label }: { path: string; label: string }) {
 type LivStats = { en_attente: number; planifiee: number; en_route: number; livree: number }
 
 /* ── Téléchargement Excel côté navigateur (compatible Turbopack/prod) ── */
-function downloadXlsx(XLSX: typeof import('xlsx'), wb: import('xlsx').WorkBook, filename: string) {
+function downloadXlsx(wb: XLSX.WorkBook, filename: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buf  = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as any
   const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
@@ -425,7 +426,6 @@ export default function Admin() {
     if (!file) return
     setImportResult(null)
     setImportRows([])
-    const XLSX  = (await import('xlsx')).default
     const buf   = await file.arrayBuffer()
     const wb    = XLSX.read(buf, { type: 'array' })
     const ws    = wb.Sheets[wb.SheetNames[0]]
@@ -484,7 +484,6 @@ export default function Admin() {
       setCmdLoaded(true)
     }
 
-    const XLSX     = (await import('xlsx')).default
     const fcfa2    = (n: number) => n.toLocaleString('fr-FR') + ' F CFA'
     const fmtDate2 = (s?: string | null) => s ? new Date(s).toLocaleDateString('fr-FR') : '—'
     const [y, m]   = mois.split('-')
@@ -606,13 +605,12 @@ export default function Admin() {
     XLSX.utils.book_append_sheet(wb, wsCommandes, 'Commandes')
     XLSX.utils.book_append_sheet(wb, wsVers,      'Versements encaissés')
     XLSX.utils.book_append_sheet(wb, wsRetard,    'Retards')
-    downloadXlsx(XLSX, wb, `rapport-semou-${mois}.xlsx`)
+    downloadXlsx(wb, `rapport-semou-${mois}.xlsx`)
     setGeneratingRapport(false)
   }
 
   /* ── Exports Excel ── */
   async function exportClients() {
-    const XLSX = (await import('xlsx')).default
     const today = new Date().toLocaleDateString('fr-FR')
 
     /* Feuille 1 : liste complète */
@@ -666,11 +664,10 @@ export default function Admin() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws,      'Clients')
     XLSX.utils.book_append_sheet(wb, wsSynth, 'Synthèse')
-    downloadXlsx(XLSX, wb, `clients_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    downloadXlsx(wb, `clients_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   async function exportCommandes() {
-    const XLSX = (await import('xlsx')).default
     const { data: raw } = await adminRpc('admin_get_commandes_full')
     const cmds = raw as CommandeAdmin[] | null
     if (!cmds?.length) return
@@ -756,7 +753,7 @@ export default function Admin() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws,      'Commandes')
     XLSX.utils.book_append_sheet(wb, wsSynth, 'Synthèse')
-    downloadXlsx(XLSX, wb, `commandes_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    downloadXlsx(wb, `commandes_semou_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   /* Produit form */
