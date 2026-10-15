@@ -75,7 +75,7 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <LogoSG size={38} />
-            <span className="font-display text-lg tracking-tight text-paper">SEMOU <span className="text-brass-light">GROUP</span></span>
+            <span className="font-display text-lg tracking-tight text-paper">SEMOU <span className="text-brass-light">Group - CFA Cusems A</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-8 font-body text-sm text-paper/70">
             <Link href="/produits"   className="hover:text-paper transition-colors">Catalogue</Link>
