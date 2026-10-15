@@ -140,7 +140,7 @@ export default async function RecuPage({ params, searchParams }: {
               <p className="font-mono text-[9px] text-paper/35 print:text-gray-400 leading-relaxed">
                 Ce reçu est généré automatiquement par la plateforme SEMOU GROUP.<br />
                 Conservez-le comme preuve de votre paiement.<br />
-                Contact : semou-group.vercel.app
+                Contact : www.semougroupe.sn
               </p>
             </div>
           </div>

@@ -29,10 +29,11 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
-const BASE_URL = 'https://semou-group.vercel.app'
+const BASE_URL = 'https://www.semougroupe.sn'
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
+  applicationName: 'SEMOU Group',
   title: {
     default:  'SEMOU GROUP — Paiement échelonné pour fonctionnaires',
     template: '%s | SEMOU GROUP',
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
     'SEMOU GROUP × CFA CUSEMS Authentique — Commandez des équipements et payez en plusieurs mensualités sur salaire. Réservé aux fonctionnaires sénégalais.',
   keywords: [
     'paiement échelonné', 'fonctionnaire Sénégal', 'CFA CUSEMS', 'SEMOU GROUP',
+    'Semou Groupe', 'semougroupe', 'semougroupe.sn', 'CUSEMS Authentique',
     'mensualité salaire', 'crédit fonctionnaire', 'équipement enseignant',
   ],
   authors: [{ name: 'SEMOU GROUP' }],

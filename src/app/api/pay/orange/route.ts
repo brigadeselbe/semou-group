@@ -6,7 +6,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 )
 
-const APP_URL           = process.env.NEXT_PUBLIC_APP_URL ?? 'https://semou-group.vercel.app'
+const APP_URL           = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.semougroupe.sn'
 const ORANGE_TOKEN_URL  = 'https://api.orange.com/oauth/v3/token'
 const ORANGE_PAY_URL    = 'https://api.orange.com/orange-money-webpay/SN/v1/webpayment'
 

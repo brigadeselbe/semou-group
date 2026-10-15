@@ -46,7 +46,7 @@ export async function sendSMS(to: string, message: string): Promise<boolean> {
 
 /* ── Templates ────────────────────────────────────────────────────────────── */
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://semou-group.vercel.app'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.semougroupe.sn'
 
 export const smsTemplates = {
   inscriptionConfirmee: (prenom: string, ref: string) =>

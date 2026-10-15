@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/admin', '/admin/', '/mon-compte', '/api/', '/recu/'],
       },
     ],
-    sitemap: 'https://semou-group.vercel.app/sitemap.xml',
+    sitemap: 'https://www.semougroupe.sn/sitemap.xml',
   }
 }

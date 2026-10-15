@@ -7,7 +7,7 @@ const supabase = createClient(
 )
 
 const WAVE_API_KEY  = process.env.WAVE_API_KEY ?? ''
-const APP_URL       = process.env.NEXT_PUBLIC_APP_URL ?? 'https://semou-group.vercel.app'
+const APP_URL       = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.semougroupe.sn'
 const WAVE_ENDPOINT = 'https://api.wave.com/v1/checkout/sessions'
 
 export async function POST(req: NextRequest) {

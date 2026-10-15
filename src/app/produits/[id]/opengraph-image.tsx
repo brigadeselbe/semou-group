@@ -124,7 +124,7 @@ export default async function ProductOGImage({ params }: { params: Promise<{ id:
           padding: '0 72px', borderTop: '1px solid rgba(255,255,255,0.06)',
         }}>
           <div style={{ fontSize: 12, color: 'rgba(247,243,236,0.3)', fontFamily: 'Arial', letterSpacing: '0.1em', display: 'flex' }}>
-            semou-group.vercel.app/produits
+            www.semougroupe.sn/produits
           </div>
         </div>
       </div>

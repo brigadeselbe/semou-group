@@ -104,7 +104,7 @@ export default function OGImage() {
             fontFamily: 'Arial, sans-serif', letterSpacing: '0.1em',
             display: 'flex',
           }}>
-            semou-group.vercel.app  ·  Récépissé N. 0413/MINT/DGAT/DLP
+            www.semougroupe.sn  ·  Récépissé N. 0413/MINT/DGAT/DLP
           </div>
         </div>
       </div>
