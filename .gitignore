@@ -17,3 +17,6 @@ tsconfig.tsbuildinfo
 .DS_Store
 *.pem
 .vercel
+
+# secrets locaux
+secrets.txt

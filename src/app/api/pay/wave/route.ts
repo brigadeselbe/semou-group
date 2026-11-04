@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-const supabase = createClient(
+// Clé service_role : paiement_annuler n'est plus accessible avec la clé publique.
+// Client créé à la requête : la clé n'existe pas au moment du build.
+const db = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
 const WAVE_API_KEY  = process.env.WAVE_API_KEY ?? ''
@@ -11,13 +13,14 @@ const APP_URL       = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.semougroup
 const WAVE_ENDPOINT = 'https://api.wave.com/v1/checkout/sessions'
 
 export async function POST(req: NextRequest) {
-  if (!WAVE_API_KEY) {
+  if (!WAVE_API_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json(
       { error: 'Le paiement Wave n\'est pas encore activé sur cette plateforme. Contactez le bureau SEMOU GROUP.' },
       { status: 503 },
     )
   }
 
+  const supabase = db()
   const { type, id, telephone } = await req.json()
 
   if (!type || !id || !telephone) {
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      amount:           String(montant),
+      amount:           String(Math.round(montant)), // XOF : pas de décimales
       currency:         'XOF',
       client_reference: txId,
       success_url:      `${APP_URL}/suivi?paiement=succes&ref=${txId}`,
