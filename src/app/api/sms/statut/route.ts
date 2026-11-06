@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendSMS, smsTemplates } from '@/lib/sms'
 import { isValidSession, SESSION_COOKIE } from '@/lib/adminSession'
 
-const supabase = createClient(
+const db = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
 export async function POST(req: NextRequest) {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 })
   }
 
-  const { data: rows } = await supabase.rpc('get_client_contact', { p_client_id: client_id })
+  const { data: rows } = await db().rpc('get_client_contact', { p_client_id: client_id })
   const client = rows?.[0]
   if (!client) return NextResponse.json({ ok: true })
 

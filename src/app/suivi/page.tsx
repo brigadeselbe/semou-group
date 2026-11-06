@@ -54,6 +54,9 @@ function StatutBadge({ statut }: { statut: string }) {
 /* ── Modal paiement ── */
 type PayTarget = { type: 'VERSEMENT' | 'APPORT'; id: string; montant: number; label: string }
 
+// À activer une fois Orange Money configuré et sa notification (/api/pay/orange/notify) authentifiée
+const ORANGE_ACTIF = false
+
 function PayModal({ target, telephone, onClose }: { target: PayTarget; telephone: string; onClose: () => void }) {
   const [loading, setLoading] = useState<'wave' | 'orange' | null>(null)
   const [error,   setError]   = useState('')
@@ -87,11 +90,13 @@ function PayModal({ target, telephone, onClose }: { target: PayTarget; telephone
             <span className="flex items-center gap-3"><CreditCard className="w-4 h-4" />Payer avec Wave</span>
             {loading === 'wave' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="opacity-60 text-sm">→</span>}
           </button>
-          <button onClick={() => pay('orange')} disabled={!!loading}
-            className="w-full flex items-center justify-between bg-[#F66B00] hover:bg-[#E05C00] text-white font-body font-medium px-5 py-3.5 rounded-xl transition-colors disabled:opacity-60">
-            <span className="flex items-center gap-3"><CreditCard className="w-4 h-4" />Payer avec Orange Money</span>
-            {loading === 'orange' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="opacity-60 text-sm">→</span>}
-          </button>
+          {ORANGE_ACTIF && (
+            <button onClick={() => pay('orange')} disabled={!!loading}
+              className="w-full flex items-center justify-between bg-[#F66B00] hover:bg-[#E05C00] text-white font-body font-medium px-5 py-3.5 rounded-xl transition-colors disabled:opacity-60">
+              <span className="flex items-center gap-3"><CreditCard className="w-4 h-4" />Payer avec Orange Money</span>
+              {loading === 'orange' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="opacity-60 text-sm">→</span>}
+            </button>
+          )}
           <button onClick={onClose} className="w-full font-body text-sm text-paper/55 hover:text-paper/70 py-2 transition-colors">Annuler</button>
         </div>
       </div>

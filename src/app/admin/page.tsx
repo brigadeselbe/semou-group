@@ -136,6 +136,19 @@ async function adminRpc(rpc: string, params: Record<string, unknown> = {}) {
   return { data: json.data as unknown, error: null }
 }
 
+/* Envoi d'un média : le serveur signe, le navigateur envoie directement au stockage */
+async function uploadMedia(bucket: string, path: string, file: File): Promise<string | null> {
+  const res = await fetch('/api/admin/media', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ bucket, path }),
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) return (json.error as string) ?? 'Erreur réseau'
+  const { error } = await supabase.storage.from(bucket).uploadToSignedUrl(path, json.token as string, file)
+  return error?.message ?? null
+}
+
 /* Rate-limiting géré côté serveur (cookie HttpOnly signé) — plus rien côté client */
 
 /* ── Formulaire produit ── */
@@ -812,9 +825,8 @@ export default function Admin() {
     if (photoFile) {
       const ext  = photoFile.name.split('.').pop()
       const path = `${Date.now()}.${ext}`
-      const { error: upErr } = await supabase.storage
-        .from('produit-photos').upload(path, photoFile, { upsert: true })
-      if (upErr) { alert('Erreur upload photo : ' + upErr.message); setSavingProd(false); return }
+      const upErr = await uploadMedia('produit-photos', path, photoFile)
+      if (upErr) { alert('Erreur upload photo : ' + upErr); setSavingProd(false); return }
       const { data: pub } = supabase.storage.from('produit-photos').getPublicUrl(path)
       photoUrl = pub.publicUrl
     }
@@ -867,14 +879,17 @@ export default function Admin() {
       const f = files[i]
       const ext  = f.name.split('.').pop()
       const path = `${produitId}/${Date.now()}-${i}.${ext}`
-      const { error: upErr } = await supabase.storage.from(bucket).upload(path, f, { upsert: true })
-      if (upErr) { alert('Erreur upload : ' + upErr.message); continue }
+      const upErr = await uploadMedia(bucket, path, f)
+      if (upErr) { alert('Erreur upload : ' + upErr); continue }
       const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path)
-      const { data: row } = await supabase
-        .from('cfa_produit_medias')
-        .insert({ produit_id: produitId, type, url: pub.publicUrl, ordre: nextOrdre + i })
-        .select().single()
-      if (row) setProdMedias(prev => [...prev, row as import('@/lib/supabase').CFAProduitMedia])
+      const res = await fetch('/api/admin/media', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ produit_id: produitId, type, url: pub.publicUrl, ordre: nextOrdre + i }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { alert('Erreur : ' + (json.error ?? 'média non enregistré')); continue }
+      setProdMedias(prev => [...prev, json.row as import('@/lib/supabase').CFAProduitMedia])
     }
     setUploadingMedia(false)
   }
@@ -882,7 +897,13 @@ export default function Admin() {
   async function handleDeleteMedia(mediaId: string, url: string, type: 'IMAGE' | 'VIDEO') {
     const bucket = type === 'IMAGE' ? 'produit-photos' : 'produit-videos'
     const pathMatch = url.match(/\/object\/public\/[^/]+\/(.+)$/)
-    if (pathMatch) await supabase.storage.from(bucket).remove([pathMatch[1]])
+    if (pathMatch) {
+      await fetch('/api/admin/media', {
+        method:  'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ bucket, path: pathMatch[1] }),
+      })
+    }
     await adminRpc('admin_delete_media', { p_media_id: mediaId })
     setProdMedias(prev => prev.filter(m => m.id !== mediaId))
   }
@@ -896,12 +917,13 @@ export default function Admin() {
   async function handleToggleActif(p: CFAProduit) {
     const { error } = await adminRpc('admin_upsert_produit', {
       p_id: p.id,
-      p_nom: p.nom, p_description: p.description, p_prix_vente: p.prix_vente,
+      p_nom: p.nom, p_description: p.description, p_photo_url: p.photo_url, p_prix_vente: p.prix_vente,
       p_apport_minimum: p.apport_minimum, p_nb_mensualites: p.nb_mensualites_max,
       p_stock: p.stock, p_stock_illimite: p.stock_illimite, p_stock_seuil: p.stock_seuil ?? 3, p_actif: !p.actif,
       p_en_vedette: p.en_vedette, p_etat: p.etat,
     })
-    if (!error) setProduits(prev => prev.map(x => x.id === p.id ? { ...x, actif: !p.actif } : x))
+    if (error) { alert('Erreur : ' + error.message); return }
+    setProduits(prev => prev.map(x => x.id === p.id ? { ...x, actif: !p.actif } : x))
   }
 
   async function loadRelancesLog() {
@@ -983,7 +1005,17 @@ export default function Admin() {
 
   async function saveParam(cle: string) {
     setSavingParam(cle)
-    await supabase.from('cfa_parametres').update({ valeur: paramDraft[cle] ?? '', updated_at: new Date().toISOString() }).eq('cle', cle)
+    const res = await fetch('/api/admin/parametre', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ cle, valeur: paramDraft[cle] ?? '' }),
+    })
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      alert('Erreur : ' + (json.error ?? 'enregistrement impossible'))
+      setSavingParam(null)
+      return
+    }
     setParams(prev => prev.map(p => p.cle === cle ? { ...p, valeur: paramDraft[cle] ?? '' } : p))
     setSavingParam(null)
   }

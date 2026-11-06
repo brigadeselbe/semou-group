@@ -2,9 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendSMS, smsTemplates } from '@/lib/sms'
 
-const supabase = createClient(
+const db = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
 function formatDate(iso: string) {
@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
+  const supabase = db()
   let smsSent = 0; let errors = 0
 
   const { data: rappels, error: rErr } = await supabase.rpc('get_rappels_sms')

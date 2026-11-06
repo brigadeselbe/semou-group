@@ -2,16 +2,16 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendSMS, smsTemplates } from '@/lib/sms'
 
-const supabase = createClient(
+const db = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
 export async function POST(req: NextRequest) {
   const { telephone } = await req.json().catch(() => ({}))
   if (!telephone) return NextResponse.json({ error: 'Numéro manquant' }, { status: 400 })
 
-  const { data: code, error } = await supabase.rpc('otp_create', { p_telephone: telephone })
+  const { data: code, error } = await db().rpc('otp_create', { p_telephone: telephone })
   if (error) return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
 
   if (!code) {

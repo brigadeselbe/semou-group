@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-const supabase = createClient(
+const db = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -16,6 +16,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 export async function POST(req: NextRequest) {
   const { telephone, code } = await req.json().catch(() => ({}))
   if (!telephone || !code) return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 })
+
+  const supabase = db()
 
   /* 1. Vérifier le code OTP */
   const { data: result, error: rpcError } = await supabase.rpc('otp_verify', {
