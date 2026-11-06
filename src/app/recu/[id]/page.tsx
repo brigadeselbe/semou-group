@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import RecuActions from './RecuActions'
 
 function fcfa(n: number) { return n.toLocaleString('fr-SN') + ' F CFA' }
 function fmtDate(s: string | null) {
@@ -45,16 +46,7 @@ export default async function RecuPage({ params, searchParams }: {
       `}</style>
 
       {/* Bouton imprimer */}
-      <div className="no-print fixed top-4 right-4 z-50 flex gap-3">
-        <button onClick={() => window.print()}
-          className="bg-spruce-light text-paper font-body text-sm px-5 py-2.5 rounded-full hover:bg-spruce transition-colors shadow-lg">
-          Imprimer / Télécharger PDF
-        </button>
-        <button onClick={() => window.close()}
-          className="bg-paper/8 text-paper font-body text-sm px-5 py-2.5 rounded-full hover:bg-paper/15 transition-colors">
-          Fermer
-        </button>
-      </div>
+      <RecuActions />
 
       {/* Reçu */}
       <div className="min-h-screen bg-[#FAF8F3] py-16 px-6 print:py-0 print:px-0 print:bg-white">

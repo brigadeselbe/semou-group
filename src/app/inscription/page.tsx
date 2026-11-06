@@ -4,12 +4,13 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft, Upload, AlertCircle, Loader2, ChevronRight,
-  CreditCard, CheckCircle2, X, Check,
+  CheckCircle2, X, Check,
 } from 'lucide-react'
 import LogoSG from '@/components/LogoSG'
 import { supabase } from '@/lib/supabase'
 import type { CFAProduit } from '@/lib/supabase'
 import StampMark from '@/components/StampMark'
+import { produitCommandable } from '@/lib/produit'
 
 const REGIONS_SN = [
   'Dakar', 'Thiès', 'Saint-Louis', 'Diourbel', 'Louga', 'Kaolack',
@@ -30,18 +31,11 @@ const CORPS_LIST = [
   { value: 'AUTRE',       label: "Autre corps d'État" },
 ]
 
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, '')
-  if (digits.startsWith('221')) return digits
-  return '221' + (digits.startsWith('0') ? digits.slice(1) : digits)
-}
-async function uploadDoc(file: File, path: string): Promise<string> {
-  const { data, error } = await supabase.storage.from('documents').upload(path, file, { upsert: true })
-  return error ? `ERREUR:${error.message}` : data.path
-}
+const TYPES_DOC = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+const TAILLE_MAX_DOC = 10 * 1024 * 1024
 function fcfa(n: number) { return n.toLocaleString('fr-SN') + ' F' }
 
-type Stage = 'form' | 'submitting' | 'paiement' | 'success' | 'error'
+type Stage = 'form' | 'submitting' | 'success' | 'error'
 
 /* ── Zone upload drag-and-drop ── */
 function DropZone({ label, file, onFile, onClear }: {
@@ -83,7 +77,7 @@ function DropZone({ label, file, onFile, onClear }: {
       <Upload className="w-5 h-5 text-paper/65 mx-auto mb-2" />
       <div className="font-mono text-xs text-paper/75">{label}</div>
       <div className="font-mono text-xs text-paper/55 mt-1">JPEG · PNG · PDF — 10 Mo max</div>
-      <input ref={ref} type="file" accept="image/*,.pdf" className="hidden"
+      <input ref={ref} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden"
         onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f) }} />
     </div>
   )
@@ -182,17 +176,15 @@ export default function Inscription() {
   const [stage,      setStage]      = useState<Stage>('form')
   const [errMsg,     setErrMsg]     = useState('')
   const [refCode,    setRefCode]    = useState('')
-  const [commandeId, setCommandeId] = useState('')
-  const [payLoading, setPayLoading] = useState<'wave' | 'orange' | null>(null)
-  const [payError,   setPayError]   = useState('')
 
   useEffect(() => {
     const preselect = new URLSearchParams(window.location.search).get('produit')
     supabase.from('cfa_produits').select('*').eq('actif', true).order('prix_vente')
       .then(({ data }) => {
         if (data) {
-          setProduits(data as CFAProduit[])
-          if (preselect && data.find((p: CFAProduit) => p.id === preselect)) {
+          const commandables = (data as CFAProduit[]).filter(produitCommandable)
+          setProduits(commandables)
+          if (preselect && commandables.find(p => p.id === preselect)) {
             setProduitId(preselect)
           }
         }
@@ -234,148 +226,37 @@ export default function Inscription() {
       return
     }
 
+    const invalide = [cniRecto, cniVerso, bulletin].find(f => !TYPES_DOC.includes(f.type) || f.size > TAILLE_MAX_DOC)
+    if (invalide) {
+      setErrMsg(`« ${invalide.name} » : formats acceptés JPEG, PNG, WEBP ou PDF, 10 Mo maximum.`)
+      return
+    }
+
     setStage('submitting')
 
-    const phone = normalizePhone(telephone)
-    const ts    = Date.now()
-    const ext   = (f: File) => f.name.split('.').pop() ?? 'jpg'
+    const fd = new FormData()
+    Object.entries({ prenom, nom, telephone, matricule, corps, type_agent: typeAgent, ia, ief, region, ecole })
+      .forEach(([k, v]) => fd.append(k, v))
+    if (produitId) {
+      fd.append('produit_id', produitId)
+      fd.append('nb_mensualites', String(nbMensualites))
+    }
+    fd.append('cni_recto', cniRecto)
+    fd.append('cni_verso', cniVerso)
+    fd.append('bulletin', bulletin)
 
-    const [cniRectoPath, cniVersoPath, bulletinPath] = await Promise.all([
-      uploadDoc(cniRecto, `cni/${phone}/${ts}_recto.${ext(cniRecto)}`),
-      uploadDoc(cniVerso, `cni/${phone}/${ts}_verso.${ext(cniVerso)}`),
-      uploadDoc(bulletin, `bulletins/${phone}/${ts}.${ext(bulletin)}`),
-    ])
+    const res  = await fetch('/api/inscription', { method: 'POST', body: fd }).catch(() => null)
+    const json = res ? await res.json().catch(() => null) : null
 
-    const { data, error } = await supabase
-      .from('cfa_clients')
-      .insert({
-        prenom:             prenom.trim().toUpperCase(),
-        nom:                nom.trim().toUpperCase(),
-        telephone:          phone,
-        matricule:          matricule.trim().toUpperCase(),
-        type_fonctionnaire: corps,
-        type_enseignant:    corps === 'ENSEIGNANT' ? typeAgent : null,
-        corps,
-        ia:          ia.trim()    || null,
-        ief:         ief.trim()   || null,
-        region:      region       || null,
-        ecole:       ecole.trim() || null,
-        statut:      'EN_ATTENTE',
-        source:      'INSCRIPTION',
-        cni_url:     cniRectoPath.startsWith('ERREUR') ? null : cniRectoPath,
-        bulletin_url: bulletinPath.startsWith('ERREUR') ? null : bulletinPath,
-        notes:       cniVersoPath.startsWith('ERREUR') ? null : `CNI_VERSO:${cniVersoPath}`,
-      })
-      .select('id')
-      .single()
-
-    if (error) {
-      setErrMsg(
-        error.code === '23505'
-          ? 'Ce numéro est déjà enregistré. Rendez-vous sur /suivi pour retrouver votre dossier.'
-          : `Erreur : ${error.message}`
-      )
+    if (!res?.ok || !json) {
+      setErrMsg(json?.error ?? 'Envoi impossible — vérifiez votre connexion et réessayez.')
       setStage('error')
       return
     }
 
-    const cid = data.id as string
-    const ref = `SG-${new Date().getFullYear()}-${cid.slice(-8).toUpperCase()}`
-    setRefCode(ref)
-
-    fetch('/api/sms/inscription', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telephone: normalizePhone(telephone), prenom: prenom.trim(), ref }),
-    }).catch(() => null)
-
-    if (produitId) {
-      const { data: cmdId, error: cmdErr } = await supabase.rpc('inscription_creer_commande', {
-        p_client_id:      cid,
-        p_produit_id:     produitId,
-        p_nb_mensualites: nbMensualites,
-      })
-      if (cmdErr || !cmdId) {
-        setErrMsg(`Dossier créé mais erreur commande : ${cmdErr?.message ?? '—'}`)
-        setStage('success')
-        return
-      }
-      setCommandeId(cmdId as string)
-      setStage('paiement')
-    } else {
-      setStage('success')
-    }
-  }
-
-  async function handlePay(moyen: 'wave' | 'orange') {
-    setPayLoading(moyen); setPayError('')
-    const res = await fetch(`/api/pay/${moyen}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'APPORT', id: commandeId, telephone: normalizePhone(telephone) }),
-    })
-    const json = await res.json()
-    if (!res.ok) { setPayError(json.error ?? 'Erreur'); setPayLoading(null); return }
-    window.location.href = json.checkout_url
-  }
-
-  /* ── Paiement ── */
-  if (stage === 'paiement') {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-6 py-20">
-        <div className="relative max-w-sm w-full">
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-60 h-40 bg-brass/10 blur-[80px] rounded-full pointer-events-none" />
-          <div className="relative bg-surface border border-paper/6 rounded-2xl p-8">
-            <div className="font-mono text-xs uppercase tracking-[0.25em] text-paper/75 mb-1">Étape finale</div>
-            <div className="font-display text-2xl text-paper mb-1">
-              Payer <span className="italic text-brass-light">l&apos;apport</span>
-            </div>
-            <p className="font-body text-paper/65 text-sm mb-6 leading-relaxed">
-              Verrouillez votre commande en réglant l&apos;apport initial.
-            </p>
-            {produitChoisi && (
-              <div className="bg-surface-2 border border-paper/10 rounded-xl p-4 mb-6 space-y-2">
-                <div className="font-body text-sm font-medium text-paper">{produitChoisi.nom}</div>
-                <div className="grid grid-cols-2 gap-3 font-mono text-xs">
-                  <div>
-                    <div className="text-paper/75 text-[10px] uppercase tracking-[0.12em]">Apport</div>
-                    <div className="text-brass-light mt-0.5">{fcfa(apport)}</div>
-                  </div>
-                  <div>
-                    <div className="text-paper/75 text-[10px] uppercase tracking-[0.12em]">Mensualité</div>
-                    <div className="text-paper/60 mt-0.5">{fcfa(mensualite)} × {nbMensualites}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {payError && (
-              <div className="flex items-start gap-2 bg-clay/10 border border-clay/25 rounded-xl p-3 mb-4 text-clay text-xs font-body">
-                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />{payError}
-              </div>
-            )}
-            <div className="space-y-3">
-              <button onClick={() => handlePay('wave')} disabled={!!payLoading}
-                className="w-full flex items-center justify-between bg-[#1B75D0] hover:bg-[#1565BA] text-white font-body font-medium px-5 py-3.5 rounded-xl transition-colors disabled:opacity-50">
-                <span className="flex items-center gap-3"><CreditCard className="w-4 h-4" /><span>Payer avec Wave</span></span>
-                {payLoading === 'wave' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-sm opacity-70">→</span>}
-              </button>
-              <button onClick={() => handlePay('orange')} disabled={!!payLoading}
-                className="w-full flex items-center justify-between bg-[#F66B00] hover:bg-[#E05C00] text-white font-body font-medium px-5 py-3.5 rounded-xl transition-colors disabled:opacity-50">
-                <span className="flex items-center gap-3"><CreditCard className="w-4 h-4" /><span>Payer avec Orange Money</span></span>
-                {payLoading === 'orange' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-sm opacity-70">→</span>}
-              </button>
-              <button onClick={() => setStage('success')}
-                className="w-full font-body text-sm text-paper/60 hover:text-paper/55 py-2 transition-colors">
-                Payer plus tard → accéder à mon suivi
-              </button>
-            </div>
-            <div className="mt-5 pt-4 border-t border-dashed border-paper/6">
-              <div className="font-mono text-xs text-paper/65 tracking-[0.08em]">Réf. dossier : {refCode}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    setRefCode(json.ref)
+    if (json.commande_error) setErrMsg(json.commande_error)
+    setStage('success')
   }
 
   /* ── Succès ── */
@@ -396,6 +277,12 @@ export default function Inscription() {
               Votre dossier est en cours de traitement. Vous recevrez un SMS de confirmation dans les{' '}
               <strong className="text-paper/70">24 à 48 heures</strong>.
             </p>
+            {produitId && !errMsg && (
+              <p className="font-body text-paper/75 text-sm leading-relaxed mb-8 max-w-xs mx-auto">
+                Aucun paiement n&apos;est demandé pour l&apos;instant. Une fois votre dossier validé, vous pourrez payer votre apport depuis la page de suivi.
+              </p>
+            )}
+            {errMsg && <div className="mb-8 text-left"><ErrBanner msg={errMsg} /></div>}
             <div className="bg-surface-2 border border-paper/10 rounded-xl p-4 mb-10 inline-block">
               <div className="font-mono text-xs uppercase tracking-[0.2em] text-paper/55 mb-1.5">Référence dossier</div>
               <div className="font-mono text-base md:text-lg font-medium text-brass-light">{refCode}</div>
@@ -642,8 +529,6 @@ export default function Inscription() {
                 className="flex-1 flex items-center justify-center gap-2 font-body font-medium bg-spruce-light text-paper px-6 py-3.5 rounded-2xl hover:bg-spruce transition-colors disabled:opacity-50 glow-green">
                 {stage === 'submitting' ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Envoi en cours…</>
-                ) : produitId ? (
-                  <>Déposer et payer l&apos;apport <ChevronRight className="w-4 h-4" /></>
                 ) : (
                   <>Déposer mon dossier <ChevronRight className="w-4 h-4" /></>
                 )}

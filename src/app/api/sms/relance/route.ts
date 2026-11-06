@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendSMS, smsTemplates } from '@/lib/sms'
 import { isValidSession, SESSION_COOKIE } from '@/lib/adminSession'
 
-const supabase = createClient(
+const db = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.semougroupe.sn'
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   const smsSent = await sendSMS(telephone, message)
 
-  await supabase.rpc('admin_log_relance_sms', {
+  await db().rpc('admin_log_relance_sms', {
     p_password:    process.env.ADMIN_PASSWORD!,
     p_client_id:   client_id,
     p_telephone:   telephone,

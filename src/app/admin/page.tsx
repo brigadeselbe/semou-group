@@ -29,7 +29,7 @@ type DashStats = {
   regions: { region: string; nb_clients: number }[] | null
 }
 type ClientFilter   = 'TOUS' | 'EN_ATTENTE' | 'VALIDE' | 'REJETE'
-type CommandeFilter = 'TOUS' | 'EN_COURS' | 'SOLDE' | 'ANNULE'
+type CommandeFilter = 'TOUS' | 'EN_ATTENTE' | 'EN_COURS' | 'EN_RETARD' | 'SOLDE' | 'ANNULE'
 type Tab = 'dashboard' | 'clients' | 'commandes' | 'produits' | 'livraisons' | 'relances' | 'bailleur' | 'contenu'
 
 /* ── Constantes ── */
@@ -42,9 +42,11 @@ const CLI_STYLE: Record<string, string> = {
   SUSPENDU:   'text-paper/65 bg-paper/5 border-paper/10',
 }
 const CMD_STYLE: Record<string, string> = {
-  EN_COURS: 'text-brass bg-brass/10 border-brass/20',
-  SOLDE:    'text-spruce-light bg-spruce/15 border-spruce/25',
-  ANNULE:   'text-clay bg-clay/10 border-clay/20',
+  EN_ATTENTE: 'text-paper/60 bg-paper/4 border-paper/8',
+  EN_COURS:   'text-brass bg-brass/10 border-brass/20',
+  EN_RETARD:  'text-clay bg-clay/10 border-clay/20',
+  SOLDE:      'text-spruce-light bg-spruce/15 border-spruce/25',
+  ANNULE:     'text-clay bg-clay/10 border-clay/20',
 }
 const VER_STYLE: Record<string, string> = {
   PAYE:       'text-spruce-light bg-spruce/15 border-spruce/25',
@@ -58,7 +60,7 @@ const LIV_STYLE: Record<string, string> = {
   LIVREE:     'text-spruce-light bg-spruce/15 border-spruce/25',
 }
 const CLI_LBL: Record<string, string>  = { EN_ATTENTE: 'En attente', VALIDE: 'Validé', REJETE: 'Rejeté', SUSPENDU: 'Suspendu' }
-const CMD_LBL: Record<string, string>  = { EN_COURS: 'En cours', SOLDE: 'Soldé', ANNULE: 'Annulé', EN_ATTENTE: 'En attente' }
+const CMD_LBL: Record<string, string>  = { EN_COURS: 'En cours', EN_RETARD: 'En retard', SOLDE: 'Soldé', ANNULE: 'Annulé', EN_ATTENTE: 'En attente' }
 const VER_LBL: Record<string, string>  = { PAYE: 'Payé', EN_ATTENTE: 'À venir', EN_RETARD: 'En retard' }
 const LIV_LBL: Record<string, string>  = { EN_ATTENTE: 'En attente', PLANIFIEE: 'Planifiée', EN_ROUTE: 'En route', LIVREE: 'Livrée' }
 const LIV_STEPS = [
@@ -86,8 +88,14 @@ function SignedDocLink({ path, label }: { path: string; label: string }) {
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   useEffect(() => {
-    supabase.storage.from('documents').createSignedUrl(path, 3600)
-      .then(({ data }) => { setUrl(data?.signedUrl ?? null); setLoading(false) })
+    fetch('/api/admin/document', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ path }),
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then(json => { setUrl(json?.url ?? null); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [path])
   if (loading) return <span className="font-mono text-[10px] text-paper/45">Chargement…</span>
   if (!url)    return <span className="font-mono text-[10px] text-clay">Inaccessible</span>
@@ -239,6 +247,7 @@ export default function Admin() {
   const [newCmdApport,  setNewCmdApport]  = useState(0)
   const [newCmdMoyen,   setNewCmdMoyen]   = useState('ESPECES')
   const [creatingCmd,   setCreatingCmd]   = useState(false)
+  const [activatingCmd, setActivatingCmd] = useState<string | null>(null)
 
   /* Restaurer session */
   useEffect(() => {
@@ -320,6 +329,9 @@ export default function Admin() {
     })
     if (error) { alert('Erreur : ' + error.message); setUpdating(null); return }
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, statut: newStatut } : c))
+    if (newStatut === 'REJETE') {
+      setCommandes(prev => prev.map(c => c.client_id === clientId && c.statut === 'EN_ATTENTE' ? { ...c, statut: 'ANNULE' } : c))
+    }
     if (newStatut === 'VALIDE' || newStatut === 'REJETE') {
       fetch('/api/sms/statut', {
         method: 'POST',
@@ -355,6 +367,21 @@ export default function Admin() {
       }
     }))
     setMarkingVers(null)
+  }
+
+  async function handleActiverCommande(cmd: CommandeAdmin) {
+    const apport = Math.max(0, cmd.prix_vente - cmd.nb_mensualites * cmd.montant_mensualite)
+    const question = apport > 0
+      ? `Confirmer la réception de l'apport de ${fcfa(apport)} en espèces et activer cette commande ?`
+      : 'Activer cette commande ?'
+    if (!confirm(question)) return
+    setActivatingCmd(cmd.id)
+    const { error } = await adminRpc('admin_activer_commande', { p_commande_id: cmd.id, p_moyen: 'ESPECES' })
+    if (error) { alert('Erreur : ' + error.message); setActivatingCmd(null); return }
+    setCommandes(prev => prev.map(c => c.id === cmd.id
+      ? { ...c, statut: 'EN_COURS', apport_paye: apport, reste_a_payer: Math.max(0, c.prix_vente - apport) }
+      : c))
+    setActivatingCmd(null)
   }
 
   async function handleUpdateLivraison(cmdId: string, edit: LivEdit) {
@@ -1648,12 +1675,12 @@ export default function Admin() {
                       className="w-full bg-surface border border-paper/8 rounded-xl pl-9 pr-4 py-2.5 font-body text-sm text-paper placeholder:text-paper/65 focus:border-brass/40 outline-none transition-colors" />
                   </div>
                   <div className="flex gap-1 bg-surface border border-paper/8 rounded-xl p-1">
-                    {(['TOUS', 'EN_COURS', 'SOLDE', 'ANNULE'] as CommandeFilter[]).map(f => (
+                    {(['TOUS', 'EN_ATTENTE', 'EN_COURS', 'EN_RETARD', 'SOLDE', 'ANNULE'] as CommandeFilter[]).map(f => (
                       <button key={f} onClick={() => setCmdFilter(f)}
                         className={`font-mono text-[10px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg transition-colors ${
                           cmdFilter === f ? 'bg-void text-brass border border-brass/20' : 'text-paper/60 hover:text-paper/60'
                         }`}>
-                        {f === 'TOUS' ? 'Tous' : f === 'EN_COURS' ? 'En cours' : f === 'SOLDE' ? 'Soldées' : 'Annulées'}
+                        {f === 'TOUS' ? 'Tous' : f === 'EN_ATTENTE' ? 'En attente' : f === 'EN_COURS' ? 'En cours' : f === 'EN_RETARD' ? 'En retard' : f === 'SOLDE' ? 'Soldées' : 'Annulées'}
                       </button>
                     ))}
                   </div>
@@ -1747,6 +1774,15 @@ export default function Admin() {
                                   {cmdExpand === cmd.id && (
                                     <tr key={`${cmd.id}-d`} className="bg-void/50 border-b border-paper/4">
                                       <td colSpan={8} className="px-4 py-4">
+                                        {cmd.statut === 'EN_ATTENTE' && (clients.find(c => c.id === cmd.client_id)?.statut !== 'VALIDE' ? (
+                                          <p className="mb-4 font-mono text-[10px] text-paper/55">Validez d&apos;abord le dossier du client pour activer cette commande.</p>
+                                        ) : (
+                                          <button onClick={() => handleActiverCommande(cmd)} disabled={activatingCmd === cmd.id}
+                                            className="mb-4 flex items-center gap-1.5 font-mono text-[10px] uppercase text-spruce-light border border-spruce/30 rounded-full px-3 py-1 hover:bg-spruce/10 transition-colors disabled:opacity-50">
+                                            {activatingCmd === cmd.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                                            Activer la commande
+                                          </button>
+                                        ))}
                                         <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/55 mb-3">
                                           Échéancier · {cmd.montant_mensualite > 0 ? `${fcfa(cmd.montant_mensualite)} / mois` : ''}
                                           {cmd.date_fin_prevue ? ` · Fin prévue ${fmt(cmd.date_fin_prevue)}` : ''}
@@ -1762,7 +1798,7 @@ export default function Admin() {
                                                   <span className="text-paper/60 w-24 text-right">{fcfa(v.montant_prevu)}</span>
                                                   {v.date_paiement && <span className="text-paper/55 hidden md:inline">payé {fmt(v.date_paiement)}</span>}
                                                   <Badge statut={v.statut} s={VER_STYLE} l={VER_LBL} />
-                                                  {(v.statut === 'EN_ATTENTE' || v.statut === 'EN_RETARD') && cmd.statut === 'EN_COURS' && (
+                                                  {(v.statut === 'EN_ATTENTE' || v.statut === 'EN_RETARD') && (cmd.statut === 'EN_COURS' || cmd.statut === 'EN_RETARD') && (
                                                     markingVers === v.id
                                                       ? <Loader2 className="w-3.5 h-3.5 text-brass animate-spin ml-1" />
                                                       : (
@@ -2165,7 +2201,7 @@ export default function Admin() {
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/55 block mb-1.5">Moyen de paiement apport</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {[['ESPECES', 'Espèces'], ['WAVE', 'Wave'], ['ORANGE', 'Orange']].map(([val, lbl]) => (
+                  {[['ESPECES', 'Espèces'], ['WAVE', 'Wave'], ['ORANGE_MONEY', 'Orange']].map(([val, lbl]) => (
                     <button key={val} type="button" onClick={() => setNewCmdMoyen(val)}
                       className={`font-mono text-[10px] uppercase py-2 rounded-xl border transition-colors ${newCmdMoyen === val ? 'bg-brass/15 border-brass/50 text-brass' : 'border-paper/10 text-paper/65 hover:border-paper/20'}`}>
                       {lbl}

@@ -100,9 +100,10 @@ function PayModal({ target, telephone, onClose }: { target: PayTarget; telephone
 }
 
 /* ── Timeline versements ── */
-function VersementsTimeline({ versements, canPay, onPay }: {
+function VersementsTimeline({ versements, canPay, telephone, onPay }: {
   versements: CFAVersement[]
   canPay: boolean
+  telephone: string
   onPay: (t: PayTarget) => void
 }) {
   if (versements.length === 0) return null
@@ -146,7 +147,7 @@ function VersementsTimeline({ versements, canPay, onPay }: {
                 <div className="flex items-center gap-2 flex-wrap">
                   <StatutBadge statut={v.statut} />
                   {isPaid && v.id && (
-                    <a href={`/recu/${v.id}`} target="_blank" rel="noreferrer"
+                    <a href={`/recu/${v.id}?tel=${encodeURIComponent(telephone)}`} target="_blank" rel="noreferrer"
                       title="Télécharger le reçu"
                       className="flex items-center gap-1 font-mono text-xs text-paper/65 hover:text-brass-light transition-colors border border-paper/10 rounded-full px-2 py-0.5 hover:border-brass/30">
                       <FileText className="w-2.5 h-2.5" /> Reçu
@@ -266,7 +267,7 @@ function InfoCell({ label, value, icon, highlight }: { label: string; value: str
 }
 
 /* ── Carte commande ── */
-function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; telephone: string }) {
+function CommandeCard({ commande, telephone, dossierValide }: { commande: CommandeWithDetails; telephone: string; dossierValide: boolean }) {
   const [payTarget, setPayTarget] = useState<PayTarget | null>(null)
   const [openVers,  setOpenVers]  = useState(true)
   const [openLiv,   setOpenLiv]   = useState(true)
@@ -274,7 +275,9 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
   const payees = commande.versements.filter(v => v.statut === 'PAYE').length
   const total  = commande.versements.length || commande.nb_mensualites
   const pct    = total > 0 ? Math.round((payees / total) * 100) : 0
-  const canPay = commande.statut === 'EN_COURS'
+  const canPay = commande.statut === 'EN_COURS' || commande.statut === 'EN_RETARD'
+  const apportDu = commande.prix_vente - commande.nb_mensualites * commande.montant_mensualite
+  const canPayApport = (canPay || (commande.statut === 'EN_ATTENTE' && dossierValide)) && commande.apport_paye === 0 && apportDu > 0
   const retards = commande.versements.filter(v => v.statut === 'EN_RETARD').length
 
   return (
@@ -337,12 +340,21 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
         )}
 
         {/* Apport non payé */}
-        {canPay && commande.apport_paye === 0 && commande.prix_vente > 0 && (
+        {canPayApport && (
           <button
-            onClick={() => setPayTarget({ type: 'APPORT', id: commande.id, montant: commande.prix_vente - commande.nb_mensualites * commande.montant_mensualite, label: 'Apport initial' })}
+            onClick={() => setPayTarget({ type: 'APPORT', id: commande.id, montant: apportDu, label: 'Apport initial' })}
             className="mt-3 w-full flex items-center justify-center gap-2 font-body text-sm font-medium bg-brass/12 hover:bg-brass/20 border border-brass/25 text-brass-light px-4 py-3 rounded-xl transition-colors">
             <CreditCard className="w-4 h-4" /> Payer l&apos;apport initial
           </button>
+        )}
+
+        {/* Commande en attente : rien à payer tant que le dossier n'est pas validé */}
+        {commande.statut === 'EN_ATTENTE' && !canPayApport && (
+          <p className="mt-3 font-mono text-xs text-brass/70 leading-relaxed">
+            {dossierValide
+              ? 'Votre commande sera activée prochainement par SEMOU GROUP.'
+              : 'Aucun paiement à effectuer pour l\u2019instant : vous pourrez payer votre apport dès la validation de votre dossier.'}
+          </p>
         )}
       </div>
 
@@ -360,6 +372,7 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
             <VersementsTimeline
               versements={commande.versements}
               canPay={canPay}
+              telephone={telephone}
               onPay={setPayTarget}
             />
           )}
@@ -381,6 +394,23 @@ function CommandeCard({ commande, telephone }: { commande: CommandeWithDetails; 
   )
 }
 
+/* ── Message au retour de la page de paiement ── */
+function RetourPaiement({ retour }: { retour: 'succes' | 'echec' | null }) {
+  if (retour === 'succes') return (
+    <div className="flex items-start gap-3 bg-spruce/10 border border-spruce/25 rounded-xl p-4 mb-5 text-spruce-light font-body text-sm">
+      <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+      Paiement reçu, merci ! Il apparaîtra sur votre dossier dans quelques instants.
+    </div>
+  )
+  if (retour === 'echec') return (
+    <div className="flex items-start gap-3 bg-clay/10 border border-clay/25 rounded-xl p-4 mb-5 text-clay font-body text-sm">
+      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+      Le paiement n&apos;a pas abouti. Consultez votre dossier pour réessayer.
+    </div>
+  )
+  return null
+}
+
 /* ── Page principale ── */
 type Stage = 'search' | 'loading' | 'result' | 'notfound' | 'error'
 
@@ -390,11 +420,12 @@ export default function Suivi() {
   const [errMsg,        setErrMsg]        = useState('')
   const [result,        setResult]        = useState<ResultData | null>(null)
   const [showSensitive, setShowSensitive] = useState(false)
-  const [payBanner,     setPayBanner]     = useState(false)
+  const [payRetour,     setPayRetour]     = useState<'succes' | 'echec' | null>(null)
 
   useEffect(() => {
     const s = new URLSearchParams(window.location.search).get('paiement')
-    if (s === 'succes') { setPayBanner(true); setTimeout(() => setPayBanner(false), 6000) }
+    if (s === 'succes') setPayRetour('succes')
+    if (s === 'echec' || s === 'annule') setPayRetour('echec')
   }, [])
 
   async function handleSearch(e: React.FormEvent) {
@@ -414,12 +445,7 @@ export default function Suivi() {
       <div className="min-h-screen px-4 md:px-8 py-10">
         <div className="max-w-2xl mx-auto">
 
-          {/* Banner succès paiement */}
-          {payBanner && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-spruce-light text-paper font-body text-sm px-5 py-3 rounded-full shadow-lg">
-              <CheckCircle2 className="w-4 h-4" /> Paiement confirmé — merci !
-            </div>
-          )}
+          <RetourPaiement retour={payRetour} />
 
           {/* Nav */}
           <div className="flex items-center justify-between mb-8">
@@ -496,7 +522,7 @@ export default function Suivi() {
                 {commandes.length} commande{commandes.length > 1 ? 's' : ''}
               </div>
               {commandes.map(cmd => (
-                <CommandeCard key={cmd.id} commande={cmd} telephone={phone} />
+                <CommandeCard key={cmd.id} commande={cmd} telephone={client.telephone} dossierValide={client.statut === 'VALIDE'} />
               ))}
             </div>
           )}
@@ -530,6 +556,8 @@ export default function Suivi() {
             Entrez le numéro de téléphone enregistré lors de votre inscription.
           </p>
         </div>
+
+        <RetourPaiement retour={payRetour} />
 
         <div className="relative bg-surface border border-paper/6 rounded-2xl glow-green p-6 md:p-8">
           <form onSubmit={handleSearch} className="space-y-6">

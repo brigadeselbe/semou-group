@@ -302,7 +302,7 @@ export default function MonCompte() {
                   )}
 
                   {/* Lien paiement */}
-                  {cmd.statut === 'EN_COURS' && cmd.reste_a_payer > 0 && (
+                  {(cmd.statut === 'EN_COURS' || cmd.statut === 'EN_RETARD' || (cmd.statut === 'EN_ATTENTE' && client.statut === 'VALIDE')) && cmd.reste_a_payer > 0 && (
                     <Link href="/suivi"
                       className="mt-4 flex items-center gap-1.5 font-mono text-xs text-brass/60 hover:text-brass-light transition-colors border-t border-paper/6 pt-3">
                       <ExternalLink className="w-3 h-3" /> Payer en ligne via le suivi
